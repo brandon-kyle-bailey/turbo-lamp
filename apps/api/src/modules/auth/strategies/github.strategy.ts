@@ -51,22 +51,30 @@ export class GithubStrategy extends PassportStrategy(Strategy, PROVIDER) {
       email,
       AccountProvider.GITHUB,
     );
-    if (!account) {
-      const user = await this.userService.create({
-        name: profile.displayName,
-        email,
-        emailVerified: true,
-      });
-      account = await this.accountService.create({
-        userId: user.id,
-        accountId: profile.id,
-        providerId: AccountProvider.GITHUB,
-        scope: SCOPES.join(','),
-        accessToken,
-        refreshToken,
-      });
-      account.user = user;
+
+    if (account) {
+      account.accessToken = accessToken;
+      if (refreshToken) {
+        account.refreshToken = refreshToken;
+      }
+      await this.accountService.update(account.id, account);
+      return account;
     }
+
+    const user = await this.userService.create({
+      name: profile.displayName,
+      email,
+      emailVerified: true,
+    });
+    account = await this.accountService.create({
+      userId: user.id,
+      accountId: profile.id,
+      providerId: AccountProvider.GITHUB,
+      scope: SCOPES.join(','),
+      accessToken,
+      refreshToken,
+    });
+    account.user = user;
     return account;
   }
 }

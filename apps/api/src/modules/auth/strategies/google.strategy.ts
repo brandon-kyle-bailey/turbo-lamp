@@ -1,24 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Profile, Strategy, StrategyOptions } from 'passport-google-oauth20';
+import { Profile, Strategy } from 'passport-google-oauth20';
+import {
+  AccountProvider,
+  EnvironmentVariables,
+  PROVIDERS,
+} from '../../../lib/constants';
 import { AccountsService } from '../../accounts/accounts.service';
 import { Account } from '../../accounts/entities/account.entity';
 import { UsersService } from '../../users/users.service';
-import {
-  PROVIDERS,
-  EnvironmentVariables,
-  AccountProvider,
-} from '../../../lib/constants';
 import { AuthService } from '../auth.service';
 
 const PROVIDER: PROVIDERS = 'google';
 const SCOPES = ['email', 'profile', 'https://www.googleapis.com/auth/calendar'];
-
-interface ExtendedStrategyOptions extends StrategyOptions {
-  accessType?: string;
-  prompt?: string;
-}
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
@@ -43,9 +38,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
         EnvironmentVariables.GOOGLE_CALLBACK_URL,
       )!,
       scope: SCOPES,
-      accessType: 'offline',
+    });
+  }
+
+  authorizationParams() {
+    return {
+      access_type: 'offline',
       prompt: 'consent',
-    } as ExtendedStrategyOptions);
+      session: 'false',
+    };
   }
 
   async validate(
@@ -58,22 +59,36 @@ export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
       email,
       AccountProvider.GOOGLE,
     );
-    if (!account) {
-      const user = await this.userService.create({
-        name: profile.displayName,
-        email,
-        emailVerified: true,
-      });
-      account = await this.accountService.create({
-        userId: user.id,
-        accountId: profile.id,
-        providerId: AccountProvider.GOOGLE,
-        scope: SCOPES.join(','),
-        accessToken,
-        refreshToken,
-      });
-      account.user = user;
+
+    const token_ttl = this.configService.get<number>(
+      EnvironmentVariables.TOKEN_TTL,
+    )!;
+
+    if (account) {
+      account.accessToken = accessToken;
+      account.accessTokenExpiresAt = new Date(Date.now() + token_ttl * 1000);
+      if (refreshToken) {
+        account.refreshToken = refreshToken;
+      }
+      await this.accountService.update(account.id, account);
+      return account;
     }
+
+    const user = await this.userService.create({
+      name: profile.displayName,
+      email,
+      emailVerified: true,
+    });
+    account = await this.accountService.create({
+      userId: user.id,
+      accountId: profile.id,
+      providerId: AccountProvider.GOOGLE,
+      scope: SCOPES.join(','),
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt: new Date(Date.now() + token_ttl * 1000),
+    });
+    account.user = user;
     return account;
   }
 }

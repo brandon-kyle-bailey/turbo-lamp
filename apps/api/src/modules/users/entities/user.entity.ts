@@ -9,6 +9,9 @@ import {
 } from 'typeorm';
 import { Account } from '../../accounts/entities/account.entity';
 import { Session } from '../../sessions/entities/session.entity';
+import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
+import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attendee.entity';
+import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
 
 @Entity('users')
 export class User {
@@ -18,8 +21,20 @@ export class User {
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
 
+  @OneToMany(
+    () => MeetingParticipant,
+    (meetingParticipants) => meetingParticipants.user,
+  )
+  participations: MeetingParticipant[];
+
   @OneToMany(() => Session, (session) => session.user)
   sessions: Session[];
+
+  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.creator)
+  meetingGroups: MeetingGroup[];
+
+  @OneToMany(() => MeetingAttendee, (meetingAttendee) => meetingAttendee.userId)
+  attendances: MeetingAttendee[];
 
   @Column()
   name: string;

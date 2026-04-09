@@ -9,6 +9,7 @@ import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { TokenSchema, TokenService } from './token.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +26,8 @@ export class AuthService {
     private readonly sessionService: SessionsService,
     @Inject(VerificationsService)
     private readonly verificationService: VerificationsService,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
   ) {}
 
   async validateUser(
@@ -73,6 +76,10 @@ export class AuthService {
       userId: account.user.id,
       token: token,
       expiresAt: new Date(Date.now() + token_ttl * 1000),
+    });
+    await this.emailService.sendEmail({
+      to: account.user.email,
+      subject: 'test',
     });
     return session;
   }

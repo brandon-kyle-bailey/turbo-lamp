@@ -14,6 +14,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TokenService } from './token.service';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { TokenService } from './token.service';
     UsersModule,
     SessionsModule,
     VerificationsModule,
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [

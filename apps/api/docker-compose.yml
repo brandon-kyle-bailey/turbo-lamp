@@ -71,6 +71,15 @@ services:
         max-size: 10m
         max-file: '3'
 
+  email:
+    image: mailhog/mailhog:latest
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    networks:
+      - api
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:

@@ -6,12 +6,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
-import { HealthModule } from './modules/health/health.module';
-import { AuthModule } from './modules/auth/auth.module';
 import { EnvironmentVariables } from './lib/constants';
-import { UsersModule } from './modules/users/users.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { EmailModule } from './modules/email/email.module';
+import { HealthModule } from './modules/health/health.module';
+import { MeetingAttendeesModule } from './modules/meeting-attendees/meeting-attendees.module';
+import { MeetingGroupsModule } from './modules/meeting-groups/meeting-groups.module';
+import { MeetingParticipantsModule } from './modules/meeting-participants/meeting-participants.module';
+import { MeetingSlotsModule } from './modules/meeting-slots/meeting-slots.module';
+import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
+import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
 
 @Module({
@@ -32,10 +38,10 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
             EnvironmentVariables.DATABASE_URL,
             'postgres://postgres:postgres@postgres:5432/core',
           ),
-          synchronize: false,
+          synchronize: true,
           autoLoadEntities: true,
           migrations: [__dirname + '/migrations/*.{js,ts}'],
-          migrationsRun: true,
+          // migrationsRun: true,
           retryAttempts: 10,
           retryDelay: 5000,
         };
@@ -83,6 +89,12 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
     AccountsModule,
     SessionsModule,
     VerificationsModule,
+    MeetingGroupsModule,
+    MeetingParticipantsModule,
+    MeetingSlotsModule,
+    MeetingsModule,
+    MeetingAttendeesModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],

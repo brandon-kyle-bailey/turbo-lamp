@@ -12,6 +12,8 @@ export enum EnvironmentVariables {
   GITHUB_CLIENT_SECRET = 'GITHUB_CLIENT_SECRET',
   GITHUB_CALLBACK_URL = 'GITHUB_CALLBACK_URL',
   TOKEN_TTL = 'TOKEN_TTL',
+  RESEND_API_KEY = 'RESEND_API_KEY',
+  RESEND_FROM_EMAIL = 'RESEND_FROM_EMAIL',
 }
 
 export type PROVIDERS = 'github' | 'google';
@@ -21,4 +23,15 @@ export enum AccountProvider {
   CREDENTIALS = 'credentials',
   GOOGLE = 'google',
   GITHUB = 'github',
+}
+
+export enum MeetingGroupStatus {
+  OPEN = 'open',
+  FINALIZED = 'finalized',
+  CANCELLED = 'cancelled',
+}
+
+export enum MeetingStatus {
+  SCHEDULED = 'scheduled',
+  CANCELLED = 'cancelled',
 }

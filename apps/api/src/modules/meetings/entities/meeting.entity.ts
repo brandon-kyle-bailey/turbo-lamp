@@ -1,0 +1,62 @@
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { MeetingStatus } from '../../../lib/constants';
+import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attendee.entity';
+import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
+
+@Entity('meetings')
+export class Meeting {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToMany(
+    () => MeetingAttendee,
+    (meetingAttendee) => meetingAttendee.meeting,
+  )
+  attendees: MeetingAttendee[];
+
+  @Column()
+  meetingGroupId: string;
+
+  @OneToOne(() => MeetingGroup, (meetingGroup) => meetingGroup.meeting, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'meetingGroupId' })
+  meetingGroup: MeetingGroup;
+
+  @Column()
+  start_at: Date;
+
+  @Column()
+  end_at: Date;
+
+  @Column({ type: 'enum', enum: MeetingStatus })
+  status: MeetingStatus;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Column({ nullable: true })
+  createdBy?: string;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({ nullable: true })
+  updatedBy?: string;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
+  @Column({ nullable: true })
+  deletedBy?: string;
+}

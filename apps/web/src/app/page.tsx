@@ -1,20 +1,25 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/header";
+import { Hero } from "@/components/hero";
+import { LogoCloud } from "@/components/logo-cloud";
+import { Features } from "@/components/features";
+import { HowItWorks } from "@/components/how-it-works";
+import { Testimonials } from "@/components/testimonials";
+import { CTA } from "@/components/cta";
+import { Footer } from "@/components/footer";
+import { PricingSection } from "@/components/pricing-section";
 
 export default function Home() {
-  const startOAuth = (provider: "google" | "github") => {
-    window.location.href = `http://localhost:3001/api/core/v1/auth/oauth/${provider}`;
-  };
-
-  const handleSignIn = (provider: "google" | "github") => {
-    startOAuth(provider);
-  };
-
   return (
-    <>
-      <Button onClick={() => handleSignIn("google")}>Login with Google</Button>
-      <Button onClick={() => handleSignIn("github")}>Login with GitHub</Button>
-    </>
+    <main className="min-h-screen bg-background">
+      <Header />
+      <Hero />
+      <LogoCloud />
+      <Features />
+      <HowItWorks />
+      <Testimonials />
+      <PricingSection />
+      <CTA />
+      <Footer />
+    </main>
   );
 }
