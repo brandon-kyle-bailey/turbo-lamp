@@ -20,6 +20,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
 import { CalendarModule } from './modules/calendars/calendar.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -45,6 +46,26 @@ import { CalendarModule } from './modules/calendars/calendar.module';
           // migrationsRun: true,
           retryAttempts: 10,
           retryDelay: 5000,
+        };
+      },
+    }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const privateKey = config.get<string>(
+          EnvironmentVariables.JWT_PRIVATE,
+        )!;
+        const publicKey = config.get<string>(EnvironmentVariables.JWT_PUBLIC)!;
+        return {
+          global: true,
+          privateKey,
+          publicKey,
+          signOptions: {
+            algorithm: 'RS256',
+            expiresIn: config.get<number>(EnvironmentVariables.TOKEN_TTL)!,
+            issuer: 'auth-server',
+            audience: 'api',
+          },
         };
       },
     }),

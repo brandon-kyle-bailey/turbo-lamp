@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { EnvironmentVariables } from 'src/lib/constants';
 import { AccountsModule } from '../accounts/accounts.module';
+import { EmailModule } from '../email/email.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UsersModule } from '../users/users.module';
 import { VerificationsModule } from '../verifications/verifications.module';
@@ -14,31 +12,11 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TokenService } from './token.service';
-import { EmailModule } from '../email/email.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
     PassportModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const privateKey = config.get<string>(
-          EnvironmentVariables.JWT_PRIVATE,
-        )!;
-        const publicKey = config.get<string>(EnvironmentVariables.JWT_PUBLIC)!;
-        return {
-          global: true,
-          privateKey,
-          publicKey,
-          signOptions: {
-            algorithm: 'RS256',
-            expiresIn: config.get<number>(EnvironmentVariables.TOKEN_TTL)!,
-            issuer: 'auth-server',
-            audience: 'api',
-          },
-        };
-      },
-    }),
     AccountsModule,
     UsersModule,
     SessionsModule,
@@ -47,6 +25,7 @@ import { EmailModule } from '../email/email.module';
   ],
   controllers: [AuthController],
   providers: [
+    JwtService,
     TokenService,
     LocalStrategy,
     JwtStrategy,
@@ -54,6 +33,6 @@ import { EmailModule } from '../email/email.module';
     GithubStrategy,
     AuthService,
   ],
-  exports: [AuthService],
+  exports: [AuthService, TokenService],
 })
 export class AuthModule {}

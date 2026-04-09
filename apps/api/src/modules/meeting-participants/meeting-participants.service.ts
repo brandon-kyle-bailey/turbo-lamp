@@ -1,19 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
-import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { VerificationsService } from '../verifications/verifications.service';
+import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
+import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
+import { EnvironmentVariables } from '../../lib/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MeetingParticipantsService {
   constructor(
+    @Inject(ConfigService)
+    private readonly configService: ConfigService,
     @InjectRepository(MeetingParticipant)
     private readonly repository: Repository<MeetingParticipant>,
+    @Inject(VerificationsService)
+    private readonly verificationService: VerificationsService,
   ) {}
   async create(createMeetingParticipantDto: CreateMeetingParticipantDto) {
     const meeting = this.repository.create(createMeetingParticipantDto);
-    return await this.repository.save(meeting);
+    const result = await this.repository.save(meeting);
+    const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
+    const expiresAt = new Date(Date.now() + ttl * 1000);
+    await this.verificationService.create({
+      identifier: 'invite',
+      value: JSON.stringify(createMeetingParticipantDto),
+      expiresAt,
+    });
+    return result;
   }
 
   async findAll() {

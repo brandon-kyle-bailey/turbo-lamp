@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CalendarService } from './calendar.service';
+import { CalendarsService } from './calendar.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CalendarConnection } from './entities/calendar-connection.entity';
 
 @Module({
-  providers: [CalendarService]
+  imports: [TypeOrmModule.forFeature([CalendarConnection])],
+  providers: [CalendarsService],
 })
 export class CalendarModule {}

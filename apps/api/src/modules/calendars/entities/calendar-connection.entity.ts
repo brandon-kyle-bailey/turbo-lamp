@@ -25,7 +25,11 @@ export class CalendarConnection {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'enum', enum: AccountProvider.GOOGLE })
+  @Column({
+    type: 'enum',
+    enum: AccountProvider,
+    default: AccountProvider.GOOGLE,
+  })
   provider: AccountProvider.GOOGLE;
 
   @Column()
