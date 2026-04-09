@@ -19,6 +19,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
+import { CalendarModule } from './modules/calendars/calendar.module';
 
 @Module({
   imports: [
@@ -95,6 +96,7 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
     MeetingsModule,
     MeetingAttendeesModule,
     EmailModule,
+    CalendarModule,
   ],
   controllers: [],
   providers: [],

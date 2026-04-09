@@ -12,7 +12,9 @@ import { MeetingAttendeesService } from './meeting-attendees.service';
 import { CreateMeetingAttendeeDto } from './dto/create-meeting-attendee.dto';
 import { UpdateMeetingAttendeeDto } from './dto/update-meeting-attendee.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'meeting-attendees', version: '1' })
 export class MeetingAttendeesController {

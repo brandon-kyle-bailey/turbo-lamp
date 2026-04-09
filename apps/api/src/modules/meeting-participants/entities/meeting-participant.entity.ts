@@ -16,7 +16,7 @@ export class MeetingParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   userId: string;
 
   @ManyToOne(() => User, (user) => user.participations, {
@@ -37,10 +37,10 @@ export class MeetingParticipant {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ default: false })
   oauth_connected: boolean;
 
-  @Column()
+  @Column({ default: false })
   required: boolean;
 
   @CreateDateColumn()

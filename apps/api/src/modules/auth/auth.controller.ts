@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Inject,
+  Ip,
   Post,
   Req,
   Res,
@@ -16,6 +18,7 @@ import { Account } from '../accounts/entities/account.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -32,8 +35,16 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Req() req: Request & { user: Account }): Promise<Session> {
-    return await this.authService.login(req.user);
+  async login(
+    @Req() req: Request & { user: Account },
+    @Ip() ip: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Body() body: LoginDto,
+  ): Promise<Session> {
+    return await this.authService.login(req.user, {
+      userAgent: req.headers['user-agent'],
+      ip,
+    });
   }
 
   @UseGuards(OAuthGuard)
@@ -45,9 +56,13 @@ export class AuthController {
   async getProviderCallback(
     // @Query('state') state: string,
     @Req() req: Request & { user: Account },
+    @Ip() ip: string,
     @Res() res: express.Response,
   ) {
-    const session = await this.authService.login(req.user);
+    const session = await this.authService.login(req.user, {
+      userAgent: req.headers['user-agent'],
+      ip,
+    });
 
     res.cookie('session', session.token, {
       httpOnly: true,

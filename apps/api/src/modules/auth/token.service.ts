@@ -25,8 +25,11 @@ export class TokenService {
     )!;
     return this.jwtService.sign(payload, {
       ...options,
-      expiresIn: ttl,
+      expiresIn: Number(ttl),
       privateKey,
+      algorithm: 'RS256',
+      issuer: 'auth-server',
+      audience: 'api',
     });
   }
 }

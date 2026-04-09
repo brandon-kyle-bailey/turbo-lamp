@@ -62,7 +62,10 @@ export class AuthService {
     return account;
   }
 
-  async login(account: Account): Promise<Session> {
+  async login(
+    account: Account,
+    metadata?: { userAgent: string | undefined; ip: string | undefined },
+  ): Promise<Session> {
     const payload: TokenSchema = {
       sub: account.user.id,
       username: account.user.email,
@@ -76,6 +79,9 @@ export class AuthService {
       userId: account.user.id,
       token: token,
       expiresAt: new Date(Date.now() + token_ttl * 1000),
+      ipAddress: metadata && metadata.ip ? metadata.ip : undefined,
+      userAgent:
+        metadata && metadata.userAgent ? metadata.userAgent : undefined,
     });
     await this.emailService.sendEmail({
       to: account.user.email,
