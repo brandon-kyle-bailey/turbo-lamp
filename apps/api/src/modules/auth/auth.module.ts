@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AccountsModule } from '../accounts/accounts.module';
-import { EmailModule } from '../email/email.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UsersModule } from '../users/users.module';
 import { VerificationsModule } from '../verifications/verifications.module';
@@ -12,7 +12,6 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TokenService } from './token.service';
-import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -21,7 +20,6 @@ import { JwtService } from '@nestjs/jwt';
     UsersModule,
     SessionsModule,
     VerificationsModule,
-    EmailModule,
   ],
   controllers: [AuthController],
   providers: [

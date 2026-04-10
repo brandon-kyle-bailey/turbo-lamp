@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ import { User } from '../../users/entities/user.entity';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 
 @Entity('meeting_participants')
+@Index(['meetingGroupId', 'email'], { unique: true })
 export class MeetingParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;

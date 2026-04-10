@@ -1,12 +1,15 @@
+import { randomBytes } from 'crypto';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { EnvironmentVariables } from '../../lib/constants';
+import { EmailService } from '../email/email.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
-import { EnvironmentVariables } from '../../lib/constants';
-import { ConfigService } from '@nestjs/config';
+import { TokenService } from '../auth/token.service';
 
 @Injectable()
 export class MeetingParticipantsService {
@@ -17,16 +20,31 @@ export class MeetingParticipantsService {
     private readonly repository: Repository<MeetingParticipant>,
     @Inject(VerificationsService)
     private readonly verificationService: VerificationsService,
+    @Inject(EmailService)
+    private readonly emailService: EmailService,
+    @Inject(TokenService)
+    private readonly tokenService: TokenService,
   ) {}
   async create(createMeetingParticipantDto: CreateMeetingParticipantDto) {
-    const meeting = this.repository.create(createMeetingParticipantDto);
-    const result = await this.repository.save(meeting);
+    const participant = this.repository.create(createMeetingParticipantDto);
+    const result = await this.repository.save(participant);
     const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
     const expiresAt = new Date(Date.now() + ttl * 1000);
-    await this.verificationService.create({
-      identifier: 'invite',
-      value: JSON.stringify(createMeetingParticipantDto),
+
+    const verification = await this.verificationService.create({
+      identifier: randomBytes(32).toString('base64url'),
+      value: this.tokenService.sign({
+        id: participant.meetingGroupId,
+        type: 'meeting-group',
+        after: 'http://localhost:3000/onboarding/complete',
+      }),
       expiresAt,
+    });
+    const url = `http://localhost:3000/onboarding/auth?token=${encodeURIComponent(verification.identifier)}`;
+    await this.emailService.sendEmail({
+      to: participant.email,
+      subject: "You've been invited to collaborate",
+      text: `Click the following link: ${url}\nExpires at: ${expiresAt.toUTCString()}`,
     });
     return result;
   }

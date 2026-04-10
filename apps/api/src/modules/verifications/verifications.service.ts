@@ -1,8 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { TokenService } from '../auth/token.service';
-import { EmailService } from '../email/email.service';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
 import { Verification } from './entities/verification.entity';
@@ -14,34 +13,28 @@ export class VerificationsService {
     private readonly repository: Repository<Verification>,
     @Inject(TokenService)
     private readonly tokenService: TokenService,
-    @Inject(EmailService)
-    private readonly emailService: EmailService,
   ) {}
   async create(createVerificationDto: CreateVerificationDto) {
-    const value: JSON = JSON.parse(createVerificationDto.value) as JSON;
-    const verification = this.repository.create({
-      ...createVerificationDto,
-      value: this.tokenService.sign(value),
-    });
-    const result = await this.repository.save(verification);
-
-    if (Object.keys(value).includes('email')) {
-      await this.emailService.sendEmail({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        to: value['email'],
-        subject: 'Someone invited you to collaborate!',
-        text: `token: ${createVerificationDto.value}`,
-      });
-    }
-    return result;
+    const verification = this.repository.create(createVerificationDto);
+    return await this.repository.save(verification);
   }
 
   async findAll() {
     return await this.repository.find();
   }
 
-  async findOne(id: string) {
-    return await this.repository.findOneBy({ id });
+  async findOne(id: string, relations: (keyof Verification)[] = []) {
+    return await this.findOneBy({ id }, relations);
+  }
+
+  async findOneBy(
+    where: FindOptionsWhere<Verification>,
+    relations: (keyof Verification)[] = [],
+  ) {
+    return await this.repository.findOne({
+      where,
+      relations,
+    });
   }
 
   async update(id: string, updateVerificationDto: UpdateVerificationDto) {

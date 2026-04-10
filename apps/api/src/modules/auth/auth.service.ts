@@ -1,4 +1,10 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { AccountProvider, EnvironmentVariables } from '../../lib/constants';
@@ -8,8 +14,8 @@ import { Session } from '../sessions/entities/session.entity';
 import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
 import { VerificationsService } from '../verifications/verifications.service';
+import { RegisterDto } from './dto/register.dto';
 import { TokenSchema, TokenService } from './token.service';
-import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -26,8 +32,6 @@ export class AuthService {
     private readonly sessionService: SessionsService,
     @Inject(VerificationsService)
     private readonly verificationService: VerificationsService,
-    @Inject(EmailService)
-    private readonly emailService: EmailService,
   ) {}
 
   async validateUser(
@@ -62,6 +66,40 @@ export class AuthService {
     return account;
   }
 
+  async register(
+    register: RegisterDto,
+    metadata?: { userAgent: string | undefined; ip: string | undefined },
+  ): Promise<Session> {
+    const { username, password, confirmPassword } = register;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const isMatch = await bcrypt.compare(confirmPassword, hashedPassword);
+    if (!isMatch) {
+      throw new BadRequestException();
+    }
+    let validated = await this.validateUser(
+      register.username,
+      AccountProvider.CREDENTIALS,
+      register.password,
+    );
+    if (validated) {
+      throw new ConflictException();
+    }
+
+    const user = await this.userService.create({
+      name: username,
+      email: username,
+      emailVerified: false,
+    });
+    validated = await this.accountService.create({
+      userId: user.id,
+      accountId: user.id,
+      providerId: AccountProvider.CREDENTIALS,
+      password: hashedPassword,
+    });
+    validated.user = user;
+    return await this.login(validated, metadata);
+  }
+
   async login(
     account: Account,
     metadata?: { userAgent: string | undefined; ip: string | undefined },
@@ -82,10 +120,6 @@ export class AuthService {
       ipAddress: metadata && metadata.ip ? metadata.ip : undefined,
       userAgent:
         metadata && metadata.userAgent ? metadata.userAgent : undefined,
-    });
-    await this.emailService.sendEmail({
-      to: account.user.email,
-      subject: 'test',
     });
     return session;
   }
