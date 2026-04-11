@@ -43,8 +43,9 @@ export class MeetingParticipantsService {
     const url = `http://localhost:3000/onboarding/auth?token=${encodeURIComponent(verification.identifier)}`;
     await this.emailService.sendEmail({
       to: participant.email,
-      subject: "You've been invited to collaborate",
-      text: `Click the following link: ${url}\nExpires at: ${expiresAt.toUTCString()}`,
+      subject: "You've been invited to attend a booking.",
+      text: `Click the following link to confirm: ${url}\nInvitation expires at ${expiresAt.toString()}`,
+      html: `<p>Click <a href=${url}>here</a> to confirm.<br/>Invitation expires at ${expiresAt.toString()}</p>`,
     });
     return result;
   }

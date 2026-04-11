@@ -65,10 +65,7 @@ export class AuthController {
 
   @UseGuards(OAuthGuard)
   @Get('oauth/:provider')
-  getProvider() {
-    // @Param('provider') provider: PROVIDERS,
-    // @Query('token') token?: string,
-  }
+  getProvider() {}
 
   @UseGuards(OAuthGuard)
   @Get('oauth/callback/:provider')
@@ -92,12 +89,16 @@ export class AuthController {
       identifier: verification.value,
     });
     if (token) {
-      const { after, id, type } = this.tokenService.verify<{
-        id: string;
-        type: string;
-        after: string;
-      }>(token.value);
-      redirect = `${after}?id=${id}&type=${type}`;
+      try {
+        const { after, id, type } = this.tokenService.verify<{
+          id: string;
+          type: string;
+          after: string;
+        }>(token.value);
+        redirect = `${after}?id=${id}&type=${type}`;
+      } catch (err: any) {
+        console.log(err);
+      }
     }
     const session = await this.authService.login(req.user, {
       userAgent: req.headers['user-agent'],
