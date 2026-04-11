@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -12,6 +13,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TokenService } from './token.service';
+import { GoogleAuthManager } from './managers/google-auth.manager';
+import { GoogleTokenService } from './google-token.service';
 
 @Module({
   imports: [
@@ -20,6 +23,7 @@ import { TokenService } from './token.service';
     UsersModule,
     SessionsModule,
     VerificationsModule,
+    HttpModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -30,7 +34,9 @@ import { TokenService } from './token.service';
     GoogleStrategy,
     GithubStrategy,
     AuthService,
+    GoogleTokenService,
+    GoogleAuthManager,
   ],
-  exports: [AuthService, TokenService],
+  exports: [AuthService, TokenService, GoogleAuthManager],
 })
 export class AuthModule {}

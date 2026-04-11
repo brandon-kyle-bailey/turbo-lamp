@@ -19,6 +19,10 @@ export enum EnvironmentVariables {
 export type PROVIDERS = 'github' | 'google';
 export const STRATEGIES: PROVIDERS[] = ['google', 'github'];
 
+export enum CalendarProvider {
+  GOOGLE = 'google',
+}
+
 export enum AccountProvider {
   CREDENTIALS = 'credentials',
   GOOGLE = 'google',

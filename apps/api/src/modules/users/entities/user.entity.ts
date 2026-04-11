@@ -12,6 +12,7 @@ import { Session } from '../../sessions/entities/session.entity';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attendee.entity';
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
+import { Calendar } from '../../calendars/entities/calendar.entity';
 
 @Entity('users')
 export class User {
@@ -21,8 +22,8 @@ export class User {
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
 
-  // @OneToMany(() => CalendarConnection, (calendar) => calendar.user)
-  // calendars: CalendarConnection[];
+  @OneToMany(() => Calendar, (calendar) => calendar.user)
+  calendars: Calendar[];
 
   @OneToMany(
     () => MeetingParticipant,
