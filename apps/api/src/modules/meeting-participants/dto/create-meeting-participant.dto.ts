@@ -3,10 +3,12 @@ import { IsBoolean, IsEmail, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateMeetingParticipantDto {
   @ApiProperty({ description: 'ID of the meeting group' })
+  @IsOptional()
   @IsUUID()
-  meetingGroupId: string;
+  meetingGroupId?: string;
 
   @ApiProperty({ description: 'Email address of the participant' })
+  @IsOptional()
   @IsEmail()
   email: string;
 
@@ -22,4 +24,12 @@ export class CreateMeetingParticipantDto {
   @IsOptional()
   @IsBoolean()
   required?: boolean;
+
+  @ApiProperty({
+    description: 'If the participant has authenticated oauth.',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  oauth_connected?: boolean;
 }

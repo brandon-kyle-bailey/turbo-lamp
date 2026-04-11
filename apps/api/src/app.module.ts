@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
@@ -19,8 +20,6 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
-import { CalendarModule } from './modules/calendars/calendar.module';
-import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -117,7 +116,6 @@ import { JwtModule } from '@nestjs/jwt';
     MeetingsModule,
     MeetingAttendeesModule,
     EmailModule,
-    CalendarModule,
   ],
   controllers: [],
   providers: [],

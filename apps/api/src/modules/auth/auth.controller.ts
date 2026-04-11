@@ -16,6 +16,7 @@ import type { Request } from 'express';
 import express from 'express';
 import { LocalAuthGuard } from 'src/guards/local-auth.guard';
 import { OAuthGuard } from 'src/guards/oauth-auth.guard';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Account } from '../accounts/entities/account.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { VerificationsService } from '../verifications/verifications.service';
@@ -36,6 +37,12 @@ export class AuthController {
     @Inject(VerificationsService)
     private verificationService: VerificationsService,
   ) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  profile(@Req() req: Request & { user: Account }) {
+    return req.user;
+  }
 
   @Post('register')
   async register(
@@ -85,19 +92,17 @@ export class AuthController {
       throw new UnauthorizedException();
     }
     let redirect = 'http://localhost:3000/dashboard';
-    const token = await this.verificationService.findOneBy({
-      identifier: verification.value,
-    });
-    if (token) {
-      try {
-        const { after, id, type } = this.tokenService.verify<{
+    // multi stage verification
+    if (verification.identifier !== verification.value) {
+      const token = await this.verificationService.findOneBy({
+        identifier: verification.value,
+      });
+      if (token) {
+        const { id, after } = this.tokenService.verify<{
           id: string;
-          type: string;
           after: string;
         }>(token.value);
-        redirect = `${after}?id=${id}&type=${type}`;
-      } catch (err: any) {
-        console.log(err);
+        redirect = `${after}/${id}`;
       }
     }
     const session = await this.authService.login(req.user, {

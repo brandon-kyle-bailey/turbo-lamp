@@ -7,12 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { MeetingParticipantsService } from './meeting-participants.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Account } from '../accounts/entities/account.entity';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -24,6 +26,7 @@ export class MeetingParticipantsController {
 
   @Post()
   async create(
+    @Req() req: Request & { user: Account },
     @Body() createMeetingParticipantDto: CreateMeetingParticipantDto,
   ) {
     return await this.meetingParticipantsService.create(
@@ -32,17 +35,22 @@ export class MeetingParticipantsController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(@Req() req: Request & { user: Account }) {
+    console.log(req.user);
     return await this.meetingParticipantsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
     return await this.meetingParticipantsService.findOne(id);
   }
 
   @Patch(':id')
   async update(
+    @Req() req: Request & { user: Account },
     @Param('id') id: string,
     @Body() updateMeetingParticipantDto: UpdateMeetingParticipantDto,
   ) {
@@ -53,7 +61,10 @@ export class MeetingParticipantsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
     return await this.meetingParticipantsService.remove(id);
   }
 }

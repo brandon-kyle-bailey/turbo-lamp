@@ -34,8 +34,7 @@ export class MeetingParticipantsService {
     const verification = await this.verificationService.create({
       identifier: randomBytes(32).toString('base64url'),
       value: this.tokenService.sign({
-        id: participant.meetingGroupId,
-        type: 'meeting-group',
+        id: participant.id,
         after: 'http://localhost:3000/onboarding/complete',
       }),
       expiresAt,

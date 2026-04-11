@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MeetingAttendeesService } from './meeting-attendees.service';
-import { MeetingAttendeesController } from './meeting-attendees.controller';
-import { MeetingAttendee } from './entities/meeting-attendee.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MeetingParticipantsModule } from '../meeting-participants/meeting-participants.module';
+import { MeetingAttendee } from './entities/meeting-attendee.entity';
+import { MeetingAttendeesController } from './meeting-attendees.controller';
+import { MeetingAttendeesService } from './meeting-attendees.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([MeetingAttendee]),
-    MeetingParticipantsModule,
-  ],
+  imports: [TypeOrmModule.forFeature([MeetingAttendee])],
   controllers: [MeetingAttendeesController],
   providers: [MeetingAttendeesService],
   exports: [MeetingAttendeesService],

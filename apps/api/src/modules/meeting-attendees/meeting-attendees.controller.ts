@@ -1,49 +1,52 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { MeetingAttendeesService } from './meeting-attendees.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Account } from '../accounts/entities/account.entity';
 import { CreateMeetingAttendeeDto } from './dto/create-meeting-attendee.dto';
 import { UpdateMeetingAttendeeDto } from './dto/update-meeting-attendee.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
+import { MeetingAttendeesService } from './meeting-attendees.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'meeting-attendees', version: '1' })
 export class MeetingAttendeesController {
-  constructor(
-    private readonly participantService: MeetingParticipantsService,
-    private readonly attendeeService: MeetingAttendeesService,
-  ) {}
+  constructor(private readonly attendeeService: MeetingAttendeesService) {}
 
   @Post()
-  async create(@Body() createMeetingAttendeeDto: CreateMeetingAttendeeDto) {
-    const participant = await this.participantService.findOneBy({
-      email: createMeetingAttendeeDto.email,
-    });
+  async create(
+    @Req() req: Request & { user: Account },
+    @Body() createMeetingAttendeeDto: CreateMeetingAttendeeDto,
+  ) {
     return await this.attendeeService.create(createMeetingAttendeeDto);
   }
 
   @Get()
-  async findAll() {
+  async findAll(@Req() req: Request & { user: Account }) {
+    console.log(req.user);
     return await this.attendeeService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
     return await this.attendeeService.findOne(id);
   }
 
   @Patch(':id')
   async update(
+    @Req() req: Request & { user: Account },
     @Param('id') id: string,
     @Body() updateMeetingAttendeeDto: UpdateMeetingAttendeeDto,
   ) {
@@ -51,7 +54,10 @@ export class MeetingAttendeesController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
     return await this.attendeeService.remove(id);
   }
 }

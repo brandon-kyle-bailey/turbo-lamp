@@ -13,7 +13,6 @@ import { Account } from '../accounts/entities/account.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionsService } from '../sessions/sessions.service';
 import { UsersService } from '../users/users.service';
-import { VerificationsService } from '../verifications/verifications.service';
 import { RegisterDto } from './dto/register.dto';
 import { TokenSchema, TokenService } from './token.service';
 
@@ -30,8 +29,6 @@ export class AuthService {
     private readonly userService: UsersService,
     @Inject(SessionsService)
     private readonly sessionService: SessionsService,
-    @Inject(VerificationsService)
-    private readonly verificationService: VerificationsService,
   ) {}
 
   async validateUser(
