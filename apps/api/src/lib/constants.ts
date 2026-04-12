@@ -39,3 +39,16 @@ export enum MeetingStatus {
   SCHEDULED = 'scheduled',
   CANCELLED = 'cancelled',
 }
+
+export const SANITIZED_ROUTES = {
+  dashboard: '/dashboard',
+  onboarding_complete: '/onboarding/complete',
+} as const;
+
+export type VERIFICATION_TYPES = 'oauth_state' | 'invite';
+
+export interface VerificationValue {
+  type: VERIFICATION_TYPES;
+  id: string;
+  after: keyof typeof SANITIZED_ROUTES;
+}

@@ -1,7 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { TokenService } from '../auth/token.service';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
 import { Verification } from './entities/verification.entity';
@@ -11,9 +10,26 @@ export class VerificationsService {
   constructor(
     @InjectRepository(Verification)
     private readonly repository: Repository<Verification>,
-    @Inject(TokenService)
-    private readonly tokenService: TokenService,
+    private readonly dataSource: DataSource,
   ) {}
+
+  async consume(identifier: string): Promise<Verification | null> {
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(Verification);
+
+      const record = await repo.findOne({
+        where: { identifier },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!record) return null;
+
+      await repo.remove(record);
+
+      return record;
+    });
+  }
+
   async create(createVerificationDto: CreateVerificationDto) {
     const verification = this.repository.create(createVerificationDto);
     return await this.repository.save(verification);

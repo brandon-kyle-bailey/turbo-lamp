@@ -1,15 +1,15 @@
-import { randomBytes } from 'crypto';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { EnvironmentVariables } from '../../lib/constants';
+import { EnvironmentVariables, VerificationValue } from '../../lib/constants';
+import { TokenService } from '../auth/token.service';
 import { EmailService } from '../email/email.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
-import { TokenService } from '../auth/token.service';
 
 @Injectable()
 export class MeetingParticipantsService {
@@ -34,9 +34,10 @@ export class MeetingParticipantsService {
     const verification = await this.verificationService.create({
       identifier: randomBytes(32).toString('base64url'),
       value: this.tokenService.sign({
+        type: 'invite',
         id: participant.id,
-        after: 'http://localhost:3000/onboarding/complete',
-      }),
+        after: 'onboarding_complete',
+      } as VerificationValue),
       expiresAt,
     });
     const url = `http://localhost:3000/onboarding/auth?token=${encodeURIComponent(verification.identifier)}`;

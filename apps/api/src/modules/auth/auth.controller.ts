@@ -15,8 +15,9 @@ import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import express from 'express';
 import { LocalAuthGuard } from 'src/guards/local-auth.guard';
-import { OAuthGuard } from 'src/guards/oauth-auth.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { OAuthInitiationGuard } from '../../guards/oauth-initiation.guard';
+import { SANITIZED_ROUTES, VerificationValue } from '../../lib/constants';
 import { Account } from '../accounts/entities/account.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { VerificationsService } from '../verifications/verifications.service';
@@ -24,6 +25,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TokenService } from './token.service';
+import { OAuthGuard } from '../../guards/oauth-auth.guard';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -70,7 +72,7 @@ export class AuthController {
     });
   }
 
-  @UseGuards(OAuthGuard)
+  @UseGuards(OAuthInitiationGuard)
   @Get('oauth/:provider')
   getProvider() {}
 
@@ -82,29 +84,24 @@ export class AuthController {
     @Ip() ip: string,
     @Res() res: express.Response,
   ) {
-    const verification = await this.verificationService.findOneBy({
-      identifier: state,
-    });
+    const verification = await this.verificationService.consume(state);
+
     if (!verification) {
       throw new UnauthorizedException();
     }
-    if (verification.expiresAt && verification.expiresAt <= new Date()) {
-      throw new UnauthorizedException();
+
+    let redirect: string = SANITIZED_ROUTES.dashboard;
+
+    if (verification.value !== '') {
+      const payload = this.tokenService.verify<VerificationValue>(
+        verification.value,
+      );
+      const base = SANITIZED_ROUTES[payload.after];
+      if (!base) throw new UnauthorizedException();
+
+      redirect = `${base}/${payload.id}`;
     }
-    let redirect = 'http://localhost:3000/dashboard';
-    // multi stage verification
-    if (verification.identifier !== verification.value) {
-      const token = await this.verificationService.findOneBy({
-        identifier: verification.value,
-      });
-      if (token) {
-        const { id, after } = this.tokenService.verify<{
-          id: string;
-          after: string;
-        }>(token.value);
-        redirect = `${after}/${id}`;
-      }
-    }
+
     const session = await this.authService.login(req.user, {
       userAgent: req.headers['user-agent'],
       ip,
@@ -117,8 +114,9 @@ export class AuthController {
       domain: 'localhost',
       path: '/',
     });
+
     console.log(redirect);
     res.json({ token: session.token });
-    // res.redirect(redirect);
+    // res.redirect(`http://localhost:3000${redirect}`);
   }
 }
