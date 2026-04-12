@@ -110,10 +110,11 @@ export class AuthService {
       EnvironmentVariables.TOKEN_TTL,
     )!;
     const token = this.tokenService.sign(payload);
+    const expiresAt = new Date(Date.now() + token_ttl * 1000);
     const session = await this.sessionService.create({
       userId: account.user.id,
       token: token,
-      expiresAt: new Date(Date.now() + token_ttl * 1000),
+      expiresAt,
       ipAddress: metadata && metadata.ip ? metadata.ip : undefined,
       userAgent:
         metadata && metadata.userAgent ? metadata.userAgent : undefined,

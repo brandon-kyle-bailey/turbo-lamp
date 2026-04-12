@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
+import { GoogleAuthManager } from '../../auth/managers/google-auth.manager';
 import {
   Calendar,
   CalendarEvent,
@@ -12,14 +13,14 @@ import {
   ListEventsParams,
   UpdateEventParams,
 } from '../external-calendar.service';
-import { GoogleAuthManager } from '../../auth/managers/google-auth.manager';
 
 type GoogleCalendarEvent = {
   id: string;
+  status?: string;
   summary?: string;
   description?: string;
-  start?: { dateTime?: string; date?: string };
-  end?: { dateTime?: string; date?: string };
+  start?: { dateTime?: string; date?: string; timeZone?: string };
+  end?: { dateTime?: string; date?: string; timeZone?: string };
 };
 
 type GoogleCalendarListItem = {
@@ -59,7 +60,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
       id: c.id,
       summary: c.summary,
       description: c.description,
-      timeZone: c.timeZone,
+      timezone: c.timeZone,
       accessRole: c.accessRole,
       primary: c.primary || false,
     }));
@@ -69,7 +70,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
     const accessToken = await this.auth.getValidAccessToken(params.account);
 
     const { timeMin, timeMax, calendarId = 'primary' } = params;
-
     const { data } = await firstValueFrom<{
       data: { items: GoogleCalendarEvent[] };
     }>(
@@ -90,11 +90,14 @@ export class GoogleCalendarProvider implements CalendarProvider {
       id: e.id,
       summary: e.summary,
       description: e.description,
+      status: e.status,
       start: {
         dateTime: e.start?.dateTime ?? '',
+        timezone: e.start?.timeZone ?? '',
       },
       end: {
         dateTime: e.end?.dateTime ?? '',
+        timezone: e.start?.timeZone ?? '',
       },
     }));
   }

@@ -117,6 +117,8 @@ export class AuthController {
       domain: 'localhost',
       path: '/',
     });
-    res.redirect(redirect);
+    console.log(redirect);
+    res.json({ token: session.token });
+    // res.redirect(redirect);
   }
 }

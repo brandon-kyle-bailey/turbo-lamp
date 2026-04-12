@@ -8,7 +8,9 @@ export type Calendar = {
   id: string;
   summary?: string;
   description?: string;
-  timeZone?: string;
+  timezone?: string;
+  primary?: boolean;
+  accessRole?: string;
 };
 
 export type CalendarEventTime = {

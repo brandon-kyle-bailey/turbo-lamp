@@ -13,6 +13,10 @@ export class CreateCalendarDto {
   @IsUUID()
   userId: string;
 
+  @ApiProperty({ description: 'The name of the calendar' })
+  @IsString()
+  name: string;
+
   @ApiProperty({ description: 'The timezone of the calendar' })
   @IsTimeZone()
   timezone: string;

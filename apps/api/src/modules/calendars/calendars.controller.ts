@@ -3,20 +3,20 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Account } from '../accounts/entities/account.entity';
+import { CalendarsService } from './calendars.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
-import { CalendarsService } from './calendars.service';
-import { AccountsService } from '../accounts/accounts.service';
 import { ExternalCalendarService } from './external-calendar.service';
 
 @ApiBearerAuth()
@@ -26,9 +26,38 @@ export class CalendarsController {
   constructor(
     private readonly calendarService: CalendarsService,
     private readonly externalCalendarService: ExternalCalendarService,
-    @Inject(AccountsService)
-    private readonly accountService: AccountsService,
   ) {}
+
+  @Get('external')
+  async findAllExternal(@Req() req: Request & { user: Account }) {
+    const { providerId } = req.user;
+    return await this.externalCalendarService.listCalendars(
+      providerId as 'google',
+      {
+        account: req.user,
+      },
+    );
+  }
+
+  @Get(':id/events')
+  async events(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+    @Query('after') after: Date,
+    @Query('before') before: Date,
+  ) {
+    const calendar = await this.calendarService.findOneBy({ id });
+    if (!calendar) throw new NotFoundException();
+    return await this.externalCalendarService.listEvents(
+      req.user.providerId as 'google',
+      {
+        account: req.user,
+        calendarId: calendar.calendarId,
+        timeMin: after.toString(),
+        timeMax: before.toString(),
+      },
+    );
+  }
 
   @Post()
   async create(
@@ -41,15 +70,18 @@ export class CalendarsController {
     });
   }
 
-  @Get('external')
-  async findAllExternal(@Req() req: Request & { user: Account }) {
-    const { providerId } = req.user;
-    return await this.externalCalendarService.listCalendars(
-      providerId as 'google',
-      {
-        account: req.user,
-      },
+  @Post('batch')
+  async createBatch(
+    @Req() req: Request & { user: Account },
+    @Body() createCalendarDto: CreateCalendarDto[],
+  ) {
+    const promises = createCalendarDto.map((dto) =>
+      this.calendarService.create({
+        ...dto,
+        userId: req.user.userId,
+      }),
     );
+    return await Promise.all(promises);
   }
 
   @Get()
@@ -72,6 +104,8 @@ export class CalendarsController {
     @Param('id') id: string,
     @Body() updateCalendarDto: UpdateCalendarDto,
   ) {
+    const calendar = await this.calendarService.findOneBy({ id });
+    if (!calendar) throw new NotFoundException();
     return await this.calendarService.update(id, {
       ...updateCalendarDto,
       userId: req.user.userId,
@@ -83,6 +117,8 @@ export class CalendarsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
+    const calendar = await this.calendarService.findOneBy({ id });
+    if (!calendar) throw new NotFoundException();
     return await this.calendarService.remove(id);
   }
 }
