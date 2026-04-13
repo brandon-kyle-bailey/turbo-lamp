@@ -57,8 +57,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     );
 
     return (data.items ?? []).map((c) => ({
-      id: c.id,
-      summary: c.summary,
+      providerId: params.account.providerId,
+      calendarId: c.id,
+      name: c.summary,
       description: c.description,
       timezone: c.timeZone,
       accessRole: c.accessRole,

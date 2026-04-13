@@ -114,9 +114,6 @@ export class AuthController {
       domain: 'localhost',
       path: '/',
     });
-
-    console.log(redirect);
-    res.json({ token: session.token });
-    // res.redirect(`http://localhost:3000${redirect}`);
+    res.redirect(`http://localhost:3000${redirect}`);
   }
 }

@@ -3,13 +3,16 @@ import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
+import { UseCacheInterceptor } from './interceptors/cache.interceptor';
 import { EnvironmentVariables } from './lib/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CalendarsModule } from './modules/calendars/calendars.module';
 import { EmailModule } from './modules/email/email.module';
 import { HealthModule } from './modules/health/health.module';
 import { MeetingAttendeesModule } from './modules/meeting-attendees/meeting-attendees.module';
@@ -20,7 +23,6 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
-import { CalendarsModule } from './modules/calendars/calendars.module';
 
 @Module({
   imports: [
@@ -79,9 +81,9 @@ import { CalendarsModule } from './modules/calendars/calendars.module';
         );
         return {
           stores: [
-            new Keyv({ store: new KeyvRedis(redisUrl), ttl: 5_000 }),
+            new Keyv({ store: new KeyvRedis(redisUrl), ttl: 10_000 }),
             new Keyv({
-              store: new CacheableMemory({ ttl: 5_000, lruSize: 5_000 }),
+              store: new CacheableMemory({ ttl: 10_000, lruSize: 10_000 }),
             }),
           ],
         };
@@ -120,6 +122,11 @@ import { CalendarsModule } from './modules/calendars/calendars.module';
     CalendarsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UseCacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}

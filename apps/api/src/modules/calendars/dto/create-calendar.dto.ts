@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString, IsTimeZone, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  IsUUID,
+} from 'class-validator';
 import { CalendarProvider } from '../../../lib/constants';
 
 export class CreateCalendarDto {
@@ -10,6 +16,7 @@ export class CreateCalendarDto {
   @IsString()
   calendarId: string;
 
+  @IsOptional()
   @IsUUID()
   userId: string;
 

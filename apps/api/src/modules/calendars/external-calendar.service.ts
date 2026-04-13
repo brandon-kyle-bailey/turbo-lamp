@@ -5,8 +5,9 @@ import { GoogleCalendarProvider } from './providers/google-calendar.provider';
 export type CalendarProviderType = 'google';
 
 export type Calendar = {
-  id: string;
-  summary?: string;
+  calendarId: string;
+  providerId: string;
+  name?: string;
   description?: string;
   timezone?: string;
   primary?: boolean;
