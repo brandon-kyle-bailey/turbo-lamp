@@ -1,5 +1,6 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { createContext, useContext } from "react";
 
 export interface Profile {
@@ -29,6 +30,6 @@ export function ProfileProvider({
 
 export function useProfile() {
   const ctx = useContext(ProfileContext);
-  if (!ctx) throw new Error("useProfile must be used within ProfileProvider");
+  if (!ctx) redirect("/login");
   return ctx;
 }
