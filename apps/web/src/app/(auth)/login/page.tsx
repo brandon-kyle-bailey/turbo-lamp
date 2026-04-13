@@ -1,27 +1,69 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { useRouter } from "next/navigation";
+
+const formSchema = z.object({
+  email: z.email(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters.")
+    .regex(/[A-Z]/, "Password must include at least one uppercase letter")
+    .regex(
+      /[!@#$%^&*(),.?":{}|<>]/,
+      "Password must include at least one special character",
+    ),
+});
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Simulate login
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const res = await fetch("http://localhost:3001/api/core/v1/auth/login", {
+      credentials: "include",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: data.email,
+        password: data.password,
+      }),
+    });
+
+    if (res.status !== 201) {
+      toast.error("Login failed");
+      return;
+    }
+
+    router.push("/dashboard");
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-6">
-      {/* Background pattern */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 left-1/2 h-[800px] w-[800px] -translate-x-1/2 rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -top-1/2 left-1/2 h-800 w-800 -translate-x-1/2 rounded-full bg-accent/5 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -51,50 +93,66 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-foreground"
-              >
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@company.com"
-                required
-                className="h-11 bg-secondary/50"
+          <form
+            id="login"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
+            <FieldGroup>
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      {...field}
+                      id="email"
+                      type="email"
+                      aria-invalid={fieldState.invalid}
+                      className="bg-secondary/50"
+                      placeholder="hello@world.com"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
               />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Password
-                </label>
-                <Link
-                  href="#"
-                  className="text-sm text-muted-foreground transition-colors hover:text-accent"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                required
-                className="h-11 bg-secondary/50"
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <div className="flex justify-between">
+                      <FieldLabel htmlFor="password">Password</FieldLabel>
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm text-muted-foreground transition-colors hover:text-accent"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <Input
+                      {...field}
+                      id="password"
+                      type="password"
+                      placeholder="Enter Your Password"
+                      className="bg-secondary/50"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
               />
-            </div>
-
-            <Button type="submit" className="mt-2 h-11" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
+            </FieldGroup>
+            <Field orientation="horizontal">
+              <Button className="w-full" type="submit" form="login">
+                Sign In
+              </Button>
+            </Field>
           </form>
 
           <div className="relative my-6">

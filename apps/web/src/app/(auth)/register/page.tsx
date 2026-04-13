@@ -1,10 +1,22 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 
 const benefits = [
   "14-day free trial, no credit card required",
@@ -13,22 +25,70 @@ const benefits = [
   "Works with Google, Outlook & more",
 ];
 
-export default function RegisterPage() {
-  const [isLoading, setIsLoading] = useState(false);
+const formSchema = z
+  .object({
+    email: z.email(),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .regex(/[A-Z]/, "Password must include at least one uppercase letter")
+      .regex(
+        /[!@#$%^&*(),.?":{}|<>]/,
+        "Password must include at least one special character",
+      ),
+    confirmPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .regex(/[A-Z]/, "Password must include at least one uppercase letter")
+      .regex(
+        /[!@#$%^&*(),.?":{}|<>]/,
+        "Password must include at least one special character",
+      ),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must be the same",
+    path: ["confirmPassword"],
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+export default function RegisterPage() {
+  const router = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const res = await fetch("http://localhost:3001/api/core/v1/auth/register", {
+      credentials: "include",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      }),
+    });
+
+    if (res.status !== 201) {
+      toast.error("Registration failed");
+      return;
+    }
+
+    router.push("/dashboard");
+  }
 
   return (
     <div className="relative flex min-h-screen">
       {/* Background pattern */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 left-1/4 h-[800px] w-[800px] -translate-x-1/2 rounded-full bg-accent/5 blur-3xl" />
-        <div className="absolute -bottom-1/2 right-1/4 h-[600px] w-[600px] translate-x-1/2 rounded-full bg-accent/3 blur-3xl" />
+        <div className="absolute -top-1/2 left-1/4 h-800p w-800 -translate-x-1/2 rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -bottom-1/2 right-1/4 h-600 w-600p translate-x-1/2 rounded-full bg-accent/3 blur-3xl" />
       </div>
 
       {/* Left side - Benefits */}
@@ -97,78 +157,80 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="firstName"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    First name
-                  </label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    placeholder="John"
-                    required
-                    className="h-11 bg-secondary/50"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="lastName"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Last name
-                  </label>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    required
-                    className="h-11 bg-secondary/50"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="email"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Work email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@company.com"
-                  required
-                  className="h-11 bg-secondary/50"
+            <form
+              id="register"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-4"
+            >
+              <FieldGroup>
+                <Controller
+                  name="email"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="email">Work Email</FieldLabel>
+                      <Input
+                        {...field}
+                        id="email"
+                        type="email"
+                        aria-invalid={fieldState.invalid}
+                        className="bg-secondary/50"
+                        placeholder="hello@world.com"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
                 />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Create a strong password"
-                  required
-                  className="h-11 bg-secondary/50"
+                <Controller
+                  name="password"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="password">Password</FieldLabel>
+                      <Input
+                        {...field}
+                        id="password"
+                        type="password"
+                        placeholder="Enter Your Password"
+                        className="bg-secondary/50"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters
-                </p>
-              </div>
-
-              <Button type="submit" className="mt-2 h-11" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create account"}
-              </Button>
+                <Controller
+                  name="confirmPassword"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="confirmPassword">
+                        Confirm Password
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm Your Password"
+                        className="bg-secondary/50"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
+              <Field orientation="horizontal">
+                <Button className="w-full" type="submit" form="register">
+                  Create Account
+                </Button>
+              </Field>
             </form>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">
