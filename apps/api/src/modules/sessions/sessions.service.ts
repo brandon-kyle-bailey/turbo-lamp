@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
@@ -20,13 +20,13 @@ export class SessionsService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof Session)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<Session>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where: FindOptionsWhere<Session>,
-    relations: (keyof Session)[],
+    relations?: FindOptionsRelations<Session>,
   ) {
     return await this.repository.findOne({
       where,

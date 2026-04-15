@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -20,11 +20,14 @@ export class UsersService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof User)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<User>) {
     return await this.findOneBy({ id }, relations);
   }
 
-  async findOneBy(where: FindOptionsWhere<User>, relations: (keyof User)[]) {
+  async findOneBy(
+    where: FindOptionsWhere<User>,
+    relations?: FindOptionsRelations<User>,
+  ) {
     return await this.repository.findOne({
       where,
       relations,

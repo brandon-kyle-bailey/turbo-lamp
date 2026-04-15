@@ -42,7 +42,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         providerId: payload.provider,
         user: { id: payload.sub, email: payload.username },
       },
-      ['user'],
+      { user: true },
     );
 
     if (!account) {

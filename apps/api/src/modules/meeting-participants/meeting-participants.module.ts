@@ -7,12 +7,14 @@ import { VerificationsModule } from '../verifications/verifications.module';
 import { EmailModule } from '../email/email.module';
 import { TokenService } from '../auth/token.service';
 import { JwtService } from '@nestjs/jwt';
+import { MeetingSlotsModule } from '../meeting-slots/meeting-slots.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([MeetingParticipant]),
     VerificationsModule,
     EmailModule,
+    MeetingSlotsModule,
   ],
   controllers: [MeetingParticipantsController],
   providers: [JwtService, TokenService, MeetingParticipantsService],

@@ -1,27 +1,32 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { MeetingParticipantsService } from './meeting-participants.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Account } from '../accounts/entities/account.entity';
+import { MeetingSlotsService } from '../meeting-slots/meeting-slots.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { Account } from '../accounts/entities/account.entity';
+import { MeetingParticipantsService } from './meeting-participants.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'meeting-participants', version: '1' })
 export class MeetingParticipantsController {
   constructor(
+    @Inject(MeetingParticipantsService)
     private readonly meetingParticipantsService: MeetingParticipantsService,
+    @Inject(MeetingSlotsService)
+    private readonly meetingSlotsService: MeetingSlotsService,
   ) {}
 
   @Post()
@@ -54,10 +59,14 @@ export class MeetingParticipantsController {
     @Param('id') id: string,
     @Body() updateMeetingParticipantDto: UpdateMeetingParticipantDto,
   ) {
-    return await this.meetingParticipantsService.update(
+    const result = await this.meetingParticipantsService.update(
       id,
       updateMeetingParticipantDto,
     );
+
+    await this.meetingSlotsService.calculate(result.meetingGroupId);
+
+    return result;
   }
 
   @Delete(':id')

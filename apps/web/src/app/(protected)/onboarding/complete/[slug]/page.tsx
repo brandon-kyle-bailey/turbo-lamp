@@ -14,9 +14,10 @@ export default function Page() {
     if (ran.current) return;
     if (!slug || !profile) return;
 
-    ran.current = true;
+    // ran.current = true;
 
     fetch(`http://localhost:3001/api/core/v1/meeting-participants/${slug}`, {
+      credentials: "include",
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -27,7 +28,7 @@ export default function Page() {
         oauth_connected: profile.providerId !== "credentials",
       }),
     }).then(() => {
-      router.replace("/dashboard");
+      // router.replace("/dashboard");
     });
   }, [slug, profile, router]);
 

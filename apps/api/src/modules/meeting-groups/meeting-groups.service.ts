@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { MeetingGroup } from './entities/meeting-group.entity';
 
 @Injectable()
@@ -20,13 +20,13 @@ export class MeetingGroupsService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof MeetingGroup)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<MeetingGroup>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where: FindOptionsWhere<MeetingGroup>,
-    relations: (keyof MeetingGroup)[] = [],
+    relations?: FindOptionsRelations<MeetingGroup>,
   ) {
     return await this.repository.findOne({
       where,

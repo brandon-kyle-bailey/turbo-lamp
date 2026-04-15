@@ -1,6 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  DataSource,
+  FindOptionsRelations,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
 import { Verification } from './entities/verification.entity';
@@ -39,13 +44,13 @@ export class VerificationsService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof Verification)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<Verification>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where: FindOptionsWhere<Verification>,
-    relations: (keyof Verification)[] = [],
+    relations?: FindOptionsRelations<Verification>,
   ) {
     return await this.repository.findOne({
       where,

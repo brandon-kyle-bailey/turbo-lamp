@@ -44,7 +44,7 @@ export class AuthService {
         providerId: provider,
         user: { email: username },
       },
-      ['user'],
+      { user: true },
     );
 
     if (!account) {

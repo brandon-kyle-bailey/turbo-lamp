@@ -19,8 +19,8 @@ type GoogleCalendarEvent = {
   status?: string;
   summary?: string;
   description?: string;
-  start?: { dateTime?: string; date?: string; timeZone?: string };
-  end?: { dateTime?: string; date?: string; timeZone?: string };
+  start: { dateTime: string; date?: string; timeZone?: string };
+  end: { dateTime: string; date?: string; timeZone?: string };
 };
 
 type GoogleCalendarListItem = {
@@ -71,6 +71,7 @@ export class GoogleCalendarProvider implements CalendarProvider {
     const accessToken = await this.auth.getValidAccessToken(params.account);
 
     const { timeMin, timeMax, calendarId = 'primary' } = params;
+
     const { data } = await firstValueFrom<{
       data: { items: GoogleCalendarEvent[] };
     }>(
@@ -87,17 +88,18 @@ export class GoogleCalendarProvider implements CalendarProvider {
       }),
     );
 
+    console.log(calendarId, data.items.length, data.items);
     return (data.items ?? []).map((e) => ({
       id: e.id,
       summary: e.summary,
       description: e.description,
       status: e.status,
       start: {
-        dateTime: e.start?.dateTime ?? '',
+        datetime: new Date(e.start.dateTime),
         timezone: e.start?.timeZone ?? '',
       },
       end: {
-        dateTime: e.end?.dateTime ?? '',
+        datetime: new Date(e.end.dateTime),
         timezone: e.start?.timeZone ?? '',
       },
     }));
@@ -123,8 +125,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
       id: data.id,
       summary: data.summary,
       description: data.description,
-      start: { dateTime: data.start?.dateTime ?? '' },
-      end: { dateTime: data.end?.dateTime ?? '' },
+      start: {
+        datetime: new Date(data.start.dateTime),
+      },
+      end: {
+        datetime: new Date(data.end.dateTime),
+      },
     };
   }
 
@@ -146,8 +152,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
       id: data.id,
       summary: data.summary,
       description: data.description,
-      start: { dateTime: data.start?.dateTime ?? '' },
-      end: { dateTime: data.end?.dateTime ?? '' },
+      start: {
+        datetime: new Date(data.start.dateTime),
+      },
+      end: {
+        datetime: new Date(data.end.dateTime),
+      },
     };
   }
 
@@ -173,8 +183,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
       id: data.id,
       summary: data.summary,
       description: data.description,
-      start: { dateTime: data.start?.dateTime ?? '' },
-      end: { dateTime: data.end?.dateTime ?? '' },
+      start: {
+        datetime: new Date(data.start.dateTime),
+      },
+      end: {
+        datetime: new Date(data.end.dateTime),
+      },
     };
   }
 

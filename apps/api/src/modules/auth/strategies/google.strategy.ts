@@ -60,13 +60,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
       AccountProvider.GOOGLE,
     );
 
-    const token_ttl = this.configService.get<number>(
-      EnvironmentVariables.TOKEN_TTL,
-    )!;
-
     if (account) {
       account.accessToken = accessToken;
-      account.accessTokenExpiresAt = new Date(Date.now() + token_ttl * 1000);
+      account.accessTokenExpiresAt = new Date(Date.now() + 3600 * 1000);
       if (refreshToken) {
         account.refreshToken = refreshToken;
       }
@@ -86,7 +82,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
       scope: SCOPES.join(','),
       accessToken,
       refreshToken,
-      accessTokenExpiresAt: new Date(Date.now() + token_ttl * 1000),
+      accessTokenExpiresAt: new Date(Date.now() + 3600 * 1000),
     });
     account.user = user;
     return account;

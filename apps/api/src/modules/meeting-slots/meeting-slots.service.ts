@@ -1,16 +1,179 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  FindOptionsRelations,
+  FindOptionsWhere,
+  In,
+  Repository,
+} from 'typeorm';
+import { AccountProvider } from '../../lib/constants';
+import {
+  CalendarEvent,
+  ExternalCalendarService,
+} from '../calendars/external-calendar.service';
+import { MeetingGroupsService } from '../meeting-groups/meeting-groups.service';
 import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
 import { UpdateMeetingSlotDto } from './dto/update-meeting-slot.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
 import { MeetingSlot } from './entities/meeting-slot.entity';
+
+function getAvailableSlots(
+  calendars: CalendarEvent[][],
+  windowStart: Date,
+  windowEnd: Date,
+  slotMinutes: number,
+  limit: number,
+) {
+  const windowStartMs = windowStart.getTime();
+  const windowEndMs = windowEnd.getTime();
+  const slotMs = slotMinutes * 60 * 1000;
+
+  // normalize + clamp + validate
+  const allEvents = calendars
+    .flat()
+    .map((e) => {
+      const start = e.start.datetime.getTime();
+      const end = e.end.datetime.getTime();
+
+      return {
+        start: Math.max(start, windowStartMs),
+        end: Math.min(end, windowEndMs),
+      };
+    })
+    .filter((e) => e.start < e.end); // remove invalid / fully out-of-window
+
+  // sort
+  allEvents.sort((a, b) => a.start - b.start);
+
+  // merge overlaps
+  const merged: { start: number; end: number }[] = [];
+  for (const event of allEvents) {
+    if (!merged.length) {
+      merged.push({ ...event });
+      continue;
+    }
+
+    const last = merged[merged.length - 1];
+
+    if (event.start <= last.end) {
+      last.end = Math.max(last.end, event.end);
+    } else {
+      merged.push({ ...event });
+    }
+  }
+
+  // invert to free intervals
+  const free: { start: number; end: number }[] = [];
+  let cursor = windowStartMs;
+
+  for (const busy of merged) {
+    if (busy.start > cursor) {
+      free.push({ start: cursor, end: busy.start });
+    }
+    cursor = Math.max(cursor, busy.end);
+  }
+
+  if (cursor < windowEndMs) {
+    free.push({ start: cursor, end: windowEndMs });
+  }
+
+  // slice into slots
+  const slots: { start: Date; end: Date }[] = [];
+
+  for (const interval of free) {
+    let t = interval.start;
+
+    while (t + slotMs <= interval.end) {
+      slots.push({
+        start: new Date(t),
+        end: new Date(t + slotMs),
+      });
+      t += slotMs;
+    }
+  }
+
+  return slots.slice(0, limit);
+}
 
 @Injectable()
 export class MeetingSlotsService {
   constructor(
     @InjectRepository(MeetingSlot)
     private readonly repository: Repository<MeetingSlot>,
+    @Inject(MeetingGroupsService)
+    private readonly meetingGroupService: MeetingGroupsService,
+    @Inject(ExternalCalendarService)
+    private readonly externalCalendarService: ExternalCalendarService,
   ) {}
+
+  async calculate(meetingGroupId: string) {
+    const meetingGroup = await this.meetingGroupService.findOneBy(
+      {
+        id: meetingGroupId,
+        participants: {
+          oauth_connected: true,
+          user: {
+            accounts: {
+              providerId: In([AccountProvider.GOOGLE]),
+            },
+            calendars: {
+              providerId: In([AccountProvider.GOOGLE]),
+            },
+          },
+        },
+      },
+      {
+        participants: {
+          user: {
+            accounts: true,
+            calendars: true,
+          },
+        },
+      },
+    );
+    if (!meetingGroup) return;
+
+    const timeMin = meetingGroup.after.toISOString();
+    const timeMax = meetingGroup.before.toISOString();
+
+    const results = await Promise.all(
+      meetingGroup.participants.flatMap((participant) => {
+        const account = participant.user.accounts[0];
+
+        return participant.user.calendars.map((calendar) =>
+          this.externalCalendarService.listEvents('google', {
+            account: { ...account, user: participant.user },
+            calendarId: calendar.calendarId,
+            timeMin,
+            timeMax,
+          }),
+        );
+      }),
+    );
+    console.log(
+      meetingGroup.after,
+      meetingGroup.before,
+      meetingGroup.duration,
+      results,
+    );
+    const blah = getAvailableSlots(
+      results,
+      meetingGroup.after,
+      meetingGroup.before,
+      meetingGroup.duration,
+      5,
+    );
+    console.log(blah);
+
+    for (const [idx, slot] of blah.entries()) {
+      await this.create({
+        meetingGroupId: meetingGroup.id,
+        start_at: slot.start,
+        end_at: slot.end,
+        rank: idx,
+      });
+    }
+  }
+
   async create(createMeetingSlotDto: CreateMeetingSlotDto) {
     const meeting = this.repository.create(createMeetingSlotDto);
     return await this.repository.save(meeting);
@@ -20,13 +183,13 @@ export class MeetingSlotsService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof MeetingSlot)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<MeetingSlot>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where: FindOptionsWhere<MeetingSlot>,
-    relations: (keyof MeetingSlot)[] = [],
+    relations?: FindOptionsRelations<MeetingSlot>,
   ) {
     return await this.repository.findOne({
       where,

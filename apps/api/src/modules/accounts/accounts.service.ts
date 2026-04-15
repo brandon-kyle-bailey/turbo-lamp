@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
 
 @Injectable()
@@ -20,13 +20,13 @@ export class AccountsService {
     return await this.repository.find();
   }
 
-  async findOne(id: string, relations: (keyof Account)[] = []) {
+  async findOne(id: string, relations?: FindOptionsRelations<Account>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where: FindOptionsWhere<Account>,
-    relations: (keyof Account)[] = [],
+    relations?: FindOptionsRelations<Account>,
   ) {
     return await this.repository.findOne({
       where,
@@ -36,10 +36,11 @@ export class AccountsService {
 
   async update(id: string, updateAccountDto: UpdateAccountDto) {
     const account = await this.findOne(id);
-    return await this.repository.update(id, {
+    await this.repository.update(id, {
       ...account,
       ...updateAccountDto,
     });
+    return { ...account, ...updateAccountDto };
   }
 
   async remove(id: string) {
