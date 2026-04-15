@@ -1,9 +1,12 @@
-import KeyvRedis, { Keyv } from '@keyv/redis';
+import Keyv from 'keyv';
+import KeyvRedis from '@keyv/redis';
 import { HttpModule } from '@nestjs/axios';
+import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -64,7 +67,7 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
           publicKey,
           signOptions: {
             algorithm: 'RS256',
-            expiresIn: config.get<number>(EnvironmentVariables.TOKEN_TTL)!,
+            expiresIn: Number(config.get(EnvironmentVariables.TOKEN_TTL)),
             issuer: 'auth-server',
             audience: 'api',
           },
@@ -74,16 +77,22 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const redisUrl = configService.get<string>(
-          EnvironmentVariables.REDIS_URL,
-          'redis://default@redis:6379',
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get<string>(
+          EnvironmentVariables.REDIS_CACHE_URL,
         );
+        if (!redisUrl) throw new Error('REDIS_CACHE_URL missing');
         return {
           stores: [
-            new Keyv({ store: new KeyvRedis(redisUrl), ttl: 10_000 }),
             new Keyv({
-              store: new CacheableMemory({ ttl: 10_000, lruSize: 10_000 }),
+              store: new CacheableMemory({
+                ttl: 10_000,
+                lruSize: 5_000,
+              }),
+            }),
+            new Keyv({
+              store: new KeyvRedis(redisUrl),
+              ttl: 10_000,
             }),
           ],
         };
@@ -103,9 +112,33 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
       {
         name: 'long',
         ttl: 3_600_000,
-        limit: 1_000,
+        limit: 1000,
       },
     ]),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const url = config.get<string>(EnvironmentVariables.REDIS_QUEUE_URL);
+        if (!url) throw new Error('REDIS_QUEUE_URL missing');
+
+        return {
+          connection: {
+            url,
+            maxRetriesPerRequest: null,
+          },
+          defaultJobOptions: {
+            attempts: 5,
+            backoff: {
+              type: 'exponential',
+              delay: 1000,
+            },
+            removeOnComplete: 1000,
+            removeOnFail: 5000,
+          },
+        };
+      },
+    }),
+    CqrsModule.forRoot(),
     HttpModule,
     AuthModule,
     HealthModule,

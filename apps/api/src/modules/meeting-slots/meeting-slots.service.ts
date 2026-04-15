@@ -39,12 +39,10 @@ function getAvailableSlots(
         end: Math.min(end, windowEndMs),
       };
     })
-    .filter((e) => e.start < e.end); // remove invalid / fully out-of-window
+    .filter((e) => e.start < e.end);
 
-  // sort
   allEvents.sort((a, b) => a.start - b.start);
 
-  // merge overlaps
   const merged: { start: number; end: number }[] = [];
   for (const event of allEvents) {
     if (!merged.length) {
@@ -61,7 +59,6 @@ function getAvailableSlots(
     }
   }
 
-  // invert to free intervals
   const free: { start: number; end: number }[] = [];
   let cursor = windowStartMs;
 
@@ -76,7 +73,6 @@ function getAvailableSlots(
     free.push({ start: cursor, end: windowEndMs });
   }
 
-  // slice into slots
   const slots: { start: Date; end: Date }[] = [];
 
   for (const interval of free) {
@@ -149,12 +145,6 @@ export class MeetingSlotsService {
         );
       }),
     );
-    console.log(
-      meetingGroup.after,
-      meetingGroup.before,
-      meetingGroup.duration,
-      results,
-    );
     const blah = getAvailableSlots(
       results,
       meetingGroup.after,
@@ -162,16 +152,26 @@ export class MeetingSlotsService {
       meetingGroup.duration,
       5,
     );
-    console.log(blah);
 
     for (const [idx, slot] of blah.entries()) {
-      await this.create({
+      await this.upsert({
         meetingGroupId: meetingGroup.id,
         start_at: slot.start,
         end_at: slot.end,
         rank: idx,
       });
     }
+  }
+
+  async upsert(createMeetingSlotDto: CreateMeetingSlotDto) {
+    const found = await this.repository.findOneBy({
+      meetingGroupId: createMeetingSlotDto.meetingGroupId,
+      rank: createMeetingSlotDto.rank,
+    });
+    if (found) {
+      return await this.update(found.id, createMeetingSlotDto);
+    }
+    return await this.create(createMeetingSlotDto);
   }
 
   async create(createMeetingSlotDto: CreateMeetingSlotDto) {
