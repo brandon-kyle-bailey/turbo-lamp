@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsTimeZone,
   IsUUID,
 } from 'class-validator';
 import { MeetingGroupStatus } from '../../../lib/constants';
@@ -22,19 +23,32 @@ export class CreateMeetingGroupDto {
   @IsNumber()
   duration: number;
 
-  @ApiProperty({ description: 'The after date of the meeting group.' })
+  @ApiProperty({
+    description: 'The after date of the meeting group.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
-  after: string;
+  after: Date;
 
-  @ApiProperty({ description: 'The before date of the meeting group.' })
+  @ApiProperty({
+    description: 'The before date of the meeting group.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
-  before: string;
+  before: Date;
 
-  @ApiProperty({ description: 'The timezone of the meeting group.' })
-  @IsString()
+  @ApiProperty({
+    description: 'The timezone of the meeting group.',
+    default: 'America/Halifax',
+  })
+  @IsTimeZone()
   timezone: string;
 
-  @ApiProperty({ description: 'The status of the meeting group.' })
+  @ApiProperty({
+    description: 'The status of the meeting group.',
+    enum: MeetingGroupStatus,
+    enumName: 'MeetingGroupStatus',
+  })
   @IsEnum(MeetingGroupStatus)
   status: MeetingGroupStatus;
 }

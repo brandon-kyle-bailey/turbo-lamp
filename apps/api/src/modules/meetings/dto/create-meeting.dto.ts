@@ -7,15 +7,25 @@ export class CreateMeetingDto {
   @IsUUID()
   meetingGroupId: string;
 
-  @ApiProperty({ description: 'the meetings start time.' })
+  @ApiProperty({
+    description: 'the meetings start time.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   start_at: Date;
 
-  @ApiProperty({ description: 'the meetings end time.' })
+  @ApiProperty({
+    description: 'the meetings end time.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   end_at: Date;
 
-  @ApiProperty({ description: 'the meetings status.' })
+  @ApiProperty({
+    description: 'the meetings status.',
+    enum: MeetingStatus,
+    enumName: 'MeetingStatus',
+  })
   @IsEnum(MeetingStatus)
   status: MeetingStatus;
 }

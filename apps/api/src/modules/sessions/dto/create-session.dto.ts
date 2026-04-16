@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsIP, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsIP,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateSessionDto {
   @ApiProperty({ description: 'The ID of the user.' })
@@ -10,7 +16,10 @@ export class CreateSessionDto {
   @IsString()
   token: string;
 
-  @ApiProperty({ description: 'The sessions expiration.' })
+  @ApiProperty({
+    description: 'The sessions expiration.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   expiresAt: Date;
 

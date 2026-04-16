@@ -1,5 +1,5 @@
-import Keyv from 'keyv';
 import KeyvRedis from '@keyv/redis';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -11,6 +11,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
+import Redis from 'ioredis';
+import Keyv from 'keyv';
 import { UseCacheInterceptor } from './interceptors/cache.interceptor';
 import { EnvironmentVariables } from './lib/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
@@ -98,23 +100,29 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
         };
       },
     }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1_000,
-        limit: 10,
-      },
-      {
-        name: 'medium',
-        ttl: 60_000,
-        limit: 100,
-      },
-      {
-        name: 'long',
-        ttl: 3_600_000,
-        limit: 1000,
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          { name: 'short', ttl: 1_000, limit: 10 },
+          { name: 'medium', ttl: 60_000, limit: 100 },
+          { name: 'long', ttl: 3_600_000, limit: 1000 },
+        ],
+        storage: new ThrottlerStorageRedisService(
+          new Redis(
+            config.get<string>(EnvironmentVariables.REDIS_THROTTLE_URL)!,
+            {
+              connectTimeout: 5_000,
+              commandTimeout: 2_000,
+              maxRetriesPerRequest: 3,
+              retryStrategy: (times) => Math.min(times * 200, 2_000),
+              keepAlive: 10_000,
+              enableOfflineQueue: false,
+            },
+          ),
+        ),
+      }),
+    }),
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

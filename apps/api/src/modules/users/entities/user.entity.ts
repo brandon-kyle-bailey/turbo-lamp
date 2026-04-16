@@ -37,7 +37,7 @@ export class User {
   @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.creator)
   meetingGroups: MeetingGroup[];
 
-  @OneToMany(() => MeetingAttendee, (meetingAttendee) => meetingAttendee.userId)
+  @OneToMany(() => MeetingAttendee, (meetingAttendee) => meetingAttendee.user)
   attendances: MeetingAttendee[];
 
   @Column()

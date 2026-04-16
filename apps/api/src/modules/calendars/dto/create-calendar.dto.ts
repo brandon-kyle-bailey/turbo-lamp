@@ -9,9 +9,14 @@ import {
 import { CalendarProvider } from '../../../lib/constants';
 
 export class CreateCalendarDto {
-  @ApiProperty({ description: 'The ID of the calendar provider' })
+  @ApiProperty({
+    description: 'The ID of the calendar provider',
+    enum: CalendarProvider,
+    enumName: 'CalendarProvider',
+  })
   @IsEnum(CalendarProvider)
   providerId: CalendarProvider;
+
   @ApiProperty({ description: 'The ID of the calendar' })
   @IsString()
   calendarId: string;
@@ -24,7 +29,10 @@ export class CreateCalendarDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ description: 'The timezone of the calendar' })
+  @ApiProperty({
+    description: 'The timezone of the calendar',
+    default: 'America/Halifax',
+  })
   @IsTimeZone()
   timezone: string;
 }

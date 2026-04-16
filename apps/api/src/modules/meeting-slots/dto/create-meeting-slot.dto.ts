@@ -6,11 +6,17 @@ export class CreateMeetingSlotDto {
   @IsUUID()
   meetingGroupId: string;
 
-  @ApiProperty({ description: 'the meeting slots start time.' })
+  @ApiProperty({
+    description: 'the meeting slots start time.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   start_at: Date;
 
-  @ApiProperty({ description: 'the meeting slots end time.' })
+  @ApiProperty({
+    description: 'the meeting slots end time.',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   end_at: Date;
 

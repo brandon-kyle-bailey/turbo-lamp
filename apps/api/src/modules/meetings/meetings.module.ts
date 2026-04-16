@@ -3,9 +3,15 @@ import { MeetingsService } from './meetings.service';
 import { MeetingsController } from './meetings.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Meeting } from './entities/meeting.entity';
+import { MeetingAttendeesModule } from '../meeting-attendees/meeting-attendees.module';
+import { CalendarsModule } from '../calendars/calendars.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Meeting])],
+  imports: [
+    TypeOrmModule.forFeature([Meeting]),
+    MeetingAttendeesModule,
+    CalendarsModule,
+  ],
   controllers: [MeetingsController],
   providers: [MeetingsService],
   exports: [MeetingsService],

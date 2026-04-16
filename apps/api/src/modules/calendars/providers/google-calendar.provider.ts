@@ -19,6 +19,8 @@ type GoogleCalendarEvent = {
   status?: string;
   summary?: string;
   description?: string;
+  location?: string;
+  attendees?: { email: string }[];
   start: { dateTime: string; date?: string; timeZone?: string };
   end: { dateTime: string; date?: string; timeZone?: string };
 };
@@ -88,19 +90,19 @@ export class GoogleCalendarProvider implements CalendarProvider {
       }),
     );
 
-    console.log(calendarId, data.items.length, data.items);
+    console.log('listEvents:', JSON.stringify(data.items));
     return (data.items ?? []).map((e) => ({
       id: e.id,
       summary: e.summary,
       description: e.description,
       status: e.status,
       start: {
-        datetime: new Date(e.start.dateTime),
-        timezone: e.start?.timeZone ?? '',
+        dateTime: e.start.dateTime,
+        timeZone: e.start?.timeZone ?? '',
       },
       end: {
-        datetime: new Date(e.end.dateTime),
-        timezone: e.start?.timeZone ?? '',
+        dateTime: e.end.dateTime,
+        timeZone: e.start?.timeZone ?? '',
       },
     }));
   }
@@ -126,10 +128,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
       summary: data.summary,
       description: data.description,
       start: {
-        datetime: new Date(data.start.dateTime),
+        dateTime: data.start.dateTime,
       },
       end: {
-        datetime: new Date(data.end.dateTime),
+        dateTime: data.end.dateTime,
       },
     };
   }
@@ -140,23 +142,32 @@ export class GoogleCalendarProvider implements CalendarProvider {
     const { calendarId = 'primary', event } = params;
 
     const { data } = await firstValueFrom<{ data: GoogleCalendarEvent }>(
-      this.http.post(`${this.baseUrl}/calendars/${calendarId}/events`, event, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+      this.http.post(
+        `${this.baseUrl}/calendars/${calendarId}/events?sendUpdates=all`,
+        event,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         },
-      }),
+      ),
     );
 
     return {
       id: data.id,
       summary: data.summary,
       description: data.description,
+      location: data.location,
+      attendees: data.attendees,
+      reminders: {
+        useDefault: true,
+      },
       start: {
-        datetime: new Date(data.start.dateTime),
+        dateTime: data.start.dateTime,
       },
       end: {
-        datetime: new Date(data.end.dateTime),
+        dateTime: data.end.dateTime,
       },
     };
   }
@@ -184,10 +195,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
       summary: data.summary,
       description: data.description,
       start: {
-        datetime: new Date(data.start.dateTime),
+        dateTime: data.start.dateTime,
       },
       end: {
-        datetime: new Date(data.end.dateTime),
+        dateTime: data.end.dateTime,
       },
     };
   }

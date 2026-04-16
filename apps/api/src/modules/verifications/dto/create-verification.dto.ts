@@ -10,7 +10,10 @@ export class CreateVerificationDto {
   @IsString()
   value: string;
 
-  @ApiProperty({ description: 'Expiration of the validation' })
+  @ApiProperty({
+    description: 'Expiration of the validation',
+    default: new Date().toISOString(),
+  })
   @IsDateString()
   expiresAt: Date;
 }

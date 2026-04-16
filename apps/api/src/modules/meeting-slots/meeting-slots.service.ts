@@ -31,8 +31,8 @@ function getAvailableSlots(
   const allEvents = calendars
     .flat()
     .map((e) => {
-      const start = e.start.datetime.getTime();
-      const end = e.end.datetime.getTime();
+      const start = new Date(e.start.dateTime).getTime();
+      const end = new Date(e.end.dateTime).getTime();
 
       return {
         start: Math.max(start, windowStartMs),
@@ -128,8 +128,10 @@ export class MeetingSlotsService {
     );
     if (!meetingGroup) return;
 
+    console.log(meetingGroup);
     const timeMin = meetingGroup.after.toISOString();
     const timeMax = meetingGroup.before.toISOString();
+    console.log(timeMin, timeMax);
 
     const results = await Promise.all(
       meetingGroup.participants.flatMap((participant) => {
@@ -145,6 +147,7 @@ export class MeetingSlotsService {
         );
       }),
     );
+    console.log(JSON.stringify(results), results);
     const blah = getAvailableSlots(
       results,
       meetingGroup.after,
@@ -152,6 +155,7 @@ export class MeetingSlotsService {
       meetingGroup.duration,
       5,
     );
+    console.log(blah);
 
     for (const [idx, slot] of blah.entries()) {
       await this.upsert({

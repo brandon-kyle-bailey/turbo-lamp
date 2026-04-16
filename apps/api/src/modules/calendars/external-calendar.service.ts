@@ -15,14 +15,31 @@ export type Calendar = {
 };
 
 export type CalendarEventTime = {
-  datetime: Date;
-  timezone?: string;
+  dateTime: string;
+  timeZone?: string;
+};
+
+export type CalendarEventAttendee = {
+  email: string;
+};
+
+export type CalendarEventReminderOverride = {
+  method: string;
+  minutes: string;
+};
+
+export type CalendarEventReminder = {
+  useDefault: boolean;
+  overrides?: CalendarEventReminderOverride[];
 };
 
 export type CalendarEvent = {
   id?: string;
   summary?: string;
   description?: string;
+  location?: string;
+  attendees?: CalendarEventAttendee[];
+  reminders?: CalendarEventReminder;
   start: CalendarEventTime;
   end: CalendarEventTime;
 };
