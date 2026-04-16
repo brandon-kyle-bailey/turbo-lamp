@@ -43,7 +43,10 @@ export class MeetingGroup {
   creator: User;
 
   @Column()
-  title: string;
+  summary: string;
+
+  @Column({ nullable: true })
+  description?: string;
 
   @Column()
   duration: number;

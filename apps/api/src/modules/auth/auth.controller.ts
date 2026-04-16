@@ -11,11 +11,10 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import express from 'express';
 import { LocalAuthGuard } from 'src/guards/local-auth.guard';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { OAuthGuard } from '../../guards/oauth-auth.guard';
 import { OAuthInitiationGuard } from '../../guards/oauth-initiation.guard';
 import { SANITIZED_ROUTES, VerificationValue } from '../../lib/constants';
 import { Account } from '../accounts/entities/account.entity';
@@ -25,26 +24,17 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { TokenService } from './token.service';
-import { OAuthGuard } from '../../guards/oauth-auth.guard';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(
     @Inject(AuthService)
     private authService: AuthService,
-    @Inject(ConfigService)
-    private readonly configService: ConfigService,
     @Inject(TokenService)
     private readonly tokenService: TokenService,
     @Inject(VerificationsService)
     private verificationService: VerificationsService,
   ) {}
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  profile(@Req() req: Request & { user: Account }) {
-    return req.user;
-  }
 
   @Post('register')
   async register(

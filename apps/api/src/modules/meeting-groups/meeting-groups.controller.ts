@@ -41,6 +41,7 @@ export class MeetingGroupsController {
     });
 
     await this.meetingParticipantService.create({
+      createdBy: req.user.userId,
       meetingGroupId: result.id,
       email: req.user.user.email,
       userId: req.user.userId,

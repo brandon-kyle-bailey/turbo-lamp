@@ -11,7 +11,7 @@ export async function withProfile() {
   const token = (await cookies()).get("session")?.value;
   if (!token) redirect("/login");
 
-  const res = await fetch("http://localhost:3001/api/core/v1/auth/profile", {
+  const res = await fetch("http://localhost:3001/api/core/v1/user/profile", {
     headers: {
       Authorization: `Bearer ${token}`,
     },

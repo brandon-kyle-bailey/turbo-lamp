@@ -11,13 +11,19 @@ export class SessionsService {
     @InjectRepository(Session)
     private readonly repository: Repository<Session>,
   ) {}
-  async create(createSessionDto: CreateSessionDto) {
-    const session = this.repository.create(createSessionDto);
-    return await this.repository.save(session);
-  }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where: FindOptionsWhere<Session>,
+    relations?: FindOptionsRelations<Session>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<Session>) {
@@ -34,12 +40,18 @@ export class SessionsService {
     });
   }
 
+  async create(createSessionDto: CreateSessionDto) {
+    return await this.repository.save(this.repository.create(createSessionDto));
+  }
+
   async update(id: string, updateSessionDto: UpdateSessionDto) {
-    const session = await this.findOne(id);
-    return await this.repository.update(id, {
-      ...session,
+    const result = await this.repository.update(id, {
       ...updateSessionDto,
     });
+    if (!result.affected) {
+      throw new NotFoundException();
+    }
+    return await this.findOne(id);
   }
 
   async remove(id: string) {

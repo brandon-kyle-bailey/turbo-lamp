@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -17,6 +18,7 @@ import { CalendarProvider } from '../../lib/constants';
 import { Account } from '../accounts/entities/account.entity';
 import { ExternalCalendarService } from '../calendars/external-calendar.service';
 import { MeetingAttendeesService } from '../meeting-attendees/meeting-attendees.service';
+import { MeetingGroupsService } from '../meeting-groups/meeting-groups.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { MeetingsService } from './meetings.service';
@@ -28,30 +30,51 @@ export class MeetingsController {
   constructor(
     @Inject(MeetingsService)
     private readonly meetingsService: MeetingsService,
+    @Inject(MeetingGroupsService)
+    private readonly meetingGroupsService: MeetingGroupsService,
     @Inject(MeetingAttendeesService)
     private readonly meetingAttendeesService: MeetingAttendeesService,
     @Inject(ExternalCalendarService)
     private readonly externalCalendarService: ExternalCalendarService,
   ) {}
 
+  @Get()
+  async findAll(@Req() req: Request & { user: Account }) {
+    return await this.meetingsService.findAllBy({
+      meetingGroup: { creatorId: req.user.userId },
+    });
+  }
+
+  @Get(':id')
+  async findOne(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    return await this.meetingsService.findOne(id);
+  }
+
+  // TODO... Move to CQRS
   @Post()
   async create(
-    @Body() createMeetingDto: CreateMeetingDto,
     @Req() req: Request & { user: Account },
+    @Body() createMeetingDto: CreateMeetingDto,
   ) {
-    const result = await this.meetingsService.create(createMeetingDto);
-    const relatedMeeting = await this.meetingsService.findOne(result.id, {
-      meetingGroup: {
-        participants: true,
+    const group = await this.meetingGroupsService.findOneBy(
+      {
+        id: createMeetingDto.meetingGroupId,
+        creatorId: req.user.userId,
       },
-    });
-    const attendees = relatedMeeting!.meetingGroup.participants.map(
-      (participant) => {
-        return {
-          email: participant.email,
-        };
-      },
+      { participants: true },
     );
+    if (!group) {
+      throw new BadRequestException();
+    }
+    const result = await this.meetingsService.create(createMeetingDto);
+    const attendees = group.participants.map((participant) => {
+      return {
+        email: participant.email,
+      };
+    });
     const calendarId = req.user.user.calendars.filter(
       (c) => c.providerId === CalendarProvider.GOOGLE,
     )[0].calendarId;
@@ -62,20 +85,20 @@ export class MeetingsController {
         account: req.user,
         calendarId,
         event: {
-          summary: relatedMeeting!.meetingGroup.title,
-          description: 'test',
+          summary: group.summary,
+          description: group.description,
           attendees,
           reminders: { useDefault: true },
           start: {
-            dateTime: relatedMeeting!.start_at.toISOString(),
+            dateTime: result.start_at.toISOString(),
           },
           end: {
-            dateTime: relatedMeeting!.end_at.toISOString(),
+            dateTime: result.end_at.toISOString(),
           },
         },
       },
     );
-    for (const participant of relatedMeeting!.meetingGroup.participants) {
+    for (const participant of group.participants) {
       await this.meetingAttendeesService.create({
         userId: participant.userId,
         meetingId: result.id,
@@ -86,32 +109,19 @@ export class MeetingsController {
     return result;
   }
 
-  @Get()
-  async findAll(@Req() req: Request & { user: Account }) {
-    return await this.meetingsService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-    @Req() req: Request & { user: Account },
-  ) {
-    return await this.meetingsService.findOne(id);
-  }
-
   @Patch(':id')
   async update(
+    @Req() req: Request & { user: Account },
     @Param('id') id: string,
     @Body() updateMeetingDto: UpdateMeetingDto,
-    @Req() req: Request & { user: Account },
   ) {
     return await this.meetingsService.update(id, updateMeetingDto);
   }
 
   @Delete(':id')
   async remove(
-    @Param('id') id: string,
     @Req() req: Request & { user: Account },
+    @Param('id') id: string,
   ) {
     return await this.meetingsService.remove(id);
   }

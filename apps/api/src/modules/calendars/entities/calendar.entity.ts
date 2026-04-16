@@ -31,7 +31,7 @@ export class Calendar {
   providerId: CalendarProvider;
 
   @Column()
-  calendarId: string;
+  externalId: string;
 
   @Column()
   name: string;

@@ -6,11 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 
 @Entity('meeting_slots')
+@Unique(['meetingGroupId', 'start', 'end'])
 export class MeetingSlot {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -25,10 +27,10 @@ export class MeetingSlot {
   meetingGroup: MeetingGroup;
 
   @Column()
-  start_at: Date;
+  start: Date;
 
   @Column()
-  end_at: Date;
+  end: Date;
 
   @Column()
   rank: number;

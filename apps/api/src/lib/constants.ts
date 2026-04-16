@@ -16,10 +16,13 @@ export enum EnvironmentVariables {
   TOKEN_TTL = 'TOKEN_TTL',
   RESEND_API_KEY = 'RESEND_API_KEY',
   RESEND_FROM_EMAIL = 'RESEND_FROM_EMAIL',
+  SMTP_URL = 'SMTP_URL',
+  SMTP_FROM_EMAIL = 'SMTP_FROM_EMAIL',
+  NODE_ENV = 'NODE_ENV',
 }
 
-export type PROVIDERS = 'github' | 'google';
-export const STRATEGIES: PROVIDERS[] = ['google', 'github'];
+export type PROVIDERS = 'google';
+export const STRATEGIES: PROVIDERS[] = ['google'];
 
 export enum CalendarProvider {
   GOOGLE = 'google',
@@ -28,7 +31,6 @@ export enum CalendarProvider {
 export enum AccountProvider {
   CREDENTIALS = 'credentials',
   GOOGLE = 'google',
-  GITHUB = 'github',
 }
 
 export enum MeetingGroupStatus {
@@ -47,10 +49,14 @@ export const SANITIZED_ROUTES = {
   onboarding_complete: '/onboarding/complete',
 } as const;
 
-export type VERIFICATION_TYPES = 'oauth_state' | 'invite';
+export enum VerificationType {
+  OAUTH_STATE = 'oauth_state',
+  INVITE = 'invite',
+}
 
 export interface VerificationValue {
-  type: VERIFICATION_TYPES;
+  type: VerificationType;
   id: string;
+  to: string;
   after: keyof typeof SANITIZED_ROUTES;
 }

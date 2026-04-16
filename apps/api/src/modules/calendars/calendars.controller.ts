@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -39,7 +40,7 @@ export class CalendarsController {
     );
   }
 
-  @Get(':id/events')
+  @Get('external/:id/events')
   async events(
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
@@ -48,15 +49,33 @@ export class CalendarsController {
   ) {
     const calendar = await this.calendarService.findOneBy({ id });
     if (!calendar) throw new NotFoundException();
+    if (calendar.userId !== req.user.userId) throw new UnauthorizedException();
     return await this.externalCalendarService.listEvents(
       req.user.providerId as 'google',
       {
         account: req.user,
-        calendarId: calendar.calendarId,
+        calendarId: calendar.externalId,
         timeMin: after.toString(),
         timeMax: before.toString(),
       },
     );
+  }
+
+  @Get()
+  async findAll(@Req() req: Request & { user: Account }) {
+    console.log(req.user);
+    return await this.calendarService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    const calendar = await this.calendarService.findOne(id);
+    if (!calendar) throw new NotFoundException();
+    if (calendar.userId !== req.user.userId) throw new UnauthorizedException();
+    return calendar;
   }
 
   @Post()
@@ -84,20 +103,6 @@ export class CalendarsController {
     return await Promise.all(promises);
   }
 
-  @Get()
-  async findAll(@Req() req: Request & { user: Account }) {
-    console.log(req.user);
-    return await this.calendarService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(
-    @Req() req: Request & { user: Account },
-    @Param('id') id: string,
-  ) {
-    return await this.calendarService.findOne(id);
-  }
-
   @Patch(':id')
   async update(
     @Req() req: Request & { user: Account },
@@ -106,6 +111,7 @@ export class CalendarsController {
   ) {
     const calendar = await this.calendarService.findOneBy({ id });
     if (!calendar) throw new NotFoundException();
+    if (calendar.userId !== req.user.userId) throw new UnauthorizedException();
     return await this.calendarService.update(id, {
       ...updateCalendarDto,
       userId: req.user.userId,
@@ -119,6 +125,7 @@ export class CalendarsController {
   ) {
     const calendar = await this.calendarService.findOneBy({ id });
     if (!calendar) throw new NotFoundException();
+    if (calendar.userId !== req.user.userId) throw new UnauthorizedException();
     return await this.calendarService.remove(id);
   }
 }

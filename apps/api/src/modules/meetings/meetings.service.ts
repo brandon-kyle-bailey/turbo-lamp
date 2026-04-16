@@ -11,13 +11,19 @@ export class MeetingsService {
     @InjectRepository(Meeting)
     private readonly repository: Repository<Meeting>,
   ) {}
-  async create(createMeetingDto: CreateMeetingDto) {
-    const meeting = this.repository.create(createMeetingDto);
-    return await this.repository.save(meeting);
-  }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where?: FindOptionsWhere<Meeting>,
+    relations?: FindOptionsRelations<Meeting>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<Meeting>) {
@@ -34,12 +40,18 @@ export class MeetingsService {
     });
   }
 
+  async create(createMeetingDto: CreateMeetingDto) {
+    return await this.repository.save(this.repository.create(createMeetingDto));
+  }
+
   async update(id: string, updateMeetingDto: UpdateMeetingDto) {
-    const meeting = await this.findOne(id);
-    return await this.repository.update(id, {
-      ...meeting,
+    const result = await this.repository.update(id, {
       ...updateMeetingDto,
     });
+    if (!result.affected) {
+      throw new NotFoundException();
+    }
+    return await this.findOne(id);
   }
 
   async remove(id: string) {

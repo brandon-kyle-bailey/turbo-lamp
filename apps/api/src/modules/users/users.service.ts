@@ -12,12 +12,21 @@ export class UsersService {
     private readonly repository: Repository<User>,
   ) {}
   async create(createUserDto: CreateUserDto) {
-    const user = this.repository.create(createUserDto);
-    return await this.repository.save(user);
+    return await this.repository.save(this.repository.create(createUserDto));
   }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where: FindOptionsWhere<User>,
+    relations?: FindOptionsRelations<User>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<User>) {
@@ -35,11 +44,13 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
-    return await this.repository.update(id, {
-      ...user,
+    const result = await this.repository.update(id, {
       ...updateUserDto,
     });
+    if (!result.affected) {
+      throw new NotFoundException();
+    }
+    return await this.findOne(id);
   }
 
   async remove(id: string) {

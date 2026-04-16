@@ -43,11 +43,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         user: { id: payload.sub, email: payload.username },
       },
       {
+        // TODO... This could load a lot in to memory on every authenticated request.
         user: {
           calendars: true,
           meetingGroups: true,
           participations: true,
           attendances: true,
+          sessions: true,
         },
       },
     );

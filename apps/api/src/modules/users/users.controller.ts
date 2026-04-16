@@ -1,18 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Account } from '../accounts/entities/account.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersService } from './users.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -20,28 +21,31 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return await this.usersService.create(createUserDto);
-  }
-
-  @Get()
-  async findAll() {
-    return await this.usersService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.usersService.findOne(id);
+  @Get('profile')
+  profile(@Req() req: Request & { user: Account }) {
+    return req.user;
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    if (id !== req.user.userId) {
+      throw new UnauthorizedException();
+    }
     return await this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    if (id !== req.user.userId) {
+      throw new UnauthorizedException();
+    }
     return await this.usersService.remove(id);
   }
 }

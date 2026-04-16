@@ -11,14 +11,14 @@ export class CreateMeetingSlotDto {
     default: new Date().toISOString(),
   })
   @IsDateString()
-  start_at: Date;
+  start: Date;
 
   @ApiProperty({
     description: 'the meeting slots end time.',
     default: new Date().toISOString(),
   })
   @IsDateString()
-  end_at: Date;
+  end: Date;
 
   @ApiProperty({ description: 'the meeting slots rank.' })
   @IsNumber()

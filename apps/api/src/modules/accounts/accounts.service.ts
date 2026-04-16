@@ -11,13 +11,16 @@ export class AccountsService {
     @InjectRepository(Account)
     private readonly repository: Repository<Account>,
   ) {}
-  async create(createAccountDto: CreateAccountDto) {
-    const account = this.repository.create(createAccountDto);
-    return await this.repository.save(account);
-  }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where: FindOptionsWhere<Account>,
+    relations?: FindOptionsRelations<Account>,
+  ) {
+    return await this.repository.find({ where, relations });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<Account>) {
@@ -34,13 +37,18 @@ export class AccountsService {
     });
   }
 
+  async create(createAccountDto: CreateAccountDto) {
+    return await this.repository.save(this.repository.create(createAccountDto));
+  }
+
   async update(id: string, updateAccountDto: UpdateAccountDto) {
-    const account = await this.findOne(id);
-    await this.repository.update(id, {
-      ...account,
+    const result = await this.repository.update(id, {
       ...updateAccountDto,
     });
-    return { ...account, ...updateAccountDto };
+    if (!result.affected) {
+      throw new NotFoundException();
+    }
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
@@ -48,6 +56,7 @@ export class AccountsService {
     if (!account) {
       throw new NotFoundException();
     }
-    return await this.repository.softDelete(account.id);
+    await this.repository.softDelete(account.id);
+    return account;
   }
 }

@@ -11,13 +11,19 @@ export class CalendarsService {
     @InjectRepository(Calendar)
     private readonly repository: Repository<Calendar>,
   ) {}
-  async create(createCalendarDto: CreateCalendarDto) {
-    const calendar = this.repository.create(createCalendarDto);
-    return await this.repository.save(calendar);
-  }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where: FindOptionsWhere<Calendar> | FindOptionsWhere<Calendar>[],
+    relations?: FindOptionsRelations<Calendar>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<Calendar>) {
@@ -25,7 +31,7 @@ export class CalendarsService {
   }
 
   async findOneBy(
-    where: FindOptionsWhere<Calendar>,
+    where: FindOptionsWhere<Calendar> | FindOptionsWhere<Calendar>[],
     relations?: FindOptionsRelations<Calendar>,
   ) {
     return await this.repository.findOne({
@@ -34,12 +40,19 @@ export class CalendarsService {
     });
   }
 
+  async create(createCalendarDto: CreateCalendarDto) {
+    return await this.repository.save(
+      this.repository.create(createCalendarDto),
+    );
+  }
+
   async update(id: string, updateCalendarDto: UpdateCalendarDto) {
-    const calendar = await this.findOne(id);
-    return await this.repository.update(id, {
-      ...calendar,
+    const result = await this.repository.update(id, {
       ...updateCalendarDto,
     });
+    if (!result.affected) {
+      throw new NotFoundException();
+    }
   }
 
   async remove(id: string) {

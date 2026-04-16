@@ -13,7 +13,6 @@ import {
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Account } from '../accounts/entities/account.entity';
-import { MeetingSlotsService } from '../meeting-slots/meeting-slots.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipantsService } from './meeting-participants.service';
@@ -25,8 +24,6 @@ export class MeetingParticipantsController {
   constructor(
     @Inject(MeetingParticipantsService)
     private readonly meetingParticipantsService: MeetingParticipantsService,
-    @Inject(MeetingSlotsService)
-    private readonly meetingSlotsService: MeetingSlotsService,
   ) {}
 
   @Post()
@@ -34,15 +31,18 @@ export class MeetingParticipantsController {
     @Req() req: Request & { user: Account },
     @Body() createMeetingParticipantDto: CreateMeetingParticipantDto,
   ) {
-    return await this.meetingParticipantsService.create(
-      createMeetingParticipantDto,
-    );
+    return await this.meetingParticipantsService.create({
+      ...createMeetingParticipantDto,
+      createdBy: req.user.userId,
+    });
   }
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    console.log(req.user);
-    return await this.meetingParticipantsService.findAll();
+    return await this.meetingParticipantsService.findAllBy([
+      { userId: req.user.userId },
+      { createdBy: req.user.userId },
+    ]);
   }
 
   @Get(':id')
@@ -63,9 +63,6 @@ export class MeetingParticipantsController {
       id,
       updateMeetingParticipantDto,
     );
-
-    await this.meetingSlotsService.calculate(result.meetingGroupId);
-
     return result;
   }
 

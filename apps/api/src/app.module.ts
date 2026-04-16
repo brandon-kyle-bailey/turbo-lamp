@@ -18,7 +18,7 @@ import { EnvironmentVariables } from './lib/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CalendarsModule } from './modules/calendars/calendars.module';
-import { EmailModule } from './modules/email/email.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
 import { MeetingAttendeesModule } from './modules/meeting-attendees/meeting-attendees.module';
 import { MeetingGroupsModule } from './modules/meeting-groups/meeting-groups.module';
@@ -28,6 +28,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
+import { AvailabilityPreferencesModule } from './src/modules/availability-preferences/availability-preferences.module';
 
 @Module({
   imports: [
@@ -159,8 +160,9 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
     MeetingSlotsModule,
     MeetingsModule,
     MeetingAttendeesModule,
-    EmailModule,
+    NotificationsModule,
     CalendarsModule,
+    AvailabilityPreferencesModule,
   ],
   controllers: [],
   providers: [

@@ -17,9 +17,9 @@ export class CreateCalendarDto {
   @IsEnum(CalendarProvider)
   providerId: CalendarProvider;
 
-  @ApiProperty({ description: 'The ID of the calendar' })
+  @ApiProperty({ description: 'The external ID of the calendar' })
   @IsString()
-  calendarId: string;
+  externalId: string;
 
   @IsOptional()
   @IsUUID()

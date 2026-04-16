@@ -15,11 +15,18 @@ export class CreateMeetingGroupDto {
   @IsUUID()
   creatorId?: string;
 
-  @ApiProperty({ description: 'The title of the meeting group.' })
+  @ApiProperty({ description: 'The summary of the meeting group.' })
   @IsString()
-  title: string;
+  summary: string;
 
-  @ApiProperty({ description: 'The duration of the meeting group.' })
+  @ApiProperty({ description: 'The description of the meeting group.' })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiProperty({
+    description: 'The duration (in minutes) of the meeting group.',
+  })
   @IsNumber()
   duration: number;
 

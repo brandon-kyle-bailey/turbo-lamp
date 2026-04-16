@@ -12,9 +12,9 @@ import { GoogleCalendarProvider } from './providers/google-calendar.provider';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Calendar]),
+    AuthModule,
     AccountsModule,
     HttpModule,
-    AuthModule,
   ],
   controllers: [CalendarsController],
   providers: [

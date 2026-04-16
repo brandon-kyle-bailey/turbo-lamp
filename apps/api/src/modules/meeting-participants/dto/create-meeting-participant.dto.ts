@@ -1,23 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateMeetingParticipantDto {
   @ApiProperty({ description: 'ID of the meeting group' })
-  @IsOptional()
   @IsUUID()
-  meetingGroupId?: string;
+  meetingGroupId: string;
 
-  @ApiProperty({ description: 'Email address of the participant' })
+  @ApiPropertyOptional({ description: 'Email address of the participant' })
   @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
-  @ApiProperty({ description: 'ID of the user' })
+  @ApiPropertyOptional({ description: 'ID of the user' })
   @IsOptional()
   @IsUUID()
   userId?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'If the participant is required.',
     default: false,
   })
@@ -25,7 +24,7 @@ export class CreateMeetingParticipantDto {
   @IsBoolean()
   required?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'If the participant has authenticated oauth.',
     default: false,
   })
