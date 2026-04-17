@@ -1,16 +1,16 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { EnvironmentVariables, VerificationValue } from '../../lib/constants';
 import { TokenService } from '../auth/token.service';
 import { VerificationsService } from '../verifications/verifications.service';
+import { MeetingParticipantAuthorizedEvent } from './events/meeting-participant-authorized.event';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
-import { CommandBus } from '@nestjs/cqrs';
-import { MeetingParticipantAuthorizedCommand } from './commands/meeting-participant-authorized.command';
 
 @Injectable()
 export class MeetingParticipantsService {
@@ -23,7 +23,7 @@ export class MeetingParticipantsService {
     private readonly tokenService: TokenService,
     @Inject(VerificationsService)
     private readonly verificationService: VerificationsService,
-    private readonly commandBus: CommandBus,
+    private readonly eventBus: EventBus,
   ) {}
   async create(
     createMeetingParticipantDto: CreateMeetingParticipantDto & {
@@ -96,8 +96,8 @@ export class MeetingParticipantsService {
     }
     const result = await this.findOne(id);
     if (result && updateMeetingParticipantDto.oauth_connected) {
-      await this.commandBus.execute(
-        new MeetingParticipantAuthorizedCommand(result),
+      await this.eventBus.publish(
+        new MeetingParticipantAuthorizedEvent(result),
       );
     }
     return result;

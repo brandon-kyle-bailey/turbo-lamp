@@ -1,13 +1,13 @@
 import { Inject } from '@nestjs/common';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { AccountProvider } from '../../../lib/constants';
 import { ExternalCalendarService } from '../../calendars/external-calendar.service';
 import { MeetingAttendeesService } from '../../meeting-attendees/meeting-attendees.service';
-import { MeetingCreatedCommand } from '../../meetings/commands/meeting-created.command';
+import { MeetingCreatedEvent } from '../../meetings/events/meeting-created.event';
 import { MeetingGroupsService } from '../meeting-groups.service';
 
-@CommandHandler(MeetingCreatedCommand)
-export class MeetingCreatedHandler implements ICommandHandler<MeetingCreatedCommand> {
+@EventsHandler(MeetingCreatedEvent)
+export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent> {
   constructor(
     @Inject(MeetingGroupsService)
     private readonly meetingGroupsService: MeetingGroupsService,
@@ -17,9 +17,8 @@ export class MeetingCreatedHandler implements ICommandHandler<MeetingCreatedComm
     private readonly externalCalendarService: ExternalCalendarService,
   ) {}
 
-  async execute(command: MeetingCreatedCommand) {
-    const { entity } = command;
-    const actionId = crypto.randomUUID();
+  async handle(event: MeetingCreatedEvent) {
+    const { entity } = event;
     const meetingGroup = await this.meetingGroupsService.findOne(
       entity.meetingGroupId,
       {
@@ -30,7 +29,7 @@ export class MeetingCreatedHandler implements ICommandHandler<MeetingCreatedComm
     );
     if (!meetingGroup) {
       console.log('no meeting group found.');
-      return { actionId };
+      return;
     }
 
     const creatorProviderAccount = meetingGroup.creator.accounts.find(
@@ -39,7 +38,7 @@ export class MeetingCreatedHandler implements ICommandHandler<MeetingCreatedComm
 
     if (!creatorProviderAccount) {
       console.log('no creator provider account found.');
-      return { actionId };
+      return;
     }
 
     // omit creator of group and users not oauth_connected
@@ -83,9 +82,6 @@ export class MeetingCreatedHandler implements ICommandHandler<MeetingCreatedComm
         email: participant.email,
       });
     }
-
-    return {
-      actionId,
-    };
+    return;
   }
 }

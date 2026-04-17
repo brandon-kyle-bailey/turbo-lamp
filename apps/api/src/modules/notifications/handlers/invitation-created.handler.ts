@@ -1,13 +1,13 @@
 import { Inject } from '@nestjs/common';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { VerificationValue } from '../../../lib/constants';
 import { TokenService } from '../../auth/token.service';
-import { InvitationCreatedCommand } from '../../verifications/commands/invitation-created.command';
+import { InvitationCreatedEvent } from '../../verifications/events/invitation-created.event';
 import { NotificationsService } from '../notifications.service';
 import { invitationEmail } from '../templates/invitation';
 
-@CommandHandler(InvitationCreatedCommand)
-export class InvitationCreatedHandler implements ICommandHandler<InvitationCreatedCommand> {
+@EventsHandler(InvitationCreatedEvent)
+export class InvitationCreatedHandler implements IEventHandler<InvitationCreatedEvent> {
   constructor(
     @Inject(NotificationsService)
     private readonly notificationsService: NotificationsService,
@@ -15,9 +15,8 @@ export class InvitationCreatedHandler implements ICommandHandler<InvitationCreat
     private readonly tokenService: TokenService,
   ) {}
 
-  async execute(command: InvitationCreatedCommand) {
-    const { entity } = command;
-    const actionId = crypto.randomUUID();
+  async handle(event: InvitationCreatedEvent) {
+    const { entity } = event;
 
     const payload: VerificationValue = await this.tokenService.verify(
       entity.value,
@@ -31,8 +30,6 @@ export class InvitationCreatedHandler implements ICommandHandler<InvitationCreat
       text: invitationEmail.text({ url, expiresAt: expiresAt.toString() }),
       html: invitationEmail.html({ url, expiresAt: expiresAt.toString() }),
     });
-    return {
-      actionId,
-    };
+    return;
   }
 }

@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -9,10 +9,10 @@ import {
 } from 'typeorm';
 import { VerificationType, VerificationValue } from '../../lib/constants';
 import { TokenService } from '../auth/token.service';
-import { InvitationCreatedCommand } from './commands/invitation-created.command';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
 import { Verification } from './entities/verification.entity';
+import { InvitationCreatedEvent } from './events/invitation-created.event';
 
 @Injectable()
 export class VerificationsService {
@@ -22,7 +22,7 @@ export class VerificationsService {
     private readonly repository: Repository<Verification>,
     @Inject(TokenService)
     private readonly tokenService: TokenService,
-    private readonly commandBus: CommandBus,
+    private readonly eventBus: EventBus,
   ) {}
 
   async findAll() {
@@ -76,7 +76,7 @@ export class VerificationsService {
       createVerificationDto.value,
     );
     if (payload.type === VerificationType.INVITE) {
-      await this.commandBus.execute(new InvitationCreatedCommand(verification));
+      await this.eventBus.publish(new InvitationCreatedEvent(verification));
     }
     return verification;
   }

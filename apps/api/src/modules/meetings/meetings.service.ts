@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateMeetingDto } from './dto/create-meeting.dto';
-import { UpdateMeetingDto } from './dto/update-meeting.dto';
+import { EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
+import { CreateMeetingDto } from './dto/create-meeting.dto';
+import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { Meeting } from './entities/meeting.entity';
-import { CommandBus } from '@nestjs/cqrs';
-import { MeetingCreatedCommand } from './commands/meeting-created.command';
+import { MeetingCreatedEvent } from './events/meeting-created.event';
 
 @Injectable()
 export class MeetingsService {
   constructor(
     @InjectRepository(Meeting)
     private readonly repository: Repository<Meeting>,
-    private commandBus: CommandBus,
+    private eventBus: EventBus,
   ) {}
 
   async findAll() {
@@ -46,7 +46,7 @@ export class MeetingsService {
   async create(createMeetingDto: CreateMeetingDto) {
     const entity = this.repository.create(createMeetingDto);
     await this.repository.save(entity);
-    await this.commandBus.execute(new MeetingCreatedCommand(entity));
+    await this.eventBus.publish(new MeetingCreatedEvent(entity));
     return entity;
   }
 
