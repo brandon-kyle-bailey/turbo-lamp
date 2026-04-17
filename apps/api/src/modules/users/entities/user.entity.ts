@@ -13,6 +13,7 @@ import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity
 import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attendee.entity';
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
 import { Calendar } from '../../calendars/entities/calendar.entity';
+import { AvailabilityPreference } from '../../availability-preferences/entities/availability-preference.entity';
 
 @Entity('users')
 export class User {
@@ -21,6 +22,9 @@ export class User {
 
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
+
+  @OneToMany(() => AvailabilityPreference, (preference) => preference.user)
+  availabilityPreferences: AvailabilityPreference[];
 
   @OneToMany(() => Calendar, (calendar) => calendar.user)
   calendars: Calendar[];

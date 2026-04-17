@@ -90,7 +90,6 @@ export class GoogleCalendarProvider implements CalendarProvider {
       }),
     );
 
-    console.log('listEvents:', JSON.stringify(data.items));
     return (data.items ?? []).map((e) => ({
       id: e.id,
       summary: e.summary,

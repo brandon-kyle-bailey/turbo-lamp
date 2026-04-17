@@ -27,9 +27,10 @@ export class MeetingSlotsService {
     private readonly externalCalendarService: ExternalCalendarService,
   ) {}
 
-  async calculate(meetingGroupId: string) {
+  async calculate(meetingGroupId: string, creatorId: string) {
     const meetingGroup = await this.meetingGroupService.findOneBy(
       {
+        creatorId,
         id: meetingGroupId,
         participants: {
           oauth_connected: true,
@@ -52,38 +53,47 @@ export class MeetingSlotsService {
         },
       },
     );
-    if (!meetingGroup) return;
-    if (!meetingGroup.participants) return;
+    if (!meetingGroup) throw new NotFoundException();
+    if (!meetingGroup.participants) throw new NotFoundException();
 
-    const results = await Promise.all(
+    const flattenedCalendarEvents = await Promise.all(
       meetingGroup.participants.flatMap((participant) => {
-        const account = participant.user.accounts[0];
+        const account = participant.user.accounts.find(
+          (account) => account.providerId === AccountProvider.GOOGLE,
+        )!;
         return participant.user.calendars.map((calendar) =>
-          this.externalCalendarService.listEvents('google', {
-            account: { ...account, user: participant.user },
-            calendarId: calendar.calendarId,
-            timeMin: meetingGroup.after.toISOString(),
-            timeMax: meetingGroup.before.toISOString(),
-          }),
+          this.externalCalendarService.listEvents(
+            calendar.providerId as 'google',
+            {
+              account,
+              calendarId: calendar.externalId,
+              timeMin: meetingGroup.after.toISOString(),
+              timeMax: meetingGroup.before.toISOString(),
+            },
+          ),
         );
       }),
     );
-    const blah = this.getAvailableSlots(
-      results,
+    const availabletimeSlots = this.getAvailableSlots(
+      flattenedCalendarEvents,
       meetingGroup.after,
       meetingGroup.before,
       meetingGroup.duration,
       5,
     );
 
-    for (const [idx, slot] of blah.entries()) {
-      await this.upsert({
-        meetingGroupId: meetingGroup.id,
-        start: slot.start,
-        end: slot.end,
-        rank: idx,
-      });
+    const createdMeetingSlots: Promise<MeetingSlot | null>[] = [];
+    for (const [idx, slot] of availabletimeSlots.entries()) {
+      createdMeetingSlots.push(
+        this.upsert({
+          meetingGroupId: meetingGroup.id,
+          start: slot.start,
+          end: slot.end,
+          rank: idx,
+        }),
+      );
     }
+    return await Promise.all(createdMeetingSlots);
   }
 
   async findAll() {
@@ -91,7 +101,7 @@ export class MeetingSlotsService {
   }
 
   async findAllBy(
-    where: FindOptionsWhere<MeetingSlot>,
+    where: FindOptionsWhere<MeetingSlot> | FindOptionsWhere<MeetingSlot>[],
     relations?: FindOptionsRelations<MeetingSlot>,
   ) {
     return await this.repository.find({
@@ -105,7 +115,7 @@ export class MeetingSlotsService {
   }
 
   async findOneBy(
-    where: FindOptionsWhere<MeetingSlot>,
+    where: FindOptionsWhere<MeetingSlot> | FindOptionsWhere<MeetingSlot>[],
     relations?: FindOptionsRelations<MeetingSlot>,
   ) {
     return await this.repository.findOne({
@@ -115,13 +125,20 @@ export class MeetingSlotsService {
   }
 
   async upsert(createMeetingSlotDto: CreateMeetingSlotDto) {
-    return await this.repository.upsert(createMeetingSlotDto, {
+    await this.repository.upsert(createMeetingSlotDto, {
       skipUpdateIfNoValuesChanged: true,
       conflictPaths: ['meetingGroupId', 'start', 'end'],
     });
+    return this.findOneBy({
+      meetingGroupId: createMeetingSlotDto.meetingGroupId,
+      start: createMeetingSlotDto.start,
+      end: createMeetingSlotDto.end,
+    });
   }
 
-  async create(createMeetingSlotDto: CreateMeetingSlotDto) {
+  async create(
+    createMeetingSlotDto: CreateMeetingSlotDto & { createdBy: string },
+  ) {
     return await this.repository.save(
       this.repository.create(createMeetingSlotDto),
     );

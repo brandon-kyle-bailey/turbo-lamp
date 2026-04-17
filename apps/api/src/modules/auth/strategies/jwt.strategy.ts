@@ -50,6 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           participations: true,
           attendances: true,
           sessions: true,
+          availabilityPreferences: true,
         },
       },
     );

@@ -1,18 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { MeetingSlotsService } from './meeting-slots.service';
-import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
-import { UpdateMeetingSlotDto } from './dto/update-meeting-slot.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Account } from '../accounts/entities/account.entity';
+import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
+import { MeetingSlotsService } from './meeting-slots.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -20,31 +19,60 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 export class MeetingSlotsController {
   constructor(private readonly meetingSlotsService: MeetingSlotsService) {}
 
+  @Get(':id/calculate')
+  async calculate(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    return await this.meetingSlotsService.calculate(id, req.user.userId);
+  }
+
   @Post()
-  async create(@Body() createMeetingSlotDto: CreateMeetingSlotDto) {
-    return await this.meetingSlotsService.create(createMeetingSlotDto);
+  async create(
+    @Req() req: Request & { user: Account },
+    @Body() createMeetingSlotDto: CreateMeetingSlotDto,
+  ) {
+    return await this.meetingSlotsService.create({
+      ...createMeetingSlotDto,
+      createdBy: req.user.userId,
+    });
   }
 
   @Get()
-  async findAll() {
-    return await this.meetingSlotsService.findAll();
+  async findAll(@Req() req: Request & { user: Account }) {
+    return await this.meetingSlotsService.findAllBy([
+      {
+        meetingGroup: {
+          participants: { userId: req.user.userId },
+        },
+      },
+      {
+        meetingGroup: {
+          participants: { email: req.user.user.email },
+        },
+      },
+    ]);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.meetingSlotsService.findOne(id);
-  }
-
-  @Patch(':id')
-  async update(
+  async findOne(
+    @Req() req: Request & { user: Account },
     @Param('id') id: string,
-    @Body() updateMeetingSlotDto: UpdateMeetingSlotDto,
   ) {
-    return await this.meetingSlotsService.update(id, updateMeetingSlotDto);
-  }
+    return await this.meetingSlotsService.findOneBy([
+      {
+        id,
 
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.meetingSlotsService.remove(id);
+        meetingGroup: {
+          participants: { userId: req.user.userId },
+        },
+      },
+      {
+        id,
+        meetingGroup: {
+          participants: { email: req.user.user.email },
+        },
+      },
+    ]);
   }
 }

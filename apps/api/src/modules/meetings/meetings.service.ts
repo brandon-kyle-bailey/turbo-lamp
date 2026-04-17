@@ -4,12 +4,15 @@ import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Meeting } from './entities/meeting.entity';
+import { CommandBus } from '@nestjs/cqrs';
+import { MeetingCreatedCommand } from './commands/meeting-created.command';
 
 @Injectable()
 export class MeetingsService {
   constructor(
     @InjectRepository(Meeting)
     private readonly repository: Repository<Meeting>,
+    private commandBus: CommandBus,
   ) {}
 
   async findAll() {
@@ -41,7 +44,10 @@ export class MeetingsService {
   }
 
   async create(createMeetingDto: CreateMeetingDto) {
-    return await this.repository.save(this.repository.create(createMeetingDto));
+    const entity = this.repository.create(createMeetingDto);
+    await this.repository.save(entity);
+    await this.commandBus.execute(new MeetingCreatedCommand(entity));
+    return entity;
   }
 
   async update(id: string, updateMeetingDto: UpdateMeetingDto) {

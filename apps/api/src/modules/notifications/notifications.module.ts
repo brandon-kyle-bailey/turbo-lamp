@@ -5,9 +5,11 @@ import { ResendMailer } from './adapters/resend.adapter';
 import { SmtpMailer } from './adapters/smtp.adapter';
 import { MAILER } from './mailer.interface';
 import { EnvironmentVariables } from '../../lib/constants';
+import { InvitationCreatedHandler } from './handlers/invitation-created.handler';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, AuthModule],
   providers: [
     {
       provide: MAILER,
@@ -21,6 +23,7 @@ import { EnvironmentVariables } from '../../lib/constants';
       },
     },
     NotificationsService,
+    InvitationCreatedHandler,
   ],
   exports: [NotificationsService],
 })

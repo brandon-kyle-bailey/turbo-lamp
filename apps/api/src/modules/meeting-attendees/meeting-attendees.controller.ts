@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -32,8 +33,11 @@ export class MeetingAttendeesController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    console.log(req.user);
-    return await this.attendeeService.findAll();
+    return await this.attendeeService.findAllBy([
+      { createdBy: req.user.userId },
+      { userId: req.user.userId },
+      { meeting: { meetingGroup: { creatorId: req.user.userId } } },
+    ]);
   }
 
   @Get(':id')
@@ -41,7 +45,11 @@ export class MeetingAttendeesController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    return await this.attendeeService.findOne(id);
+    return await this.attendeeService.findOneBy([
+      { id, createdBy: req.user.userId },
+      { id, userId: req.user.userId },
+      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+    ]);
   }
 
   @Patch(':id')
@@ -50,6 +58,13 @@ export class MeetingAttendeesController {
     @Param('id') id: string,
     @Body() updateMeetingAttendeeDto: UpdateMeetingAttendeeDto,
   ) {
+    const found = await this.attendeeService.findOneBy([
+      { id, createdBy: req.user.userId },
+      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+    ]);
+    if (!found) {
+      throw new NotFoundException();
+    }
     return await this.attendeeService.update(id, updateMeetingAttendeeDto);
   }
 
@@ -58,6 +73,13 @@ export class MeetingAttendeesController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
+    const found = await this.attendeeService.findOneBy([
+      { id, createdBy: req.user.userId },
+      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+    ]);
+    if (!found) {
+      throw new NotFoundException();
+    }
     return await this.attendeeService.remove(id);
   }
 }

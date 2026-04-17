@@ -10,11 +10,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { MeetingGroupStatus } from '../../../lib/constants';
-import { Meeting } from '../../meetings/entities/meeting.entity';
-import { MeetingSlot } from '../../meeting-slots/entities/meeting-slot.entity';
+import { Calendar } from '../../calendars/entities/calendar.entity';
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
+import { MeetingSlot } from '../../meeting-slots/entities/meeting-slot.entity';
+import { Meeting } from '../../meetings/entities/meeting.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('meeting_groups')
 export class MeetingGroup {
@@ -41,6 +42,15 @@ export class MeetingGroup {
   })
   @JoinColumn({ name: 'creatorId' })
   creator: User;
+
+  @Column()
+  calendarId: string;
+
+  @ManyToOne(() => Calendar, (calendar) => calendar.meetingGroups, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'calendarId' })
+  calendar: Calendar;
 
   @Column()
   summary: string;

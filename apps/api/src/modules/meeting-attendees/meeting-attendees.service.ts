@@ -20,12 +20,26 @@ export class MeetingAttendeesService {
     return await this.repository.find();
   }
 
+  async findAllBy(
+    where:
+      | FindOptionsWhere<MeetingAttendee>
+      | FindOptionsWhere<MeetingAttendee>[],
+    relations?: FindOptionsRelations<MeetingAttendee>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
+  }
+
   async findOne(id: string, relations?: FindOptionsRelations<MeetingAttendee>) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
-    where: FindOptionsWhere<MeetingAttendee>,
+    where:
+      | FindOptionsWhere<MeetingAttendee>
+      | FindOptionsWhere<MeetingAttendee>[],
     relations?: FindOptionsRelations<MeetingAttendee>,
   ) {
     return await this.repository.findOne({

@@ -28,7 +28,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
-import { AvailabilityPreferencesModule } from './src/modules/availability-preferences/availability-preferences.module';
+import { AvailabilityPreferencesModule } from './modules/availability-preferences/availability-preferences.module';
 
 @Module({
   imports: [

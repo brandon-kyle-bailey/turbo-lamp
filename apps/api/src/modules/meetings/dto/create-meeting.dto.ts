@@ -12,14 +12,14 @@ export class CreateMeetingDto {
     default: new Date().toISOString(),
   })
   @IsDateString()
-  start_at: Date;
+  start: Date;
 
   @ApiProperty({
     description: 'the meetings end time.',
     default: new Date().toISOString(),
   })
   @IsDateString()
-  end_at: Date;
+  end: Date;
 
   @ApiProperty({
     description: 'the meetings status.',

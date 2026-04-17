@@ -1,5 +1,0 @@
-{
-  "subject": "You've been invited to attend a booking.",
-  "text": "Click the following link to confirm: ${url}\nInvitation expires at ${expiresAt}",
-  "html": "<p>Click <a href=${url}>here</a> to confirm.<br/>Invitation expires at ${expiresAt}</p>"
-}

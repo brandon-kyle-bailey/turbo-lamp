@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -6,13 +7,12 @@ import {
   FindOptionsWhere,
   Repository,
 } from 'typeorm';
+import { VerificationType, VerificationValue } from '../../lib/constants';
+import { TokenService } from '../auth/token.service';
+import { InvitationCreatedCommand } from './commands/invitation-created.command';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
 import { Verification } from './entities/verification.entity';
-import { NotificationsService } from '../notifications/notifications.service';
-import { TokenService } from '../auth/token.service';
-import { VerificationType, VerificationValue } from '../../lib/constants';
-import * as invitationTemplate from './templates/invitation.json';
 
 @Injectable()
 export class VerificationsService {
@@ -22,8 +22,7 @@ export class VerificationsService {
     private readonly repository: Repository<Verification>,
     @Inject(TokenService)
     private readonly tokenService: TokenService,
-    @Inject(NotificationsService)
-    private readonly notificationsService: NotificationsService,
+    private readonly commandBus: CommandBus,
   ) {}
 
   async findAll() {
@@ -76,20 +75,8 @@ export class VerificationsService {
     const payload: VerificationValue = await this.tokenService.verify(
       createVerificationDto.value,
     );
-    // TODO... Move to CQRS
     if (payload.type === VerificationType.INVITE) {
-      const expiresAt = createVerificationDto.expiresAt;
-      const url = `http://localhost:3000/onboarding/auth?token=${encodeURIComponent(verification.identifier)}`;
-      await this.notificationsService.sendEmail({
-        to: payload.to,
-        subject: invitationTemplate['subject'],
-        text: invitationTemplate['text']
-          .replaceAll('${url}', url)
-          .replaceAll('${expiresAt}', expiresAt.toString()),
-        html: invitationTemplate['html']
-          .replaceAll('${url}', url)
-          .replaceAll('${expiresAt}', expiresAt.toString()),
-      });
+      await this.commandBus.execute(new InvitationCreatedCommand(verification));
     }
     return verification;
   }

@@ -34,10 +34,10 @@ export class Meeting {
   meetingGroup: MeetingGroup;
 
   @Column()
-  start_at: Date;
+  start: Date;
 
   @Column()
-  end_at: Date;
+  end: Date;
 
   @Column({ type: 'enum', enum: MeetingStatus })
   status: MeetingStatus;

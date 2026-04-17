@@ -15,6 +15,10 @@ export class CreateMeetingGroupDto {
   @IsUUID()
   creatorId?: string;
 
+  @ApiProperty({ description: 'The ID of the creators calendar.' })
+  @IsUUID()
+  calendarId: string;
+
   @ApiProperty({ description: 'The summary of the meeting group.' })
   @IsString()
   summary: string;

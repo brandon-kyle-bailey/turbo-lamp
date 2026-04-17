@@ -3,46 +3,26 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { CalendarProvider } from '../../../lib/constants';
-import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 
-@Entity('calendars')
-@Index(['userId', 'externalId'], { unique: true })
-export class Calendar {
+@Entity('availability-preferences')
+export class AvailabilityPreference {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.calendars, {
+  @ManyToOne(() => User, (user) => user.accounts, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  @Column({ enum: CalendarProvider })
-  providerId: CalendarProvider;
-
-  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.creator)
-  meetingGroups: MeetingGroup[];
-
-  @Column()
-  externalId: string;
-
-  @Column()
-  name: string;
-
-  @Column()
-  timezone: string;
 
   @CreateDateColumn()
   createdAt: Date;

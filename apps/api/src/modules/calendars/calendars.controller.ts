@@ -47,9 +47,11 @@ export class CalendarsController {
     @Query('after') after: Date,
     @Query('before') before: Date,
   ) {
-    const calendar = await this.calendarService.findOneBy({ id });
+    const calendar = await this.calendarService.findOneBy({
+      id,
+      userId: req.user.userId,
+    });
     if (!calendar) throw new NotFoundException();
-    if (calendar.userId !== req.user.userId) throw new UnauthorizedException();
     return await this.externalCalendarService.listEvents(
       req.user.providerId as 'google',
       {
@@ -64,7 +66,7 @@ export class CalendarsController {
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
     console.log(req.user);
-    return await this.calendarService.findAll();
+    return await this.calendarService.findAllBy({ userId: req.user.userId });
   }
 
   @Get(':id')

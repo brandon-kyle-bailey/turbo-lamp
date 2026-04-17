@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
   Inject,
+  NotFoundException,
 } from '@nestjs/common';
 import { MeetingGroupsService } from './meeting-groups.service';
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
@@ -37,7 +38,8 @@ export class MeetingGroupsController {
   ) {
     const result = await this.meetingGroupsService.create({
       ...createMeetingGroupDto,
-      creatorId: req.user.user.id,
+      creatorId: req.user.userId,
+      createdBy: req.user.userId,
     });
 
     await this.meetingParticipantService.create({
@@ -53,25 +55,52 @@ export class MeetingGroupsController {
   }
 
   @Get()
-  async findAll() {
-    return await this.meetingGroupsService.findAll();
+  async findAll(@Req() req: Request & { user: Account }) {
+    return await this.meetingGroupsService.findAllBy([
+      { creatorId: req.user.userId },
+      { participants: { userId: req.user.userId } },
+      { participants: { email: req.user.user.email } },
+    ]);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.meetingGroupsService.findOne(id);
+  async findOne(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    return await this.meetingGroupsService.findOneBy([
+      { id, creatorId: req.user.userId },
+      { id, participants: { userId: req.user.userId } },
+      { id, participants: { email: req.user.user.email } },
+    ]);
   }
 
   @Patch(':id')
   async update(
+    @Req() req: Request & { user: Account },
     @Param('id') id: string,
     @Body() updateMeetingGroupDto: UpdateMeetingGroupDto,
   ) {
+    const found = await this.meetingGroupsService.findOneBy([
+      { id, creatorId: req.user.userId },
+    ]);
+    if (!found) {
+      throw new NotFoundException();
+    }
     return await this.meetingGroupsService.update(id, updateMeetingGroupDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Req() req: Request & { user: Account },
+    @Param('id') id: string,
+  ) {
+    const found = await this.meetingGroupsService.findOneBy([
+      { id, creatorId: req.user.userId },
+    ]);
+    if (!found) {
+      throw new NotFoundException();
+    }
     return await this.meetingGroupsService.remove(id);
   }
 }

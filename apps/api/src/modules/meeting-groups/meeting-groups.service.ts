@@ -11,13 +11,19 @@ export class MeetingGroupsService {
     @InjectRepository(MeetingGroup)
     private readonly repository: Repository<MeetingGroup>,
   ) {}
-  async create(createMeetingGroupDto: CreateMeetingGroupDto) {
-    const meetingGroup = this.repository.create(createMeetingGroupDto);
-    return await this.repository.save(meetingGroup);
-  }
 
   async findAll() {
     return await this.repository.find();
+  }
+
+  async findAllBy(
+    where: FindOptionsWhere<MeetingGroup> | FindOptionsWhere<MeetingGroup>[],
+    relations?: FindOptionsRelations<MeetingGroup>,
+  ) {
+    return await this.repository.find({
+      where,
+      relations,
+    });
   }
 
   async findOne(id: string, relations?: FindOptionsRelations<MeetingGroup>) {
@@ -25,13 +31,21 @@ export class MeetingGroupsService {
   }
 
   async findOneBy(
-    where: FindOptionsWhere<MeetingGroup>,
+    where: FindOptionsWhere<MeetingGroup> | FindOptionsWhere<MeetingGroup>[],
     relations?: FindOptionsRelations<MeetingGroup>,
   ) {
     return await this.repository.findOne({
       where,
       relations,
     });
+  }
+
+  async create(
+    createMeetingGroupDto: CreateMeetingGroupDto & { createdBy: string },
+  ) {
+    return await this.repository.save(
+      this.repository.create(createMeetingGroupDto),
+    );
   }
 
   async update(id: string, updateMeetingGroupDto: UpdateMeetingGroupDto) {

@@ -9,6 +9,8 @@ import { VerificationsService } from '../verifications/verifications.service';
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
+import { CommandBus } from '@nestjs/cqrs';
+import { MeetingParticipantAuthorizedCommand } from './commands/meeting-participant-authorized.command';
 
 @Injectable()
 export class MeetingParticipantsService {
@@ -21,6 +23,7 @@ export class MeetingParticipantsService {
     private readonly tokenService: TokenService,
     @Inject(VerificationsService)
     private readonly verificationService: VerificationsService,
+    private readonly commandBus: CommandBus,
   ) {}
   async create(
     createMeetingParticipantDto: CreateMeetingParticipantDto & {
@@ -85,13 +88,19 @@ export class MeetingParticipantsService {
     id: string,
     updateMeetingParticipantDto: UpdateMeetingParticipantDto,
   ) {
-    const result = await this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       ...updateMeetingParticipantDto,
     });
-    if (!result.affected) {
+    if (!updated.affected) {
       throw new NotFoundException();
     }
-    return await this.findOne(id);
+    const result = await this.findOne(id);
+    if (result && updateMeetingParticipantDto.oauth_connected) {
+      await this.commandBus.execute(
+        new MeetingParticipantAuthorizedCommand(result),
+      );
+    }
+    return result;
   }
 
   async remove(id: string) {
