@@ -3,7 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { EnvironmentVariables } from 'src/lib/constants';
+import {
+  EnvironmentVariables,
+  TOKEN_ALGORITHM,
+  TOKEN_AUDIENCE,
+  TOKEN_ISSUER,
+} from 'src/lib/constants';
 import { AccountsService } from '../../accounts/accounts.service';
 import { Account } from '../../accounts/entities/account.entity';
 import { TokenSchema } from '../token.service';
@@ -30,9 +35,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         },
       ]),
       secretOrKey: privateKey,
-      algorithms: ['RS256'],
-      issuer: 'auth-server',
-      audience: 'api',
+      algorithms: [TOKEN_ALGORITHM],
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
     });
   }
 
@@ -50,7 +55,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           participations: true,
           attendances: true,
           sessions: true,
-          availabilityPreferences: true,
+          availabilityOverrides: true,
         },
       },
     );

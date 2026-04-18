@@ -14,7 +14,12 @@ import { CacheableMemory } from 'cacheable';
 import Redis from 'ioredis';
 import Keyv from 'keyv';
 import { UseCacheInterceptor } from './interceptors/cache.interceptor';
-import { EnvironmentVariables } from './lib/constants';
+import {
+  EnvironmentVariables,
+  TOKEN_ALGORITHM,
+  TOKEN_AUDIENCE,
+  TOKEN_ISSUER,
+} from './lib/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CalendarsModule } from './modules/calendars/calendars.module';
@@ -28,7 +33,7 @@ import { MeetingsModule } from './modules/meetings/meetings.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
-import { AvailabilityPreferencesModule } from './modules/availability-preferences/availability-preferences.module';
+import { AvailabilityOverridesModule } from './modules/availability-overrides/availability-overrides.module';
 
 @Module({
   imports: [
@@ -69,10 +74,9 @@ import { AvailabilityPreferencesModule } from './modules/availability-preference
           privateKey,
           publicKey,
           signOptions: {
-            algorithm: 'RS256',
-            expiresIn: Number(config.get(EnvironmentVariables.TOKEN_TTL)),
-            issuer: 'auth-server',
-            audience: 'api',
+            algorithm: TOKEN_ALGORITHM,
+            issuer: TOKEN_ISSUER,
+            audience: TOKEN_AUDIENCE,
           },
         };
       },
@@ -162,7 +166,7 @@ import { AvailabilityPreferencesModule } from './modules/availability-preference
     MeetingAttendeesModule,
     NotificationsModule,
     CalendarsModule,
-    AvailabilityPreferencesModule,
+    AvailabilityOverridesModule,
   ],
   controllers: [],
   providers: [

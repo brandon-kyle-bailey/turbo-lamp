@@ -11,7 +11,7 @@ export async function withProfile() {
   const token = (await cookies()).get("session")?.value;
   if (!token) redirect("/login");
 
-  const res = await fetch("http://localhost:3001/api/core/v1/user/profile", {
+  const res = await fetch("http://localhost:3001/api/core/v1/users/profile", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -21,16 +21,9 @@ export async function withProfile() {
   if (res.status !== 200) {
     redirect("/login");
   }
-  const result = await res.json();
-  const profile: Profile = {
-    providerId: result.providerId,
-    accountId: result.id,
-    userId: result.userId,
-    email: result.user.email,
-    name: result.user.name,
-    image: result.user.image,
-  };
-  return profile;
+  const result = (await res.json()) as Profile;
+
+  return result;
 }
 
 export default async function ProfileContext({ children }: LayoutProps) {

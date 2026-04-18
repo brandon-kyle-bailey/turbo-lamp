@@ -1,8 +1,20 @@
-import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import ProfileContext from "@/contexts/profile-context";
 import { ReactNode } from "react";
-import ProfileContext from "../../contexts/profile-context";
+import { ModeToggle } from "../../components/mode-toggle";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -14,14 +26,14 @@ export default async function ProtectedLayout({
   return (
     <ProfileContext>
       <SidebarProvider>
-        <div className="flex h-screen w-screen bg-background">
-          <AppSidebar />
-          <div className="flex flex-1 flex-col h-full w-full">
+        <AppSidebar />
+        <SidebarInset className="p-2">
+          <header className="flex justify-between">
             <SidebarTrigger />
-            <AppHeader />
-            {children}
-          </div>
-        </div>
+            <ModeToggle />
+          </header>
+          {children}
+        </SidebarInset>
       </SidebarProvider>
     </ProfileContext>
   );

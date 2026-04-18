@@ -5,11 +5,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
-import { randomBytes } from 'crypto';
 import {
-  EnvironmentVariables,
   PROVIDERS,
   STRATEGIES,
   VerificationType,
@@ -21,8 +18,6 @@ import { VerificationsService } from '../modules/verifications/verifications.ser
 @Injectable()
 export class OAuthInitiationGuard implements CanActivate {
   constructor(
-    @Inject(ConfigService)
-    private readonly configService: ConfigService,
     @Inject(TokenService)
     private readonly tokenService: TokenService,
     @Inject(VerificationsService)
@@ -50,8 +45,6 @@ export class OAuthInitiationGuard implements CanActivate {
       after: 'dashboard',
     };
 
-    const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
-
     if (req.query?.token) {
       const token = await this.verificationService.consume(req.query.token);
 
@@ -72,10 +65,13 @@ export class OAuthInitiationGuard implements CanActivate {
       value.after = payload.after;
     }
 
+    const expiresIn = 300000;
+    // 5 minutes
+    const expiresAt = new Date(Date.now() + expiresIn);
     const verification = await this.verificationService.create({
-      identifier: randomBytes(32).toString('base64url'),
-      value: this.tokenService.sign(value),
-      expiresAt: new Date(Date.now() + ttl * 1000),
+      identifier: this.tokenService.randomHash(),
+      value: this.tokenService.sign(value, { expiresIn }),
+      expiresAt,
     });
 
     guard.getAuthenticateOptions = () => ({

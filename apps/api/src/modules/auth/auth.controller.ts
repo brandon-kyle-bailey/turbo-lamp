@@ -80,7 +80,7 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    // let redirect: string = SANITIZED_ROUTES.dashboard;
+    let redirect: string = SANITIZED_ROUTES.dashboard;
 
     if (verification.value !== '') {
       const payload = this.tokenService.verify<VerificationValue>(
@@ -89,7 +89,7 @@ export class AuthController {
       const base = SANITIZED_ROUTES[payload.after];
       if (!base) throw new UnauthorizedException();
 
-      // redirect = `${base}/${payload.id}`;
+      redirect = `${base}/${payload.id}`;
     }
 
     const session = await this.authService.login(req.user, {
@@ -104,7 +104,6 @@ export class AuthController {
       domain: 'localhost',
       path: '/',
     });
-    res.json(session);
-    // res.redirect(`http://localhost:3000${redirect}`);
+    res.redirect(`http://localhost:3000${redirect}`);
   }
 }

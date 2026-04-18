@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAvailabilityPreferenceDto } from './dto/create-availability-preference.dto';
-import { UpdateAvailabilityPreferenceDto } from './dto/update-availability-preference.dto';
-import { AvailabilityPreference } from './entities/availability-preference.entity';
+import { CreateAvailabilityOverrideDto } from './dto/create-availability-override.dto';
+import { UpdateAvailabilityOverrideDto } from './dto/update-availability-override.dto';
+import { AvailabilityOverride } from './entities/availability-override.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere, FindOptionsRelations } from 'typeorm';
 
 @Injectable()
-export class AvailabilityPreferencesService {
+export class AvailabilityOverridesService {
   constructor(
-    @InjectRepository(AvailabilityPreference)
-    private readonly repository: Repository<AvailabilityPreference>,
+    @InjectRepository(AvailabilityOverride)
+    private readonly repository: Repository<AvailabilityOverride>,
   ) {}
   async create(
-    createAvailabilityPreferenceDto: CreateAvailabilityPreferenceDto & {
+    createAvailabilityOverrideDto: CreateAvailabilityOverrideDto & {
       createdBy: string;
     },
   ) {
     return await this.repository.save(
-      this.repository.create(createAvailabilityPreferenceDto),
+      this.repository.create(createAvailabilityOverrideDto),
     );
   }
 
@@ -27,9 +27,9 @@ export class AvailabilityPreferencesService {
 
   async findAllBy(
     where:
-      | FindOptionsWhere<AvailabilityPreference>
-      | FindOptionsWhere<AvailabilityPreference>[],
-    relations?: FindOptionsRelations<AvailabilityPreference>,
+      | FindOptionsWhere<AvailabilityOverride>
+      | FindOptionsWhere<AvailabilityOverride>[],
+    relations?: FindOptionsRelations<AvailabilityOverride>,
   ) {
     return await this.repository.find({
       where,
@@ -39,16 +39,16 @@ export class AvailabilityPreferencesService {
 
   async findOne(
     id: string,
-    relations?: FindOptionsRelations<AvailabilityPreference>,
+    relations?: FindOptionsRelations<AvailabilityOverride>,
   ) {
     return await this.findOneBy({ id }, relations);
   }
 
   async findOneBy(
     where:
-      | FindOptionsWhere<AvailabilityPreference>
-      | FindOptionsWhere<AvailabilityPreference>[],
-    relations?: FindOptionsRelations<AvailabilityPreference>,
+      | FindOptionsWhere<AvailabilityOverride>
+      | FindOptionsWhere<AvailabilityOverride>[],
+    relations?: FindOptionsRelations<AvailabilityOverride>,
   ) {
     return await this.repository.findOne({
       where,
@@ -58,10 +58,10 @@ export class AvailabilityPreferencesService {
 
   async update(
     id: string,
-    updateAvailabilityPreferenceDto: UpdateAvailabilityPreferenceDto,
+    updateAvailabilityOverrideDto: UpdateAvailabilityOverrideDto,
   ) {
     const result = await this.repository.update(id, {
-      ...updateAvailabilityPreferenceDto,
+      ...updateAvailabilityOverrideDto,
     });
     if (!result.affected) {
       throw new NotFoundException();

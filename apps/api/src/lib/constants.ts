@@ -21,6 +21,10 @@ export enum EnvironmentVariables {
   NODE_ENV = 'NODE_ENV',
 }
 
+export const TOKEN_ISSUER = 'venn';
+export const TOKEN_AUDIENCE = 'venn';
+export const TOKEN_ALGORITHM = 'RS256';
+
 export type PROVIDERS = 'google';
 export const STRATEGIES: PROVIDERS[] = ['google'];
 

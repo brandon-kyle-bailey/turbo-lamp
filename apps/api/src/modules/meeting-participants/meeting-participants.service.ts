@@ -2,9 +2,12 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { randomBytes } from 'crypto';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
-import { EnvironmentVariables, VerificationValue } from '../../lib/constants';
+import {
+  EnvironmentVariables,
+  VerificationType,
+  VerificationValue,
+} from '../../lib/constants';
 import { TokenService } from '../auth/token.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { MeetingParticipantAuthorizedEvent } from './events/meeting-participant-authorized.event';
@@ -35,15 +38,19 @@ export class MeetingParticipantsService {
     );
     if (createMeetingParticipantDto.oauth_connected) return result;
     const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
-    const expiresAt = new Date(Date.now() + ttl * 1000);
+    const expiresIn = ttl * 1000;
+    const expiresAt = new Date(Date.now() + expiresIn);
     await this.verificationService.create({
-      identifier: randomBytes(32).toString('base64url'),
-      value: this.tokenService.sign({
-        type: 'invite',
-        id: result.id,
-        to: result.email,
-        after: 'onboarding_complete',
-      } as VerificationValue),
+      identifier: this.tokenService.randomHash(),
+      value: this.tokenService.sign(
+        {
+          type: VerificationType.INVITE,
+          id: result.id,
+          to: result.email,
+          after: 'onboarding_complete',
+        } as VerificationValue,
+        { expiresIn },
+      ),
       expiresAt,
     });
     return result;

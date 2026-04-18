@@ -10,8 +10,8 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity('availability-preferences')
-export class AvailabilityPreference {
+@Entity('availability-overrides')
+export class AvailabilityOverride {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

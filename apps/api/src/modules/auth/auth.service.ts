@@ -101,16 +101,19 @@ export class AuthService {
     account: Account,
     metadata?: { userAgent: string | undefined; ip: string | undefined },
   ): Promise<Session> {
+    const token_ttl = this.configService.get<number>(
+      EnvironmentVariables.TOKEN_TTL,
+    )!;
+    const expiresIn = token_ttl * 1000;
+    const expiresAt = new Date(Date.now() + expiresIn);
     const payload: TokenSchema = {
       sub: account.user.id,
       username: account.user.email,
       provider: account.providerId,
     };
-    const token_ttl = this.configService.get<number>(
-      EnvironmentVariables.TOKEN_TTL,
-    )!;
-    const token = this.tokenService.sign(payload);
-    const expiresAt = new Date(Date.now() + token_ttl * 1000);
+    const token = this.tokenService.sign(payload, {
+      expiresIn,
+    });
     const session = await this.sessionService.create({
       userId: account.user.id,
       token: token,
