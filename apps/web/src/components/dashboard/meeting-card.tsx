@@ -1,19 +1,19 @@
 "use client";
 
-import { Clock, Users, Video } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { MeetingGroupWithDetails } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { MeetingGroup } from "@/lib/providers/profile-provider";
+import { Clock, Users, Video } from "lucide-react";
 
 interface MeetingCardProps {
-  meeting: MeetingGroupWithDetails;
+  meeting: MeetingGroup;
   variant?: "today" | "upcoming";
 }
 
 export function MeetingCard({ meeting, variant = "today" }: MeetingCardProps) {
-  const startTime = new Date(meeting.startTime);
-  const endTime = new Date(meeting.endTime);
+  const startTime = new Date(meeting.after);
+  const endTime = new Date(meeting.before);
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
@@ -74,7 +74,7 @@ export function MeetingCard({ meeting, variant = "today" }: MeetingCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-foreground truncate text-balance">
-                {meeting.title}
+                {meeting.summary}
               </h3>
               {meeting.description && (
                 <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
@@ -97,7 +97,7 @@ export function MeetingCard({ meeting, variant = "today" }: MeetingCardProps) {
               <Users className="h-3.5 w-3.5" />
               <span>{meeting.participants.length} participants</span>
             </div>
-            {meeting.meetings[0]?.meetingLink && (
+            {meeting.meeting?.location && (
               <div className="flex items-center gap-1.5">
                 <Video className="h-3.5 w-3.5" />
                 <span>Video call</span>
@@ -113,7 +113,7 @@ export function MeetingCard({ meeting, variant = "today" }: MeetingCardProps) {
                   className="h-7 w-7 border-2 border-card ring-0"
                 >
                   <AvatarImage
-                    src={participant.user.avatar}
+                    src={participant.user.image}
                     alt={participant.user.name}
                   />
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">

@@ -1,27 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { CalendarDays, CalendarRange, Clock, Mail } from "lucide-react";
-import { Header } from "@/components/dashboard/header";
-import { MeetingCard } from "@/components/dashboard/meeting-card";
-import { InvitationCard } from "@/components/dashboard/invitation-card";
-import { SectionHeader } from "@/components/dashboard/section-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
+import { Header } from "@/components/dashboard/header";
+import { InvitationCard } from "@/components/dashboard/invitation-card";
+import { MeetingCard } from "@/components/dashboard/meeting-card";
+import { SectionHeader } from "@/components/dashboard/section-header";
 import {
-  currentUser,
-  todaysMeetingGroups,
-  upcomingMeetingGroups,
-  pendingInvitations as initialInvitations,
-} from "@/lib/mock-data";
-import type { PendingInvitation } from "@/lib/types";
+  MeetingParticipant,
+  useProfile,
+} from "@/lib/providers/profile-provider";
+import { CalendarDays, CalendarRange, Clock, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useProfile } from "@/lib/providers/profile-provider";
+import { useState } from "react";
 
 export default function Dashboard() {
   const profile = useProfile();
   const router = useRouter();
-  const [invitations, setInvitations] =
-    useState<PendingInvitation[]>(initialInvitations);
+  const [invitations, setInvitations] = useState<MeetingParticipant[]>(
+    profile.user.participations,
+  );
+
+  const today = new Date();
+  const todaysMeetingGroups = profile.user.meetingGroups.filter((mg) => mg);
+  const upcomingMeetingGroups = profile.user.meetingGroups.filter((mg) => mg);
 
   const handleViewCalendar = () => {
     router.push("/dashboard/calendar");
@@ -40,7 +41,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className="min-h-screen bg-background">
       <div>
         <div className="space-y-8">
           {/* Header */}

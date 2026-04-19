@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/field";
 import { useRouter } from "next/navigation";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
-import { withProfile } from "../../../lib/context/profile-context";
 
 const formSchema = z.object({
   email: z.email(),

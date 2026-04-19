@@ -7,20 +7,52 @@ export interface AvailabilityOverride {
   id: string;
 }
 
+export interface Availability {
+  id: string;
+}
+
 export interface Calendar {
   id: string;
 }
 
-export interface Participation {
+export interface MeetingParticipant {
   id: string;
+  user: User;
+  userId: string;
+  email: string;
+  required: boolean;
+  oauth_connected: boolean;
 }
 
 export interface Session {
   id: string;
 }
 
+export interface Meeting {
+  id: string;
+  location: string;
+}
+
+export interface MeetingSlot {
+  id: string;
+}
+
 export interface MeetingGroup {
   id: string;
+  creatorId: string;
+  creator: User;
+  calendarId: string;
+  calendar: Calendar;
+  summary: string;
+  description: string;
+  duration: number;
+  after: Date;
+  before: Date;
+  tmezone: string;
+  status: string;
+  meeting: Meeting;
+  slots: MeetingSlot[];
+  participants: MeetingParticipant[];
 }
 
 export interface Attendance {
@@ -30,8 +62,9 @@ export interface Attendance {
 export interface User {
   id: string;
   availabilityOverrides: AvailabilityOverride[];
+  availabilities: Availability[];
   calendars: Calendar[];
-  participations: Participation[];
+  participations: MeetingParticipant[];
   sessions: Session[];
   meetingGroups: MeetingGroup[];
   attendances: Attendance[];
