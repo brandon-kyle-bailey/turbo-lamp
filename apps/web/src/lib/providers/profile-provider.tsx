@@ -30,9 +30,20 @@ export interface Session {
   id: string;
 }
 
+export interface MeetingAttendee {
+  id: string;
+  userId: string;
+  user: User;
+}
+
 export interface Meeting {
   id: string;
   location: string;
+  status: string;
+  start: Date;
+  end: Date;
+  attendees: MeetingAttendee[];
+  meetingGroup: MeetingGroup;
 }
 
 export interface MeetingSlot {
@@ -59,10 +70,12 @@ export interface MeetingGroup {
 
 export interface Attendance {
   id: string;
+  meeting: Meeting;
 }
 
 export interface User {
   id: string;
+  meetings: Meeting[];
   availabilityOverrides: AvailabilityOverride[];
   availabilities: Availability[];
   calendars: Calendar[];

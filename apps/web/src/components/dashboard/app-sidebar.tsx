@@ -34,7 +34,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { pendingInvitations } from "@/lib/mock-data";
 import { useProfile } from "@/lib/providers/profile-provider";
 import { usePathname } from "next/navigation";
 
@@ -90,8 +89,10 @@ const accountNavItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const pendingCount = pendingInvitations.length;
   const currentUser = useProfile();
+  const pendingCount = currentUser.user.participations.filter(
+    (p) => !p.oauth_connected,
+  ).length;
 
   return (
     <Sidebar collapsible="icon">

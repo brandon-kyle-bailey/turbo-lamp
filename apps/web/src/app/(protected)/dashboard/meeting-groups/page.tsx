@@ -19,7 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { allMeetingGroups } from "@/lib/mock-data";
+import { useProfile } from "@/lib/providers/profile-provider";
 import {
   Calendar,
   Clock,
@@ -40,14 +40,15 @@ function formatDate(dateString: string) {
 
 export default function MeetingGroupsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const profile = useProfile();
 
   const filteredGroups = searchQuery
-    ? allMeetingGroups.filter(
+    ? profile.user.meetingGroups.filter(
         (g) =>
-          g.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          g.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
           g.description?.toLowerCase().includes(searchQuery.toLowerCase()),
       )
-    : allMeetingGroups;
+    : profile.user.meetingGroups;
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -108,7 +109,7 @@ export default function MeetingGroupsPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">{group.title}</CardTitle>
+                    <CardTitle className="text-base">{group.summary}</CardTitle>
                     <CardDescription className="line-clamp-2">
                       {group.description || "No description"}
                     </CardDescription>
@@ -138,12 +139,10 @@ export default function MeetingGroupsPage() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                   <span className="flex items-center gap-1.5">
                     <Calendar className="size-3.5" />
-                    {formatDate(group.startTime)}
+                    {formatDate(group.after.toISOString())}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Clock className="size-3.5" />
-                    {group.meetings.length} meeting
-                    {group.meetings.length !== 1 ? "s" : ""}
+                    <Clock className="size-3.5" />1 meeting
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -154,7 +153,7 @@ export default function MeetingGroupsPage() {
                           key={p.id}
                           className="size-7 border-2 border-background"
                         >
-                          <AvatarImage src={p.user.avatar} alt={p.user.name} />
+                          <AvatarImage src={p.user.image} alt={p.user.name} />
                           <AvatarFallback className="text-xs">
                             {p.user.name
                               .split(" ")

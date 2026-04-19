@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { allMeetingGroups } from "@/lib/mock-data";
-import type { MeetingGroupWithDetails } from "@/lib/types";
+import { MeetingGroup, useProfile } from "@/lib/providers/profile-provider";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -34,9 +33,9 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
-function getMeetingsForDate(date: Date, meetings: MeetingGroupWithDetails[]) {
+function getMeetingsForDate(date: Date, meetings: MeetingGroup[]) {
   return meetings.filter((m) => {
-    const meetingDate = new Date(m.startTime);
+    const meetingDate = new Date(m.after);
     return (
       meetingDate.getFullYear() === date.getFullYear() &&
       meetingDate.getMonth() === date.getMonth() &&
@@ -46,20 +45,16 @@ function getMeetingsForDate(date: Date, meetings: MeetingGroupWithDetails[]) {
 }
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const profile = useProfile();
+  const today = new Date();
 
-  useEffect(() => {
-    setMounted(true);
-    setSelectedDate(new Date());
-  }, []);
+  const [currentDate, setCurrentDate] = useState(() => today);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => today);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
-  const today = new Date();
 
   const prevMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
@@ -76,7 +71,7 @@ export default function CalendarPage() {
   };
 
   const selectedDateMeetings = selectedDate
-    ? getMeetingsForDate(selectedDate, allMeetingGroups)
+    ? getMeetingsForDate(selectedDate, profile.user.meetingGroups)
     : [];
 
   const calendarDays = [];
@@ -85,14 +80,6 @@ export default function CalendarPage() {
   }
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push(day);
-  }
-
-  if (!mounted) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
   }
 
   return (
@@ -153,7 +140,7 @@ export default function CalendarPage() {
                   return (
                     <div
                       key={`empty-${index}`}
-                      className="bg-background p-2 min-h-[80px]"
+                      className="bg-background p-2 min-h-20"
                     />
                   );
                 }
@@ -168,13 +155,16 @@ export default function CalendarPage() {
                   date.getDate() === selectedDate.getDate() &&
                   date.getMonth() === selectedDate.getMonth() &&
                   date.getFullYear() === selectedDate.getFullYear();
-                const dayMeetings = getMeetingsForDate(date, allMeetingGroups);
+                const dayMeetings = getMeetingsForDate(
+                  date,
+                  profile.user.meetingGroups,
+                );
 
                 return (
                   <button
                     key={day}
                     onClick={() => setSelectedDate(date)}
-                    className={`bg-background p-2 min-h-[80px] text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset ${
+                    className={`bg-background p-2 min-h-20 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset ${
                       isSelected ? "ring-2 ring-ring ring-inset" : ""
                     }`}
                   >
@@ -193,7 +183,7 @@ export default function CalendarPage() {
                           key={meeting.id}
                           className="truncate rounded bg-primary/10 px-1 py-0.5 text-xs text-primary"
                         >
-                          {meeting.title}
+                          {meeting.summary}
                         </div>
                       ))}
                       {dayMeetings.length > 2 && (
@@ -233,17 +223,16 @@ export default function CalendarPage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h4 className="font-medium text-sm">{meeting.title}</h4>
+                        <h4 className="font-medium text-sm">
+                          {meeting.summary}
+                        </h4>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(meeting.startTime).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            },
-                          )}{" "}
+                          {new Date(meeting.after).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}{" "}
                           -{" "}
-                          {new Date(meeting.endTime).toLocaleTimeString(
+                          {new Date(meeting.before).toLocaleTimeString(
                             "en-US",
                             {
                               hour: "numeric",

@@ -14,8 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { allMeetingGroups } from "@/lib/mock-data";
-import type { MeetingGroupWithDetails } from "@/lib/types";
+import {
+  Attendance,
+  Meeting,
+  useProfile,
+} from "@/lib/providers/profile-provider";
 import {
   Calendar,
   Clock,
@@ -42,12 +45,14 @@ function formatTime(dateString: string) {
   });
 }
 
-function MeetingRow({ meeting }: { meeting: MeetingGroupWithDetails }) {
+function MeetingRow({ meeting }: { meeting: Meeting }) {
   return (
     <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium truncate">{meeting.title}</h3>
+          <h3 className="font-medium truncate">
+            {meeting.meetingGroup.summary}
+          </h3>
           <Badge
             variant={
               meeting.status === "completed"
@@ -61,28 +66,29 @@ function MeetingRow({ meeting }: { meeting: MeetingGroupWithDetails }) {
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-1 truncate">
-          {meeting.description}
+          {meeting.meetingGroup.description}
         </p>
         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="size-3.5" />
-            {formatDate(meeting.startTime)}
+            {formatDate(meeting.start.toISOString())}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="size-3.5" />
-            {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
+            {formatTime(meeting.start.toISOString())} -{" "}
+            {formatTime(meeting.end.toISOString())}
           </span>
           <span className="flex items-center gap-1">
             <Users className="size-3.5" />
-            {meeting.participants.length}
+            {meeting.attendees.length}
           </span>
         </div>
       </div>
       <div className="flex items-center gap-2">
         <div className="flex -space-x-2">
-          {meeting.participants.slice(0, 3).map((p) => (
+          {meeting.attendees.slice(0, 3).map((p) => (
             <Avatar key={p.id} className="size-8 border-2 border-background">
-              <AvatarImage src={p.user.avatar} alt={p.user.name} />
+              <AvatarImage src={p.user.image} alt={p.user.name} />
               <AvatarFallback className="text-xs">
                 {p.user.name
                   .split(" ")
@@ -91,9 +97,9 @@ function MeetingRow({ meeting }: { meeting: MeetingGroupWithDetails }) {
               </AvatarFallback>
             </Avatar>
           ))}
-          {meeting.participants.length > 3 && (
+          {meeting.attendees.length > 3 && (
             <div className="flex size-8 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium">
-              +{meeting.participants.length - 3}
+              +{meeting.attendees.length - 3}
             </div>
           )}
         </div>
@@ -119,17 +125,28 @@ function MeetingRow({ meeting }: { meeting: MeetingGroupWithDetails }) {
 
 export default function MeetingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const profile = useProfile();
 
-  const scheduled = allMeetingGroups.filter((m) => m.status === "scheduled");
-  const completed = allMeetingGroups.filter((m) => m.status === "completed");
-  const cancelled = allMeetingGroups.filter((m) => m.status === "cancelled");
+  const scheduled = profile.user.attendances.filter(
+    (m) => m.meeting.status === "scheduled",
+  );
+  const completed = profile.user.attendances.filter(
+    (m) => m.meeting.status === "completed",
+  );
+  const cancelled = profile.user.attendances.filter(
+    (m) => m.meeting.status === "cancelled",
+  );
 
-  const filterMeetings = (meetings: MeetingGroupWithDetails[]) => {
+  const filterMeetings = (meetings: Attendance[]) => {
     if (!searchQuery) return meetings;
     return meetings.filter(
       (m) =>
-        m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+        m.meeting.meetingGroup.summary
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        m.meeting.meetingGroup.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()),
     );
   };
 
@@ -202,7 +219,7 @@ export default function MeetingsPage() {
             </Card>
           ) : (
             filterMeetings(scheduled).map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
+              <MeetingRow key={meeting.id} meeting={meeting.meeting} />
             ))
           )}
         </TabsContent>
@@ -220,7 +237,7 @@ export default function MeetingsPage() {
             </Card>
           ) : (
             filterMeetings(completed).map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
+              <MeetingRow key={meeting.id} meeting={meeting.meeting} />
             ))
           )}
         </TabsContent>
@@ -238,7 +255,7 @@ export default function MeetingsPage() {
             </Card>
           ) : (
             filterMeetings(cancelled).map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
+              <MeetingRow key={meeting.id} meeting={meeting.meeting} />
             ))
           )}
         </TabsContent>
