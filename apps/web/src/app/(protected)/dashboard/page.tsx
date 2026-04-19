@@ -13,6 +13,9 @@ import { CalendarDays, CalendarRange, Clock, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+const toDateOnly = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
 export default function Dashboard() {
   const profile = useProfile();
   const router = useRouter();
@@ -20,9 +23,15 @@ export default function Dashboard() {
     profile.user.participations,
   );
 
-  const today = new Date();
-  const todaysMeetingGroups = profile.user.meetingGroups.filter((mg) => mg);
-  const upcomingMeetingGroups = profile.user.meetingGroups.filter((mg) => mg);
+  const todayKey = toDateOnly(new Date());
+
+  const todaysMeetingGroups = profile.user.meetingGroups.filter(
+    (mg) => toDateOnly(mg.after) === todayKey,
+  );
+
+  const upcomingMeetingGroups = profile.user.meetingGroups.filter(
+    (mg) => toDateOnly(mg.after) > todayKey,
+  );
 
   const handleViewCalendar = () => {
     router.push("/dashboard/calendar");

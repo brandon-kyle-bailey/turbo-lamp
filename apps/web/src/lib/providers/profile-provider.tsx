@@ -17,8 +17,10 @@ export interface Calendar {
 
 export interface MeetingParticipant {
   id: string;
-  user: User;
+  meetingGroup: MeetingGroup;
+  createdAt: Date;
   userId: string;
+  user: User;
   email: string;
   required: boolean;
   oauth_connected: boolean;

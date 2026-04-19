@@ -1,13 +1,13 @@
 "use client";
 
-import { Calendar, Check, X } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { PendingInvitation } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { MeetingParticipant } from "@/lib/providers/profile-provider";
+import { Calendar, Check, X } from "lucide-react";
 
 interface InvitationCardProps {
-  invitation: PendingInvitation;
+  invitation: MeetingParticipant;
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
 }
@@ -17,7 +17,7 @@ export function InvitationCard({
   onAccept,
   onDecline,
 }: InvitationCardProps) {
-  const startTime = new Date(invitation.meetingGroup.startTime);
+  const startTime = new Date(invitation.meetingGroup.after);
 
   const formatDateTime = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -56,22 +56,22 @@ export function InvitationCard({
           <div className="flex items-start gap-3">
             <Avatar className="h-9 w-9 border border-border">
               <AvatarImage
-                src={invitation.organizer.avatar}
-                alt={invitation.organizer.name}
+                src={invitation.meetingGroup.creator.image}
+                alt={invitation.meetingGroup.creator.name}
               />
               <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                {getInitials(invitation.organizer.name)}
+                {getInitials(invitation.meetingGroup.creator.name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm">
                 <span className="font-medium text-foreground">
-                  {invitation.organizer.name}
+                  {invitation.meetingGroup.creator.name}
                 </span>{" "}
                 <span className="text-muted-foreground">invited you to</span>
               </p>
               <h3 className="font-medium text-foreground truncate">
-                {invitation.meetingGroup.title}
+                {invitation.meetingGroup.summary}
               </h3>
             </div>
           </div>
@@ -80,7 +80,7 @@ export function InvitationCard({
             <Calendar className="h-3.5 w-3.5" />
             <span>{formatDateTime(startTime)}</span>
             <span className="text-border">·</span>
-            <span>{timeAgo(invitation.invitedAt)}</span>
+            <span>{timeAgo(invitation.createdAt.toISOString())}</span>
           </div>
 
           <div className="flex gap-2 pt-1">
