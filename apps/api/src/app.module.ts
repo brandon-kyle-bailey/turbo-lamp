@@ -34,6 +34,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
 import { AvailabilityOverridesModule } from './modules/availability-overrides/availability-overrides.module';
+import { AvailabilitiesModule } from './modules/availabilities/availabilities.module';
 
 @Module({
   imports: [
@@ -167,6 +168,7 @@ import { AvailabilityOverridesModule } from './modules/availability-overrides/av
     NotificationsModule,
     CalendarsModule,
     AvailabilityOverridesModule,
+    AvailabilitiesModule,
   ],
   controllers: [],
   providers: [

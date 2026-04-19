@@ -1,4 +1,4 @@
-import { Profile, ProfileProvider } from "@/providers/profile-provider";
+import { Profile, ProfileProvider } from "@/lib/providers/profile-provider";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";

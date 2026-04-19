@@ -1,12 +1,12 @@
-import { Header } from "@/components/header";
-import { Hero } from "@/components/hero";
-import { LogoCloud } from "@/components/logo-cloud";
-import { Features } from "@/components/features";
-import { HowItWorks } from "@/components/how-it-works";
-import { Testimonials } from "@/components/testimonials";
-import { CTA } from "@/components/cta";
-import { Footer } from "@/components/footer";
-import { PricingSection } from "@/components/pricing-section";
+import { Header } from "@/components/landing-page/header";
+import { Hero } from "@/components/landing-page/hero";
+import { LogoCloud } from "@/components/landing-page/logo-cloud";
+import { Features } from "@/components/landing-page/features";
+import { HowItWorks } from "@/components/landing-page/how-it-works";
+import { Testimonials } from "@/components/landing-page/testimonials";
+import { CTA } from "@/components/landing-page/cta";
+import { Footer } from "@/components/landing-page/footer";
+import { PricingSection } from "@/components/landing-page/pricing-section";
 
 export default function Home() {
   return (

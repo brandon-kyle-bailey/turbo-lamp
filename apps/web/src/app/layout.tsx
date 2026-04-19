@@ -16,9 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Syncal - AI-Powered Meeting Scheduling",
-  description:
-    "Automatically find the perfect meeting time. Syncal uses AI to analyze calendars and schedule meetings that work for everyone.",
+  title: "MeetSync - Group Meeting Booking",
+  description: "Elegant group meeting scheduling made simple",
+  generator: "v0.app",
+  icons: {
+    icon: [
+      {
+        url: "/icon-light-32x32.png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/icon-dark-32x32.png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

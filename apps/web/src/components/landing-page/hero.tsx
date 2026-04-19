@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { CalendarDemo } from "@/components/calendar-demo";
+import { CalendarDemo } from "@/components/landing-page/calendar-demo";
 
 export function Hero() {
   return (

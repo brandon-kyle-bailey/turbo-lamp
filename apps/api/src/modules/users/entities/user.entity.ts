@@ -14,6 +14,7 @@ import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attend
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
 import { Calendar } from '../../calendars/entities/calendar.entity';
 import { AvailabilityOverride } from '../../availability-overrides/entities/availability-override.entity';
+import { Availability } from '../../availabilities/entities/availability.entity';
 
 @Entity('users')
 export class User {
@@ -25,6 +26,9 @@ export class User {
 
   @OneToMany(() => AvailabilityOverride, (override) => override.user)
   availabilityOverrides: AvailabilityOverride[];
+
+  @OneToMany(() => Availability, (availability) => availability.user)
+  availabilities: Availability[];
 
   @OneToMany(() => Calendar, (calendar) => calendar.user)
   calendars: Calendar[];
