@@ -32,6 +32,7 @@ export class AvailabilityOverridesController {
     return await this.availabilityOverridesService.create({
       ...createAvailabilityOverrideDto,
       createdBy: req.user.userId,
+      userId: req.user.userId,
     });
   }
 

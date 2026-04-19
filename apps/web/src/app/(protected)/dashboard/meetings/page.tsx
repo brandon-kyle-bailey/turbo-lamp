@@ -30,6 +30,17 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
     weekday: "short",
@@ -123,6 +134,48 @@ function MeetingRow({ meeting }: { meeting: Meeting }) {
   );
 }
 
+function CreateMeetingDialog() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="size-4" />
+          Schedule Meeting
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Availability Override</DialogTitle>
+          <DialogDescription>
+            Block off a date or set custom hours for a specific day.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value=""
+              onChange={() => {
+                console.log("change");
+              }}
+              min={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button>Add Meeting Group</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function MeetingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const profile = useProfile();
@@ -167,10 +220,7 @@ export default function MeetingsPage() {
             </p>
           </div>
         </div>
-        <Button className="gap-2">
-          <Plus className="size-4" />
-          New Meeting
-        </Button>
+        <CreateMeetingDialog />
       </header>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -211,10 +261,7 @@ export default function MeetingsPage() {
                 <p className="text-sm text-muted-foreground mt-1">
                   Create a new meeting to get started
                 </p>
-                <Button className="mt-4 gap-2">
-                  <Plus className="size-4" />
-                  Schedule Meeting
-                </Button>
+                <CreateMeetingDialog />
               </CardContent>
             </Card>
           ) : (

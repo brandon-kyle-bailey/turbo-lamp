@@ -47,7 +47,10 @@ const TIMES = Array.from({ length: 24 * 2 }, (_, i) => {
 });
 
 function formatDate(dateString: string) {
-  return new Date(dateString + "T00:00:00").toLocaleDateString("en-US", {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -55,10 +58,26 @@ function formatDate(dateString: string) {
   });
 }
 
-function formatTime(time: string) {
-  const [hour, minute] = time.split(":").map(Number);
+function formatTime(time: string | Date) {
+  let date: Date;
+
+  if (time instanceof Date) {
+    date = time;
+  } else if (time.includes("T")) {
+    date = new Date(time);
+  } else {
+    // HH:mm
+    date = new Date(`1970-01-01T${time}`);
+  }
+
+  if (isNaN(date.getTime())) return "";
+
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
   const ampm = hour < 12 ? "AM" : "PM";
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+
   return `${displayHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
 }
 
@@ -73,19 +92,65 @@ export default function AvailabilityOverridesPage() {
     endTime: "17:00",
   });
 
-  const addOverride = () => {
+  const addOverride = async () => {
     if (!newOverride.date) return;
 
-    const override: AvailabilityOverride = {
-      id: `ao${Date.now()}`,
-      userId: "1",
-      date: newOverride.date,
-      startTime: newOverride.isAvailable ? newOverride.startTime : "00:00",
-      endTime: newOverride.isAvailable ? newOverride.endTime : "00:00",
+    const baseDate = new Date(newOverride.date);
+
+    let startTime: Date;
+    let endTime: Date;
+
+    if (newOverride.isAvailable) {
+      startTime = new Date(baseDate);
+      startTime.setHours(Number(newOverride.startTime.split(":")[0]));
+      startTime.setMinutes(Number(newOverride.startTime.split(":")[1]));
+      startTime.setSeconds(0);
+      startTime.setMilliseconds(0);
+
+      endTime = new Date(baseDate);
+      endTime.setHours(Number(newOverride.endTime.split(":")[0]));
+      endTime.setMinutes(Number(newOverride.endTime.split(":")[1]));
+      endTime.setSeconds(0);
+      endTime.setMilliseconds(0);
+    } else {
+      startTime = new Date(baseDate);
+      startTime.setHours(0, 0, 0, 0);
+
+      endTime = new Date(baseDate);
+      endTime.setHours(23, 59, 59, 999);
+    }
+
+    const payload = {
+      date: baseDate,
+      startTime,
+      endTime,
       isAvailable: newOverride.isAvailable,
     };
 
-    setOverrides((prev) => [...prev, override]);
+    console.log(payload);
+
+    const res = await fetch(
+      "http://localhost:3001/api/core/v1/availability-overrides",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // required if using cookie auth
+        body: JSON.stringify(payload),
+      },
+    );
+
+    if (!res.ok) {
+      // handle failure explicitly
+      return;
+    }
+
+    const created = await res.json();
+
+    // sync client state with server response
+    setOverrides((prev) => [...prev, created]);
+
     setIsDialogOpen(false);
     setNewOverride({
       date: "",

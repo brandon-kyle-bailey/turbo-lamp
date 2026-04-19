@@ -9,6 +9,18 @@ import { MeetingGroup, useProfile } from "@/lib/providers/profile-provider";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
   "January",
@@ -45,6 +57,7 @@ function getMeetingsForDate(date: Date, meetings: MeetingGroup[]) {
 }
 
 export default function CalendarPage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const profile = useProfile();
   const today = new Date();
 
@@ -99,10 +112,42 @@ export default function CalendarPage() {
             </p>
           </div>
         </div>
-        <Button className="gap-2">
-          <Plus className="size-4" />
-          Schedule Meeting
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="size-4" />
+              Schedule Meeting
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Availability Override</DialogTitle>
+              <DialogDescription>
+                Block off a date or set custom hours for a specific day.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value=""
+                  onChange={() => {
+                    console.log("change");
+                  }}
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button>Add Meeting Group</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

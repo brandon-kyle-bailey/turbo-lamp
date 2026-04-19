@@ -14,6 +14,7 @@ export class AvailabilityOverridesService {
   async create(
     createAvailabilityOverrideDto: CreateAvailabilityOverrideDto & {
       createdBy: string;
+      userId: string;
     },
   ) {
     return await this.repository.save(

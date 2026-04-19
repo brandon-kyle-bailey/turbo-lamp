@@ -24,6 +24,18 @@ export class AvailabilityOverride {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Column()
+  date: Date;
+
+  @Column()
+  startTime: Date;
+
+  @Column()
+  endTime: Date;
+
+  @Column()
+  isAvailable: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

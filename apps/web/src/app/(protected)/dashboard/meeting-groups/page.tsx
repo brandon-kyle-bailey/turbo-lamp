@@ -19,6 +19,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useProfile } from "@/lib/providers/profile-provider";
 import {
   Calendar,
@@ -36,6 +47,48 @@ function formatDate(dateString: string) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function CreateGroupDialog() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="size-4" />
+          Create Group
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Availability Override</DialogTitle>
+          <DialogDescription>
+            Block off a date or set custom hours for a specific day.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value=""
+              onChange={() => {
+                console.log("change");
+              }}
+              min={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button>Add Meeting Group</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function MeetingGroupsPage() {
@@ -67,10 +120,7 @@ export default function MeetingGroupsPage() {
             </p>
           </div>
         </div>
-        <Button className="gap-2">
-          <Plus className="size-4" />
-          Create Group
-        </Button>
+        <CreateGroupDialog />
       </header>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -93,10 +143,8 @@ export default function MeetingGroupsPage() {
             <p className="text-sm text-muted-foreground mt-1">
               Create a group to organize recurring meetings
             </p>
-            <Button className="mt-4 gap-2">
-              <Plus className="size-4" />
-              Create Group
-            </Button>
+
+            <CreateGroupDialog />
           </CardContent>
         </Card>
       ) : (

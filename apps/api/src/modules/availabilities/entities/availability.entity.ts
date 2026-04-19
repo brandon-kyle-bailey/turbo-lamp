@@ -24,6 +24,18 @@ export class Availability {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Column()
+  dayOfWeek: number;
+
+  @Column()
+  startTime: Date;
+
+  @Column()
+  endTime: Date;
+
+  @Column()
+  isEnabled: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
