@@ -112,12 +112,18 @@ export function MeetingCard({ meeting, variant = "today" }: MeetingCardProps) {
                   key={participant.id}
                   className="h-7 w-7 border-2 border-card ring-0"
                 >
-                  <AvatarImage
-                    src={participant.user.image}
-                    alt={participant.user.name}
-                  />
+                  {participant.user && participant.user.image ? (
+                    <AvatarImage
+                      src={participant.user.image}
+                      alt={participant.user.name}
+                    />
+                  ) : (
+                    <AvatarImage src={""} alt={""} />
+                  )}
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                    {getInitials(participant.user.name)}
+                    {getInitials(
+                      participant.user ? participant.user.name : "Anon",
+                    )}
                   </AvatarFallback>
                 </Avatar>
               ))}

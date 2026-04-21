@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, RefreshCw, Trash2, Check, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,10 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -22,10 +16,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { connectedCalendars as initialCalendars } from "@/lib/mock-data";
-import type { ConnectedCalendar } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
+import { Calendar as CalendarLogo, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Calendar } from "@/lib/providers/profile-provider";
 
-function getProviderIcon(provider: ConnectedCalendar["provider"]) {
+/**
+ * External providers (NOT the same shape as connected calendars)
+ */
+type ExternalCalendar = {
+  providerId: Calendar["providerId"];
+  name: string;
+  calendarId: string;
+  timezone: string;
+};
+
+function getProviderIcon(provider: Calendar["providerId"]) {
   switch (provider) {
     case "google":
       return (
@@ -48,91 +57,123 @@ function getProviderIcon(provider: ConnectedCalendar["provider"]) {
           />
         </svg>
       );
-    case "outlook":
-      return (
-        <svg className="size-5" viewBox="0 0 24 24" fill="#0078D4">
-          <path d="M24 7.387v10.478c0 .23-.08.424-.238.576-.158.154-.352.23-.58.23h-8.547v-6.959l1.6 1.229c.102.086.227.13.373.13.147 0 .27-.044.373-.13l6.78-5.198v-.356H14.635V5.33h8.547c.228 0 .422.076.58.228.158.152.238.344.238.576v1.253z" />
-          <path d="M14.635 18.67V7.387l-1.6 1.23-.08.061-4.32 3.314V6.586l-.08-.061-1.6-1.23v13.375h7.68z" />
-          <path d="M0 5.33v13.34c0 .23.08.424.238.576.158.152.352.228.58.228h6.137V4.526H.818c-.228 0-.422.076-.58.228C.08 4.906 0 5.1 0 5.33z" />
-        </svg>
-      );
-    case "apple":
-      return (
-        <svg className="size-5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-        </svg>
-      );
+    default:
+      return null;
   }
 }
 
-function getProviderName(provider: ConnectedCalendar["provider"]) {
+function getProviderName(provider: Calendar["providerId"]) {
   switch (provider) {
     case "google":
       return "Google Calendar";
-    case "outlook":
-      return "Microsoft Outlook";
-    case "apple":
-      return "Apple Calendar";
+    default:
+      return provider;
   }
 }
 
-function formatLastSynced(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-}
-
 export default function ConnectedCalendarsPage() {
-  const [calendars, setCalendars] =
-    useState<ConnectedCalendar[]>(initialCalendars);
+  const [calendars, setCalendars] = useState<Calendar[]>([]);
+  const [externalCalendars, setExternalCalendars] = useState<
+    ExternalCalendar[]
+  >([]);
+  const [loadingExternal, setLoadingExternal] = useState(false);
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
-  const [syncingId, setSyncingId] = useState<string | null>(null);
 
-  const toggleCalendar = (id: string) => {
-    setCalendars((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isEnabled: !c.isEnabled } : c)),
+  /**
+   * Fetch connected calendars
+   */
+  const getCalendars = async () => {
+    const response = await fetch(
+      "http://localhost:3001/api/core/v1/calendars",
+      {
+        method: "GET",
+        credentials: "include",
+      },
     );
+
+    if (!response.ok) {
+      toast.error("error getting calendars");
+      return [];
+    }
+
+    return response.json();
   };
 
-  const syncCalendar = async (id: string) => {
-    setSyncingId(id);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setCalendars((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, lastSynced: new Date().toISOString() } : c,
-      ),
+  useEffect(() => {
+    getCalendars().then(setCalendars);
+  }, []);
+
+  /**
+   * Fetch external providers
+   */
+  const getExternalCalendars = async () => {
+    const response = await fetch(
+      "http://localhost:3001/api/core/v1/calendars/external",
+      {
+        method: "GET",
+        credentials: "include",
+      },
     );
-    setSyncingId(null);
+
+    if (!response.ok) {
+      toast.error("error getting external calendars");
+      return [];
+    }
+
+    return response.json();
+  };
+
+  useEffect(() => {
+    if (!isConnectDialogOpen) return;
+
+    (async () => {
+      setLoadingExternal(true);
+      try {
+        const data = await getExternalCalendars();
+        setExternalCalendars(data);
+        console.log(data);
+      } catch {
+        toast.error("failed to load providers");
+      } finally {
+        setLoadingExternal(false);
+      }
+    })();
+  }, [isConnectDialogOpen]);
+
+  /**
+   * Mutations (still local except connect)
+   */
+  const toggleCalendar = (id: string) => {
+    setCalendars((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, enabled: !c.enabled } : c)),
+    );
   };
 
   const removeCalendar = (id: string) => {
     setCalendars((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const connectCalendar = (provider: ConnectedCalendar["provider"]) => {
-    const newCalendar: ConnectedCalendar = {
-      id: `cc${Date.now()}`,
-      provider,
-      email: `user@${provider === "google" ? "gmail" : provider === "outlook" ? "outlook" : "icloud"}.com`,
-      name: `${getProviderName(provider)} Account`,
-      color:
-        provider === "google"
-          ? "#4285F4"
-          : provider === "outlook"
-            ? "#0078D4"
-            : "#000000",
-      isEnabled: true,
-      lastSynced: new Date().toISOString(),
-    };
-    setCalendars((prev) => [...prev, newCalendar]);
+  const connectCalendar = async (provider: ExternalCalendar) => {
+    const res = await fetch("http://localhost:3001/api/core/v1/calendars", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        externalId: provider.calendarId,
+        name: provider.name,
+        timezone: provider.timezone,
+        providerId: provider.providerId,
+        enabled: true,
+      }),
+    });
+
+    if (!res.ok) {
+      toast.error("failed to connect calendar");
+      return;
+    }
+
+    const created = await res.json();
+    setCalendars((prev) => [...prev, created]);
     setIsConnectDialogOpen(false);
   };
 
@@ -153,6 +194,7 @@ export default function ConnectedCalendarsPage() {
             </p>
           </div>
         </div>
+
         <Dialog
           open={isConnectDialogOpen}
           onOpenChange={setIsConnectDialogOpen}
@@ -163,53 +205,44 @@ export default function ConnectedCalendarsPage() {
               Connect Calendar
             </Button>
           </DialogTrigger>
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Connect a Calendar</DialogTitle>
               <DialogDescription>
-                Choose a calendar provider to connect with MeetSync
+                Choose a calendar provider to connect
               </DialogDescription>
             </DialogHeader>
+
             <div className="grid gap-3 py-4">
-              <Button
-                variant="outline"
-                className="justify-start gap-3 h-14"
-                onClick={() => connectCalendar("google")}
-              >
-                {getProviderIcon("google")}
-                <div className="text-left">
-                  <p className="font-medium">Google Calendar</p>
-                  <p className="text-xs text-muted-foreground">
-                    Connect your Google account
-                  </p>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="justify-start gap-3 h-14"
-                onClick={() => connectCalendar("outlook")}
-              >
-                {getProviderIcon("outlook")}
-                <div className="text-left">
-                  <p className="font-medium">Microsoft Outlook</p>
-                  <p className="text-xs text-muted-foreground">
-                    Connect your Outlook account
-                  </p>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="justify-start gap-3 h-14"
-                onClick={() => connectCalendar("apple")}
-              >
-                {getProviderIcon("apple")}
-                <div className="text-left">
-                  <p className="font-medium">Apple Calendar</p>
-                  <p className="text-xs text-muted-foreground">
-                    Connect your iCloud account
-                  </p>
-                </div>
-              </Button>
+              {loadingExternal && (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              )}
+
+              {!loadingExternal && externalCalendars.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No providers available
+                </p>
+              )}
+
+              {externalCalendars.map((provider) => (
+                <Button
+                  key={provider.calendarId}
+                  variant="outline"
+                  className="justify-start gap-3 h-14"
+                  onClick={() => connectCalendar(provider)}
+                >
+                  {getProviderIcon(provider.providerId)}
+                  <div className="text-left">
+                    <p className="font-medium">
+                      {getProviderName(provider.providerId)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {provider.name}
+                    </p>
+                  </div>
+                </Button>
+              ))}
             </div>
           </DialogContent>
         </Dialog>
@@ -222,10 +255,11 @@ export default function ConnectedCalendarsPage() {
             Connected calendars are used to check for scheduling conflicts
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           {calendars.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Calendar className="size-10 text-muted-foreground/50 mb-3" />
+              <CalendarLogo className="size-10 text-muted-foreground/50 mb-3" />
               <p className="text-sm text-muted-foreground">
                 No calendars connected
               </p>
@@ -239,40 +273,21 @@ export default function ConnectedCalendarsPage() {
                 <div
                   key={calendar.id}
                   className={`flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center ${
-                    !calendar.isEnabled ? "opacity-60" : ""
+                    !calendar.enabled ? "opacity-60" : ""
                   }`}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div
-                      className="flex size-10 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: `${calendar.color}15` }}
-                    >
-                      {getProviderIcon(calendar.provider)}
+                    <div className="flex size-10 items-center justify-center rounded-lg">
+                      {getProviderIcon(calendar.providerId)}
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium truncate">{calendar.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {calendar.email}
-                      </p>
                     </div>
                   </div>
+
                   <div className="flex items-center gap-3 flex-wrap">
-                    <Badge variant="outline" className="text-xs">
-                      <Check className="size-3 mr-1" />
-                      Synced {formatLastSynced(calendar.lastSynced)}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => syncCalendar(calendar.id)}
-                      disabled={syncingId === calendar.id}
-                    >
-                      <RefreshCw
-                        className={`size-4 ${syncingId === calendar.id ? "animate-spin" : ""}`}
-                      />
-                    </Button>
                     <Switch
-                      checked={calendar.isEnabled}
+                      checked={calendar.enabled}
                       onCheckedChange={() => toggleCalendar(calendar.id)}
                     />
                     <Button
@@ -287,46 +302,6 @@ export default function ConnectedCalendarsPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Sync Settings</CardTitle>
-          <CardDescription>
-            Configure how your calendars sync with MeetSync
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Auto-sync</p>
-              <p className="text-sm text-muted-foreground">
-                Automatically sync calendars every 15 minutes
-              </p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Show busy times</p>
-              <p className="text-sm text-muted-foreground">
-                Block time slots that conflict with calendar events
-              </p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Two-way sync</p>
-              <p className="text-sm text-muted-foreground">
-                Add MeetSync meetings to your connected calendars
-              </p>
-            </div>
-            <Switch defaultChecked />
-          </div>
         </CardContent>
       </Card>
     </div>

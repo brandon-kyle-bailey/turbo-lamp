@@ -30,11 +30,11 @@ export default function Dashboard() {
   const todayKey = toDateOnly(new Date());
 
   const todaysMeetingGroups = profile.user.meetingGroups.filter(
-    (mg) => toDateOnly(mg.after) === todayKey,
+    (mg) => toDateOnly(new Date(mg.after)) === todayKey,
   );
 
   const upcomingMeetingGroups = profile.user.meetingGroups.filter(
-    (mg) => toDateOnly(mg.after) > todayKey,
+    (mg) => toDateOnly(new Date(mg.after)) > todayKey,
   );
 
   const handleViewCalendar = () => {

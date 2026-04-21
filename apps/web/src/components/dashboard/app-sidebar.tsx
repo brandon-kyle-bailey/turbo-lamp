@@ -19,6 +19,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -36,6 +39,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useProfile } from "@/lib/providers/profile-provider";
 import { usePathname } from "next/navigation";
+import { ModeToggle } from "../mode-toggle";
+import { useTheme } from "next-themes";
 
 const mainNavItems = [
   {
@@ -93,6 +98,8 @@ export function AppSidebar() {
   const pendingCount = currentUser.user.participations.filter(
     (p) => !p.oauth_connected,
   ).length;
+
+  const { setTheme } = useTheme();
 
   return (
     <Sidebar collapsible="icon">
@@ -220,13 +227,33 @@ export function AppSidebar() {
                 align="end"
                 sideOffset={4}
               >
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                      Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                      Dark
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                      System
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuItem>
                   <User2 className="mr-2 size-4" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Settings className="mr-2 size-4" />
-                  Settings
+                  <a
+                    href={"/dashboard/settings"}
+                    className="flex items-center h-full w-full"
+                  >
+                    <Settings className="mr-2 size-4" />
+                    Settings
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>

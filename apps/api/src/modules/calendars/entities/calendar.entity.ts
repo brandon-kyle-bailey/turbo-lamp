@@ -44,6 +44,9 @@ export class Calendar {
   @Column()
   timezone: string;
 
+  @Column()
+  enabled: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

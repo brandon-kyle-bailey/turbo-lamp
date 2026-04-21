@@ -13,6 +13,12 @@ export interface Availability {
 
 export interface Calendar {
   id: string;
+  providerId: string;
+  enabled: boolean;
+  timezone: string;
+  name: string;
+  userId: string;
+  externalId: string;
 }
 
 export interface MeetingParticipant {
@@ -75,6 +81,14 @@ export interface Attendance {
   meeting: Meeting;
 }
 
+export interface MeetingGroupSlot {
+  id: string;
+  meetingGroupId: string;
+  start: Date;
+  end: Date;
+  rank: number;
+}
+
 export interface User {
   id: string;
   meetings: Meeting[];
@@ -85,6 +99,7 @@ export interface User {
   sessions: Session[];
   meetingGroups: MeetingGroup[];
   attendances: Attendance[];
+  slots: MeetingGroupSlot[];
   name: string;
   email: string;
   emailVerified: string;

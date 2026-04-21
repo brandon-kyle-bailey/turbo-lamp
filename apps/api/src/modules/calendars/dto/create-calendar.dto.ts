@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -35,4 +36,11 @@ export class CreateCalendarDto {
   })
   @IsTimeZone()
   timezone: string;
+
+  @ApiProperty({
+    description: 'Whether the calendar is enabled or not',
+    default: true,
+  })
+  @IsBoolean()
+  enabled: boolean;
 }

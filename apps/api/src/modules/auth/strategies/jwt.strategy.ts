@@ -51,7 +51,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         // TODO... This could load a lot in to memory on every authenticated request.
         user: {
           calendars: true,
-          meetingGroups: { participants: { user: true } },
+          meetingGroups: { slots: true, participants: { user: true } },
           participations: { meetingGroup: { creator: true } },
           attendances: true,
           sessions: true,

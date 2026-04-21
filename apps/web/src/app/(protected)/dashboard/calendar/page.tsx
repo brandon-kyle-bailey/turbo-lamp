@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { MeetingGroup, useProfile } from "@/lib/providers/profile-provider";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Dialog,
@@ -18,10 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Meeting } from "@/lib/providers/profile-provider";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 const MONTHS = [
   "January",
   "February",
@@ -45,29 +47,56 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
-function getMeetingsForDate(date: Date, meetings: MeetingGroup[]) {
+function getMeetingsForDate(date: Date, meetings: Meeting[]) {
   return meetings.filter((m) => {
-    const meetingDate = new Date(m.after);
+    const d = new Date(m.start);
     return (
-      meetingDate.getFullYear() === date.getFullYear() &&
-      meetingDate.getMonth() === date.getMonth() &&
-      meetingDate.getDate() === date.getDate()
+      d.getFullYear() === date.getFullYear() &&
+      d.getMonth() === date.getMonth() &&
+      d.getDate() === date.getDate()
     );
   });
 }
 
 export default function CalendarPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const profile = useProfile();
   const today = new Date();
 
-  const [currentDate, setCurrentDate] = useState(() => today);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const [currentDate, setCurrentDate] = useState<Date>(() => today);
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => today);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
+
+  const getMeetings = async () => {
+    const res = await fetch("http://localhost:3001/api/core/v1/meetings", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      toast.error("failed to fetch meetings");
+      return [];
+    }
+
+    return res.json();
+  };
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const data = await getMeetings();
+      setMeetings(data);
+      setLoading(false);
+    })();
+  }, []);
 
   const prevMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
@@ -78,22 +107,17 @@ export default function CalendarPage() {
   };
 
   const goToToday = () => {
-    const now = new Date();
-    setCurrentDate(now);
-    setSelectedDate(now);
+    setCurrentDate(today);
+    setSelectedDate(today);
   };
 
   const selectedDateMeetings = selectedDate
-    ? getMeetingsForDate(selectedDate, profile.user.meetingGroups)
+    ? getMeetingsForDate(selectedDate, meetings)
     : [];
 
-  const calendarDays = [];
-  for (let i = 0; i < firstDay; i++) {
-    calendarDays.push(null);
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarDays.push(day);
-  }
+  const calendarDays: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) calendarDays.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calendarDays.push(d);
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -103,6 +127,7 @@ export default function CalendarPage() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
           </div>
+
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               Calendar
@@ -112,6 +137,7 @@ export default function CalendarPage() {
             </p>
           </div>
         </div>
+
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
@@ -119,6 +145,7 @@ export default function CalendarPage() {
               Schedule Meeting
             </Button>
           </DialogTrigger>
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Availability Override</DialogTitle>
@@ -126,25 +153,19 @@ export default function CalendarPage() {
                 Block off a date or set custom hours for a specific day.
               </DialogDescription>
             </DialogHeader>
+
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value=""
-                  onChange={() => {
-                    console.log("change");
-                  }}
-                  min={new Date().toISOString().split("T")[0]}
-                />
+                <Label>Date</Label>
+                <Input type="date" />
               </div>
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button>Add Meeting Group</Button>
+              <Button>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -152,15 +173,17 @@ export default function CalendarPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center gap-4">
               <CardTitle className="text-lg font-medium">
                 {MONTHS[month]} {year}
               </CardTitle>
+
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
             </div>
+
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="size-4" />
@@ -170,67 +193,71 @@ export default function CalendarPage() {
               </Button>
             </div>
           </CardHeader>
+
           <CardContent>
+            {loading && (
+              <div className="p-3 text-sm text-muted-foreground">
+                Loading meetings...
+              </div>
+            )}
+
             <div className="grid grid-cols-7 gap-px rounded-lg border bg-muted overflow-hidden">
-              {DAYS.map((day) => (
+              {DAYS.map((d) => (
                 <div
-                  key={day}
-                  className="bg-background p-2 text-center text-xs font-medium text-muted-foreground"
+                  key={d}
+                  className="bg-background p-2 text-center text-xs text-muted-foreground font-medium"
                 >
-                  {day}
+                  {d}
                 </div>
               ))}
-              {calendarDays.map((day, index) => {
-                if (day === null) {
+
+              {calendarDays.map((day, idx) => {
+                if (!day) {
                   return (
                     <div
-                      key={`empty-${index}`}
-                      className="bg-background p-2 min-h-20"
+                      key={`empty-${idx}`}
+                      className="bg-background min-h-20 p-2"
                     />
                   );
                 }
 
                 const date = new Date(year, month, day);
-                const isToday =
-                  date.getDate() === today.getDate() &&
-                  date.getMonth() === today.getMonth() &&
-                  date.getFullYear() === today.getFullYear();
+
+                const isToday = date.toDateString() === today.toDateString();
+
                 const isSelected =
                   selectedDate &&
-                  date.getDate() === selectedDate.getDate() &&
-                  date.getMonth() === selectedDate.getMonth() &&
-                  date.getFullYear() === selectedDate.getFullYear();
-                const dayMeetings = getMeetingsForDate(
-                  date,
-                  profile.user.meetingGroups,
-                );
+                  date.toDateString() === selectedDate.toDateString();
+
+                const dayMeetings = getMeetingsForDate(date, meetings);
+                const key = `${year}-${month}-${day}`;
 
                 return (
                   <button
-                    key={day}
+                    key={key}
                     onClick={() => setSelectedDate(date)}
-                    className={`bg-background p-2 min-h-20 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-inset ${
-                      isSelected ? "ring-2 ring-ring ring-inset" : ""
+                    className={`bg-background min-h-20 p-2 text-left hover:bg-muted/50 transition ${
+                      isSelected ? "ring-2 ring-ring" : ""
                     }`}
                   >
-                    <span
-                      className={`inline-flex size-7 items-center justify-center rounded-full text-sm ${
-                        isToday
-                          ? "bg-primary text-primary-foreground font-medium"
-                          : "text-foreground"
+                    <div
+                      className={`size-7 flex items-center justify-center rounded-full text-sm ${
+                        isToday ? "bg-primary text-primary-foreground" : ""
                       }`}
                     >
                       {day}
-                    </span>
+                    </div>
+
                     <div className="mt-1 space-y-1">
-                      {dayMeetings.slice(0, 2).map((meeting) => (
+                      {dayMeetings.slice(0, 2).map((m) => (
                         <div
-                          key={meeting.id}
-                          className="truncate rounded bg-primary/10 px-1 py-0.5 text-xs text-primary"
+                          key={m.id}
+                          className="truncate text-xs bg-primary/10 text-primary px-1 rounded"
                         >
-                          {meeting.summary}
+                          {m.meetingGroup?.summary ?? "Meeting"}
                         </div>
                       ))}
+
                       {dayMeetings.length > 2 && (
                         <div className="text-xs text-muted-foreground">
                           +{dayMeetings.length - 2} more
@@ -244,68 +271,57 @@ export default function CalendarPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-medium">
-                {selectedDate?.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedDateMeetings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No meetings scheduled
-                </p>
-              ) : (
-                selectedDateMeetings.map((meeting) => (
-                  <div
-                    key={meeting.id}
-                    className="rounded-lg border p-3 transition-colors hover:bg-muted/50"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-medium text-sm">
-                          {meeting.summary}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(meeting.after).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}{" "}
-                          -{" "}
-                          {new Date(meeting.before).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            },
-                          )}
-                        </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {selectedDate?.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-3">
+            {selectedDateMeetings.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No meetings scheduled
+              </p>
+            ) : (
+              selectedDateMeetings.map((m) => (
+                <div
+                  key={m.id}
+                  className="border rounded-lg p-3 hover:bg-muted/50"
+                >
+                  <div className="flex justify-between gap-2">
+                    <div>
+                      <div className="text-sm font-medium">
+                        {m.meetingGroup?.summary ?? "Meeting"}
                       </div>
-                      <Badge
-                        variant={
-                          meeting.status === "completed"
-                            ? "secondary"
-                            : "default"
-                        }
-                      >
-                        {meeting.status}
-                      </Badge>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(m.start).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        -{" "}
+                        {new Date(m.end).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {meeting.participants.length} participant
-                      {meeting.participants.length !== 1 ? "s" : ""}
-                    </p>
+
+                    <Badge>{m.status}</Badge>
                   </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+                  <div className="text-xs text-muted-foreground mt-2">
+                    {m.attendees?.length ?? 0} attendees
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
