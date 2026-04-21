@@ -80,7 +80,7 @@ export function InvitationCard({
             <Calendar className="h-3.5 w-3.5" />
             <span>{formatDateTime(startTime)}</span>
             <span className="text-border">·</span>
-            <span>{timeAgo(invitation.createdAt.toISOString())}</span>
+            <span>{timeAgo(String(invitation.createdAt))}</span>
           </div>
 
           <div className="flex gap-2 pt-1">

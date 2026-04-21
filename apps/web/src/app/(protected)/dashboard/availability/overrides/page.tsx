@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, CalendarOff, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,8 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { availabilityOverrides as initialOverrides } from "@/lib/mock-data";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Switch } from "@/components/ui/switch";
 import type { AvailabilityOverride } from "@/lib/types";
+import { CalendarOff, Clock, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const TIMES = Array.from({ length: 24 * 2 }, (_, i) => {
   const hour = Math.floor(i / 2);
@@ -82,8 +81,7 @@ function formatTime(time: string | Date) {
 }
 
 export default function AvailabilityOverridesPage() {
-  const [overrides, setOverrides] =
-    useState<AvailabilityOverride[]>(initialOverrides);
+  const [overrides, setOverrides] = useState<AvailabilityOverride[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newOverride, setNewOverride] = useState({
     date: "",
@@ -91,6 +89,26 @@ export default function AvailabilityOverridesPage() {
     startTime: "09:00",
     endTime: "17:00",
   });
+
+  useEffect(() => {
+    const fetchOverrides = async () => {
+      const res = await fetch(
+        "http://localhost:3001/api/core/v1/availability-overrides",
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setOverrides(data);
+    };
+
+    fetchOverrides();
+  }, []);
 
   const addOverride = async () => {
     if (!newOverride.date) return;
@@ -127,8 +145,6 @@ export default function AvailabilityOverridesPage() {
       isAvailable: newOverride.isAvailable,
     };
 
-    console.log(payload);
-
     const res = await fetch(
       "http://localhost:3001/api/core/v1/availability-overrides",
       {
@@ -160,7 +176,22 @@ export default function AvailabilityOverridesPage() {
     });
   };
 
-  const removeOverride = (id: string) => {
+  const removeOverride = async (id: string) => {
+    const res = await fetch(
+      `http://localhost:3001/api/core/v1/availability-overrides/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // required if using cookie auth
+      },
+    );
+
+    if (!res.ok) {
+      // handle failure explicitly
+      return;
+    }
     setOverrides((prev) => prev.filter((o) => o.id !== id));
   };
 
@@ -359,7 +390,7 @@ export default function AvailabilityOverridesPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeOverride(override.id)}
+                      onClick={async () => await removeOverride(override.id)}
                     >
                       <Trash2 className="size-4" />
                     </Button>

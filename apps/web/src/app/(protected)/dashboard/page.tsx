@@ -20,8 +20,12 @@ export default function Dashboard() {
   const profile = useProfile();
   const router = useRouter();
   const [invitations, setInvitations] = useState<MeetingParticipant[]>(
-    profile.user.participations,
+    profile.user.participations.filter(
+      (invitation) =>
+        !invitation.oauth_connected && profile.userId !== invitation.creatorId,
+    ),
   );
+  console.log(profile.user.participations);
 
   const todayKey = toDateOnly(new Date());
 

@@ -17,6 +17,8 @@ export interface Calendar {
 
 export interface MeetingParticipant {
   id: string;
+  creatorId: string;
+  meetingGroupId: string;
   meetingGroup: MeetingGroup;
   createdAt: Date;
   userId: string;
