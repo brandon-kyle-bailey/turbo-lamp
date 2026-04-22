@@ -1,5 +1,9 @@
-import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/dashboard/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import ProfileContext from "@/lib/context/profile-context";
 import { ReactNode } from "react";
 
@@ -14,6 +18,7 @@ export default async function ProtectedLayout({
     <ProfileContext>
       <SidebarProvider>
         <AppSidebar />
+        <SidebarTrigger />
         <SidebarInset className="p-4">{children}</SidebarInset>
       </SidebarProvider>
     </ProfileContext>
