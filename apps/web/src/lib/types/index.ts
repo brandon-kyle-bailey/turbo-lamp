@@ -1,23 +1,35 @@
+// INFO: Aligns with Backend contract
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: string;
+  image?: string;
+}
+
+// INFO: Aligns with Backend contract
 // Calendar types
 export interface Calendar {
   id: string;
+  userId: string;
+  providerId: string;
+  externalId: string;
   name: string;
-  description?: string;
-  color?: string;
-  timezone?: string;
-  is_primary?: boolean;
-  external_calendar_id?: string;
-  created_at: string;
-  updated_at: string;
+  timezone: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 export interface ExternalCalendar {
-  id: string;
-  name: string;
-  provider: "google" | "outlook" | "apple" | "other";
-  account_email?: string;
-  is_connected: boolean;
-  last_synced_at?: string;
+  calendarId: string;
+  providerId: string;
+  name?: string;
+  description?: string;
+  timezone?: string;
+  primary?: boolean;
+  accessRole?: string;
 }
 
 // Availability types
@@ -35,60 +47,64 @@ export interface TimeBlock {
   end_time: string; // HH:MM
 }
 
-export interface AvailabilityDay {
-  day: DayOfWeek;
-  enabled: boolean;
-  blocks: TimeBlock[];
-}
-
+// INFO: Aligns with Backend contract
 export interface Availability {
   id: string;
-  name: string;
-  timezone: string;
-  days: AvailabilityDay[];
-  created_at: string;
-  updated_at: string;
+  userId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 export interface AvailabilityOverride {
   id: string;
-  availability_id: string;
+  userId: string;
   date: string; // ISO date string
-  override_type: "unavailable" | "custom";
-  blocks?: TimeBlock[];
-  reason?: string;
-  created_at: string;
-  updated_at: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 // Meeting Group types
-export type MeetingGroupStatus = "draft" | "scheduling" | "scheduled";
+export type MeetingGroupStatus = "open" | "finalized" | "cancelled";
 
+// INFO: Aligns with Backend contract
 export interface MeetingGroup {
   id: string;
+  creatorId: string;
   summary: string;
   description?: string;
   location?: string;
-  duration_minutes: number;
-  after_datetime: string;
-  before_datetime: string;
-  calendar_id?: string;
+  duration: number;
+  after: string;
+  before: string;
+  calendarId: string;
   status: MeetingGroupStatus;
-  participants_count?: number;
-  created_at: string;
-  updated_at: string;
+  timezone: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 export interface CreateMeetingGroupPayload {
+  calendarId: string;
   summary: string;
   description?: string;
   location?: string;
-  duration_minutes: number;
-  after_datetime: string;
-  before_datetime: string;
-  calendar_id?: string;
+  duration: number;
+  after: string;
+  before: string;
+  timezone: string;
 }
 
+// INFO: Aligns with Backend contract
 // Meeting Participant types
 export type ParticipantInvitationState = "pending" | "accepted" | "declined";
 export type ParticipantAuthState =
@@ -96,79 +112,74 @@ export type ParticipantAuthState =
   | "authorized"
   | "not_required";
 
+// INFO: Aligns with Backend contract
 export interface MeetingParticipant {
   id: string;
-  meeting_group_id: string;
-  attendee_id: string;
-  invitation_state: ParticipantInvitationState;
-  auth_state: ParticipantAuthState;
-  attendee?: MeetingAttendee;
-  created_at: string;
-  updated_at: string;
+  userId: string;
+  meetingGroupId: string;
+  email: string;
+  required: boolean;
+  invitationState: ParticipantInvitationState;
+  authState: ParticipantAuthState;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 // Meeting Slot types
 export interface MeetingSlot {
   id: string;
-  meeting_group_id: string;
-  start_datetime: string;
-  end_datetime: string;
-  score?: number;
-  participants_available?: string[];
-  created_at?: string;
+  meetingGroupId: string;
+  meetingGroup?: MeetingGroup;
+  start: string;
+  end: string;
+  rank?: number;
+  // participants_available?: string[];
+  createdAt?: string;
 }
 
-export interface CalculatedSlots {
-  slots: MeetingSlot[];
-  calculated_at: string;
-  meeting_group_id: string;
-}
+// INFO: Aligns with Backend contract
+export type CalculatedSlots = MeetingSlot[];
 
+// INFO: Aligns with Backend contract
 // Meeting types
 export interface Meeting {
   id: string;
-  meeting_group_id: string;
-  summary: string;
-  description?: string;
-  location?: string;
-  start_datetime: string;
-  end_datetime: string;
-  calendar_id?: string;
+  meetingGroupId: string;
+  start: string;
+  end: string;
   meeting_group?: MeetingGroup;
   attendees?: MeetingAttendee[];
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 export interface CreateMeetingPayload {
-  meeting_group_id: string;
-  slot_id?: string;
-  start_datetime: string;
-  end_datetime: string;
-  summary?: string;
-  description?: string;
-  location?: string;
-  calendar_id?: string;
+  meetingGroupId: string;
+  start: string;
+  end: string;
 }
 
-// Meeting Attendee types
-export type AttendeeStatus = "invited" | "accepted" | "declined";
-
+// INFO: Aligns with Backend contract
 export interface MeetingAttendee {
   id: string;
-  name: string;
+  userId: string;
+  user?: User;
+  externalEventId: string;
   email: string;
-  status?: AttendeeStatus;
-  meeting_id?: string;
-  created_at: string;
-  updated_at: string;
+  meetingId: string;
+  meeting?: Meeting;
+  createdAt: string;
+  updatedAt: string;
 }
 
+// INFO: Aligns with Backend contract
 export interface CreateMeetingAttendeePayload {
-  meeting_id: string;
-  name: string;
+  meetingId: string;
+  userId: string;
+  externalEventId: string;
   email: string;
-  status?: AttendeeStatus;
 }
 
 // API response types

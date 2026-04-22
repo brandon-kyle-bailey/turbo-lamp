@@ -45,7 +45,7 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
     const participants = meetingGroup.participants.filter((participant) => {
       if (
         participant.userId !== meetingGroup.creatorId &&
-        participant.oauth_connected
+        participant.authState
       ) {
         return participant;
       }

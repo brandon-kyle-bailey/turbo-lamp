@@ -64,3 +64,15 @@ export interface VerificationValue {
   to: string;
   after: keyof typeof SANITIZED_ROUTES;
 }
+
+export enum ParticipantAuthState {
+  UNAUTHORIZED = 'unauthorized',
+  AUTHORIZED = 'authorized',
+  NOT_REQUIRED = 'not_required',
+}
+
+export enum ParticipantInvitationState {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  DECLINED = 'declined',
+}

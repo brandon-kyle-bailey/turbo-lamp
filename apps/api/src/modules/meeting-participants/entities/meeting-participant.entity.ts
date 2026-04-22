@@ -11,6 +11,10 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
+import {
+  ParticipantAuthState,
+  ParticipantInvitationState,
+} from '../../../lib/constants';
 
 @Entity('meeting_participants')
 @Index(['meetingGroupId', 'email'], { unique: true })
@@ -39,8 +43,17 @@ export class MeetingParticipant {
   @Column()
   email: string;
 
-  @Column({ default: false })
-  oauth_connected: boolean;
+  @Column({
+    enum: ParticipantInvitationState,
+    default: ParticipantInvitationState.PENDING,
+  })
+  invitationState: ParticipantInvitationState;
+
+  @Column({
+    enum: ParticipantAuthState,
+    default: ParticipantAuthState.UNAUTHORIZED,
+  })
+  authState: ParticipantAuthState;
 
   @Column({ default: false })
   required: boolean;

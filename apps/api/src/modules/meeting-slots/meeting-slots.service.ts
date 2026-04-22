@@ -33,7 +33,7 @@ export class MeetingSlotsService {
         creatorId,
         id: meetingGroupId,
         participants: {
-          oauth_connected: true,
+          authState: true,
           user: {
             accounts: {
               providerId: In([AccountProvider.GOOGLE]),

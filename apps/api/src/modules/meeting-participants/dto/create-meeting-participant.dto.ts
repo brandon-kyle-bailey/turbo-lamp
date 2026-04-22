@@ -1,5 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
+import {
+  ParticipantAuthState,
+  ParticipantInvitationState,
+} from '../../../lib/constants';
 
 export class CreateMeetingParticipantDto {
   @ApiProperty({ description: 'ID of the meeting group' })
@@ -25,10 +35,18 @@ export class CreateMeetingParticipantDto {
   required?: boolean;
 
   @ApiPropertyOptional({
-    description: 'If the participant has authenticated oauth.',
-    default: false,
+    description: 'If the participant has authenticated.',
+    enum: ParticipantAuthState,
   })
   @IsOptional()
-  @IsBoolean()
-  oauth_connected?: boolean;
+  @IsEnum(ParticipantAuthState)
+  auth_state?: ParticipantAuthState;
+
+  @ApiPropertyOptional({
+    description: 'Invitation state of the participant.',
+    enum: ParticipantInvitationState,
+  })
+  @IsOptional()
+  @IsEnum(ParticipantInvitationState)
+  invitation_state?: ParticipantInvitationState;
 }

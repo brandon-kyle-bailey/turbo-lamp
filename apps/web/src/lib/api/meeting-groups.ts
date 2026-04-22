@@ -3,6 +3,7 @@ import type { MeetingGroup } from "@/lib/types";
 
 export const meetingGroupsApi = {
   list: () => api.get<MeetingGroup[]>("/meeting-groups"),
+  error: () => api.get<MeetingGroup[]>("/blah"),
 
   get: (id: string) => api.get<MeetingGroup>(`/meeting-groups/${id}`),
 
