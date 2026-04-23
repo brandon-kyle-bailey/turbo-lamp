@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsNumber } from 'class-validator';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
 export class CreateAvailabilityDto {
   @ApiProperty({
@@ -11,21 +11,21 @@ export class CreateAvailabilityDto {
 
   @ApiProperty({
     description: 'The start time of the availability period.',
-    default: new Date(),
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
-  @IsDate()
-  startTime: Date;
+  @IsString()
+  startTime: string;
 
   @ApiProperty({
     description: 'The end time of the availability period.',
-    default: new Date(),
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
-  @IsDate()
-  endTime: Date;
+  @IsString()
+  endTime: string;
 
   @ApiProperty({
     description: 'Weather the availbility is enabled.',
-    default: new Date(),
+    default: true,
   })
   @IsBoolean()
   isEnabled: boolean;

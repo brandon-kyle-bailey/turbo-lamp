@@ -22,13 +22,26 @@ import { UpdateAvailabilityDto } from './dto/update-availability.dto';
 export class AvailabilitiesController {
   constructor(private readonly availabilitiesService: AvailabilitiesService) {}
 
+  @Post('upsert')
+  async upsert(
+    @Req() req: Request & { user: Account },
+    @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
+  ) {
+    return await this.availabilitiesService.upsert({
+      ...createAvailabilityDto,
+      userId: req.user.userId,
+      createdBy: req.user.userId,
+    });
+  }
+
   @Post()
   async create(
     @Req() req: Request & { user: Account },
-    @Body() createAvailabilityDto: CreateAvailabilityDto,
+    @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
   ) {
     return await this.availabilitiesService.create({
       ...createAvailabilityDto,
+      userId: req.user.userId,
       createdBy: req.user.userId,
     });
   }

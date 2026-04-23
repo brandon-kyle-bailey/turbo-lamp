@@ -2,6 +2,8 @@ import { api } from "./client";
 import type { MeetingAttendee } from "@/lib/types";
 
 export const meetingAttendeesApi = {
+  get: (id: string) => api.get<MeetingAttendee>(`/meeting-attendees/${id}`),
+
   list: () => api.get<MeetingAttendee[]>("/meeting-attendees"),
 
   create: (data: Partial<MeetingAttendee>) =>

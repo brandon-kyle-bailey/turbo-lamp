@@ -4,6 +4,8 @@ import type { MeetingSlot } from "@/lib/types";
 export const meetingSlotsApi = {
   list: () => api.get<MeetingSlot[]>("/meeting-slots"),
 
+  get: (id: string) => api.get<MeetingSlot>(`/meeting-slots/${id}`),
+
   calculate: (meetingGroupId: string) =>
     api.get<MeetingSlot[]>(`/meeting-slots/${meetingGroupId}/calculate`),
 

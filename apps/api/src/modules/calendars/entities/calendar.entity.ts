@@ -3,19 +3,19 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { CalendarProvider } from '../../../lib/constants';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('calendars')
-@Index(['userId', 'externalId'], { unique: true })
+@Unique(['userId', 'externalId', 'providerId'])
 export class Calendar {
   @PrimaryGeneratedColumn('uuid')
   id: string;

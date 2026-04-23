@@ -11,6 +11,25 @@ export class AvailabilityOverridesService {
     @InjectRepository(AvailabilityOverride)
     private readonly repository: Repository<AvailabilityOverride>,
   ) {}
+
+  async upsert(
+    createAvailabilityOverrideDto: CreateAvailabilityOverrideDto & {
+      createdBy: string;
+      userId: string;
+    },
+  ) {
+    await this.repository.upsert(createAvailabilityOverrideDto, {
+      skipUpdateIfNoValuesChanged: true,
+      conflictPaths: ['userId', 'date', 'startTime', 'endTime'],
+    });
+    return this.findOneBy({
+      userId: createAvailabilityOverrideDto.userId,
+      date: createAvailabilityOverrideDto.date,
+      startTime: createAvailabilityOverrideDto.startTime,
+      endTime: createAvailabilityOverrideDto.endTime,
+    });
+  }
+
   async create(
     createAvailabilityOverrideDto: CreateAvailabilityOverrideDto & {
       createdBy: string;

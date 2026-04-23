@@ -65,7 +65,6 @@ export class CalendarsController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    console.log(req.user);
     return await this.calendarService.findAllBy({ userId: req.user.userId });
   }
 
@@ -80,6 +79,17 @@ export class CalendarsController {
     return calendar;
   }
 
+  @Post('upsert')
+  async upsert(
+    @Req() req: Request & { user: Account },
+    @Body() createCalendarDto: CreateCalendarDto,
+  ) {
+    return await this.calendarService.upsert({
+      ...createCalendarDto,
+      userId: req.user.userId,
+    });
+  }
+
   @Post()
   async create(
     @Req() req: Request & { user: Account },
@@ -89,6 +99,20 @@ export class CalendarsController {
       ...createCalendarDto,
       userId: req.user.userId,
     });
+  }
+
+  @Post('batch/upsert')
+  async upsertBatch(
+    @Req() req: Request & { user: Account },
+    @Body() createCalendarDto: CreateCalendarDto[],
+  ) {
+    const promises = createCalendarDto.map((dto) =>
+      this.calendarService.upsert({
+        ...dto,
+        userId: req.user.userId,
+      }),
+    );
+    return await Promise.all(promises);
   }
 
   @Post('batch')

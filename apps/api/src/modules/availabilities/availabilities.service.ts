@@ -11,9 +11,27 @@ export class AvailabilitiesService {
     @InjectRepository(Availability)
     private readonly repository: Repository<Availability>,
   ) {}
+
+  async upsert(
+    createAvailabilityDto: CreateAvailabilityDto & {
+      userId: string;
+      createdBy: string;
+    },
+  ) {
+    await this.repository.upsert(createAvailabilityDto, {
+      skipUpdateIfNoValuesChanged: true,
+      conflictPaths: ['userId', 'dayOfWeek'],
+    });
+    return this.findOneBy({
+      userId: createAvailabilityDto.userId,
+      dayOfWeek: createAvailabilityDto.dayOfWeek,
+    });
+  }
+
   async create(
     createAvailabilityDto: CreateAvailabilityDto & {
       createdBy: string;
+      userId: string;
     },
   ) {
     return await this.repository.save(

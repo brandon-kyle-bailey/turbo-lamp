@@ -4,6 +4,9 @@ import type { MeetingParticipant } from "@/lib/types";
 export const meetingParticipantsApi = {
   list: () => api.get<MeetingParticipant[]>("/meeting-participants"),
 
+  get: (id: string) =>
+    api.get<MeetingParticipant>(`/meeting-participants/${id}`),
+
   create: (data: Partial<MeetingParticipant>) =>
     api.post<MeetingParticipant>("/meeting-participants", data),
 

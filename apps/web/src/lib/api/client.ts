@@ -2,7 +2,7 @@ import { headers as nextHeaders } from "next/headers";
 
 const BASE_URL = "http://localhost:3001/api/core/v1";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 async function request<T>(
   path: string,
@@ -25,7 +25,8 @@ async function request<T>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, error);
+    console.log(error);
+    return error;
   }
 
   return res.json();
@@ -46,5 +47,6 @@ export const api = {
   get: <T>(path: string) => request<T>(path, "GET"),
   post: <T>(path: string, body: unknown) => request<T>(path, "POST", body),
   put: <T>(path: string, body: unknown) => request<T>(path, "PUT", body),
+  patch: <T>(path: string, body: unknown) => request<T>(path, "PATCH", body),
   del: <T>(path: string) => request<T>(path, "DELETE"),
 };

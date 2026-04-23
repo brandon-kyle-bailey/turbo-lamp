@@ -6,11 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('availabilities')
+@Unique(['userId', 'dayOfWeek'])
 export class Availability {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,10 +30,10 @@ export class Availability {
   dayOfWeek: number;
 
   @Column()
-  startTime: Date;
+  startTime: string;
 
   @Column()
-  endTime: Date;
+  endTime: string;
 
   @Column()
   isEnabled: boolean;

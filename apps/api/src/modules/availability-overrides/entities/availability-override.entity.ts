@@ -6,11 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('availability-overrides')
+@Unique(['userId', 'date', 'startTime', 'endTime'])
 export class AvailabilityOverride {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,10 +30,10 @@ export class AvailabilityOverride {
   date: Date;
 
   @Column()
-  startTime: Date;
+  startTime: string;
 
   @Column()
-  endTime: Date;
+  endTime: string;
 
   @Column()
   isAvailable: boolean;

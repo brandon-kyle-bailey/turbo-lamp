@@ -40,6 +40,18 @@ export class CalendarsService {
     });
   }
 
+  async upsert(createCalendarDto: CreateCalendarDto) {
+    await this.repository.upsert(createCalendarDto, {
+      skipUpdateIfNoValuesChanged: true,
+      conflictPaths: ['userId', 'externalId', 'providerId'],
+    });
+    return this.findOneBy({
+      userId: createCalendarDto.userId,
+      externalId: createCalendarDto.externalId,
+      providerId: createCalendarDto.providerId,
+    });
+  }
+
   async create(createCalendarDto: CreateCalendarDto) {
     return await this.repository.save(
       this.repository.create(createCalendarDto),

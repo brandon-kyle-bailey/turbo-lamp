@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDateString } from 'class-validator';
+import { IsBoolean, IsDateString, IsString } from 'class-validator';
 
 export class CreateAvailabilityOverrideDto {
   @ApiProperty({
@@ -11,17 +11,17 @@ export class CreateAvailabilityOverrideDto {
 
   @ApiProperty({
     description: 'The start time of the override.',
-    default: new Date(),
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
-  @IsDateString()
-  startTime: Date;
+  @IsString()
+  startTime: string;
 
   @ApiProperty({
     description: 'The end time of the override.',
-    default: new Date(),
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
-  @IsDateString()
-  endTime: Date;
+  @IsString()
+  endTime: string;
 
   @ApiProperty({
     description:

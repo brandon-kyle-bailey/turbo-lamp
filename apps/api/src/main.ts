@@ -22,11 +22,12 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
   app.setGlobalPrefix('api/core');
-  app.useGlobalInterceptors(
-    new ClassSerializerInterceptor(app.get(Reflector), {
-      strategy: 'excludeAll',
-    }),
-  );
+  // TODO: re-enable once response dtos configured.
+  // app.useGlobalInterceptors(
+  //   new ClassSerializerInterceptor(app.get(Reflector), {
+  //     strategy: 'excludeAll',
+  //   }),
+  // );
   app.use(compression());
   app.use(helmet());
   app.useGlobalPipes(

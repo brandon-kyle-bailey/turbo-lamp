@@ -24,6 +24,18 @@ export class AvailabilityOverridesController {
     private readonly availabilityOverridesService: AvailabilityOverridesService,
   ) {}
 
+  @Post('upsert')
+  async upsert(
+    @Req() req: Request & { user: Account },
+    @Body() createAvailabilityOverrideDto: CreateAvailabilityOverrideDto,
+  ) {
+    return await this.availabilityOverridesService.upsert({
+      ...createAvailabilityOverrideDto,
+      createdBy: req.user.userId,
+      userId: req.user.userId,
+    });
+  }
+
   @Post()
   async create(
     @Req() req: Request & { user: Account },

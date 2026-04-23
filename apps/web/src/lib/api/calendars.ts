@@ -7,6 +7,13 @@ export const calendarsApi = {
   get: (id: string) => api.get<Calendar>(`/calendars/${id}`),
 
   create: (data: Partial<Calendar>) => api.post<Calendar>("/calendars", data),
+  upsert: (data: Partial<Calendar>) =>
+    api.post<Calendar>("/calendars/upsert", data),
+  batchCreate: (data: Calendar[]) =>
+    api.post<Calendar[]>("/calendars/batch", data),
+
+  batchUpsert: (data: Calendar[]) =>
+    api.post<Calendar[]>("/calendars/batch/upsert", data),
 
   update: (id: string, data: Partial<Calendar>) =>
     api.put<Calendar>(`/calendars/${id}`, data),
