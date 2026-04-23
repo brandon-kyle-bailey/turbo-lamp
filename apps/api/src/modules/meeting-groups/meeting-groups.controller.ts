@@ -1,24 +1,27 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  Req,
+  Get,
   Inject,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { MeetingGroupsService } from './meeting-groups.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import {
+  ParticipantAuthState,
+  ParticipantInvitationState,
+} from '../../lib/constants';
+import { Account } from '../accounts/entities/account.entity';
+import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { Account } from '../accounts/entities/account.entity';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
-import { AccountProvider } from '../../lib/constants';
+import { MeetingGroupsService } from './meeting-groups.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -48,7 +51,8 @@ export class MeetingGroupsController {
       email: req.user.user.email,
       userId: req.user.userId,
       required: true,
-      oauth_connected: req.user.providerId !== AccountProvider.CREDENTIALS,
+      auth_state: ParticipantAuthState.UNAUTHORIZED,
+      invitation_state: ParticipantInvitationState.PENDING,
     });
 
     return result;

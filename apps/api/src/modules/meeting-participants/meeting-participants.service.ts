@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import {
   EnvironmentVariables,
+  ParticipantAuthState,
   VerificationType,
   VerificationValue,
 } from '../../lib/constants';
@@ -36,7 +37,11 @@ export class MeetingParticipantsService {
     const result = await this.repository.save(
       this.repository.create(createMeetingParticipantDto),
     );
-    if (createMeetingParticipantDto.oauth_connected) return result;
+    if (
+      createMeetingParticipantDto.auth_state &&
+      ParticipantAuthState.AUTHORIZED === createMeetingParticipantDto.auth_state
+    )
+      return result;
     const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
     const expiresIn = ttl * 1000;
     const expiresAt = new Date(Date.now() + expiresIn);
@@ -102,7 +107,10 @@ export class MeetingParticipantsService {
       throw new NotFoundException();
     }
     const result = await this.findOne(id);
-    if (result && updateMeetingParticipantDto.oauth_connected) {
+    if (
+      result &&
+      updateMeetingParticipantDto.auth_state === ParticipantAuthState.AUTHORIZED
+    ) {
       await this.eventBus.publish(
         new MeetingParticipantAuthorizedEvent(result),
       );

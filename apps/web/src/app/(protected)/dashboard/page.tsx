@@ -14,20 +14,18 @@ export default async function Page() {
 
   const now = new Date();
 
-  const activeGroups = meetingGroups.filter(
-    (g) => g.status !== "scheduled",
-  ).length;
+  const activeGroups = meetingGroups.filter((g) => g.status !== "open").length;
 
   const upcomingMeetings = meetings.filter(
-    (m) => new Date(m.start_datetime) > now,
+    (m) => new Date(m.start) > now,
   ).length;
 
   const pendingInvitations = participants.filter(
-    (p) => p.invitation_state === "pending",
+    (p) => p.invitationState === "pending",
   ).length;
 
   const scheduledMeetings = meetingGroups.filter(
-    (g) => g.status === "scheduled",
+    (g) => g.status === "finalized",
   ).length;
 
   return (
@@ -77,7 +75,7 @@ export default async function Page() {
                 <div>
                   <p className="text-sm font-medium">{group.summary}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(group.after_datetime).toLocaleDateString()}
+                    {new Date(group.after).toLocaleDateString()}
                   </p>
                 </div>
                 <span className="text-xs text-muted-foreground">
@@ -101,7 +99,7 @@ export default async function Page() {
             </p>
           ) : (
             meetings
-              .filter((m) => new Date(m.start_datetime) > now)
+              .filter((m) => new Date(m.start) > now)
               .slice(0, 5)
               .map((meeting) => (
                 <div
@@ -109,9 +107,11 @@ export default async function Page() {
                   className="flex items-center justify-between border rounded-md p-3"
                 >
                   <div>
-                    <p className="text-sm font-medium">{meeting.summary}</p>
+                    <p className="text-sm font-medium">
+                      {meeting.meetingGroup?.summary}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(meeting.start_datetime).toLocaleString()}
+                      {new Date(meeting.start).toLocaleString()}
                     </p>
                   </div>
                 </div>

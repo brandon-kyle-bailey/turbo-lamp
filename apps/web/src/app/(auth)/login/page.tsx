@@ -1,22 +1,21 @@
 "use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar, ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
+import { ArrowLeft, Calendar } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authApi } from "../../../lib/api/auth";
 
 const formSchema = z.object({
   email: z.email(),
@@ -41,22 +40,10 @@ export default function LoginPage() {
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const res = await fetch("http://localhost:3001/api/core/v1/auth/login", {
-      credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: data.email,
-        password: data.password,
-      }),
+    await authApi.login({
+      username: data.email,
+      password: data.password,
     });
-
-    if (res.status !== 201) {
-      toast.error("Login failed");
-      return;
-    }
 
     router.push("/dashboard");
   }

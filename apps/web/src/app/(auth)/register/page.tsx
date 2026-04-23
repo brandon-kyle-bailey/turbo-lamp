@@ -2,15 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Calendar, Check } from "lucide-react";
 import Link from "next/link";
 
-import { useRouter } from "next/navigation";
 import {
   Field,
   FieldError,
@@ -18,6 +16,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
+import { authApi } from "../../../lib/api/auth";
 
 const benefits = [
   "14-day free trial, no credit card required",
@@ -63,23 +63,11 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const res = await fetch("http://localhost:3001/api/core/v1/auth/register", {
-      credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-      }),
+    await authApi.register({
+      username: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
     });
-
-    if (res.status !== 201) {
-      toast.error("Registration failed");
-      return;
-    }
 
     router.push("/dashboard");
   }

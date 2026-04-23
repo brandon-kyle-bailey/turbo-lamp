@@ -76,3 +76,7 @@ export enum ParticipantInvitationState {
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
 }
+
+export enum CookieKey {
+  SESSION = 'session',
+}

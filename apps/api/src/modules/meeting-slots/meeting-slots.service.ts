@@ -6,7 +6,7 @@ import {
   In,
   Repository,
 } from 'typeorm';
-import { AccountProvider } from '../../lib/constants';
+import { AccountProvider, ParticipantAuthState } from '../../lib/constants';
 import {
   CalendarEvent,
   ExternalCalendarService,
@@ -33,7 +33,7 @@ export class MeetingSlotsService {
         creatorId,
         id: meetingGroupId,
         participants: {
-          authState: true,
+          authState: ParticipantAuthState.AUTHORIZED,
           user: {
             accounts: {
               providerId: In([AccountProvider.GOOGLE]),

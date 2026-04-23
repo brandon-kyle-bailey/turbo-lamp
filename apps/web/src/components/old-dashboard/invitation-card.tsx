@@ -3,8 +3,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MeetingParticipant } from "@/lib/providers/profile-provider";
 import { Calendar, Check, X } from "lucide-react";
+import { MeetingParticipant } from "@/lib/types";
 
 interface InvitationCardProps {
   invitation: MeetingParticipant;
@@ -17,7 +17,7 @@ export function InvitationCard({
   onAccept,
   onDecline,
 }: InvitationCardProps) {
-  const startTime = new Date(invitation.meetingGroup.after);
+  const startTime = new Date();
 
   const formatDateTime = (date: Date) => {
     return date.toLocaleDateString("en-US", {

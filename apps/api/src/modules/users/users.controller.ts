@@ -10,8 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Account } from '../accounts/entities/account.entity';
+import { ProfileResponseDto } from './dto/profile.response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
@@ -22,8 +24,12 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('profile')
-  profile(@Req() req: Request & { user: Account }) {
-    return req.user;
+  profile(
+    @Req() req: Request & { user: ProfileResponseDto },
+  ): ProfileResponseDto {
+    return plainToInstance(ProfileResponseDto, req.user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch(':id')

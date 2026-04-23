@@ -53,13 +53,8 @@ type NavItem = {
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const profile = useProfile();
+  const { user } = useProfile();
   const { setTheme } = useTheme();
-
-  const user = profile?.user;
-
-  const pendingCount =
-    user?.participations?.filter((p) => !p.oauth_connected).length ?? 0;
 
   const mainNavItems: NavItem[] = [
     {
@@ -71,8 +66,6 @@ export function AppSidebar() {
       title: "Meetings",
       icon: Users,
       url: "/dashboard/meetings",
-      badge: 2,
-      // badge: pendingCount,
     },
     {
       title: "Meeting Groups",

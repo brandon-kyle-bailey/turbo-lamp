@@ -1,4 +1,14 @@
-// INFO: Aligns with Backend contract
+export interface Login {
+  username: string;
+  password: string;
+}
+
+export interface Register {
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -7,7 +17,14 @@ export interface User {
   image?: string;
 }
 
-// INFO: Aligns with Backend contract
+export interface Profile {
+  id: string;
+  userId: string;
+  user: User;
+  accountId: string;
+  providerId: string;
+}
+
 // Calendar types
 export interface Calendar {
   id: string;
@@ -21,7 +38,6 @@ export interface Calendar {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface ExternalCalendar {
   calendarId: string;
   providerId: string;
@@ -47,7 +63,6 @@ export interface TimeBlock {
   end_time: string; // HH:MM
 }
 
-// INFO: Aligns with Backend contract
 export interface Availability {
   id: string;
   userId: string;
@@ -59,7 +74,6 @@ export interface Availability {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface AvailabilityOverride {
   id: string;
   userId: string;
@@ -71,11 +85,9 @@ export interface AvailabilityOverride {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 // Meeting Group types
 export type MeetingGroupStatus = "open" | "finalized" | "cancelled";
 
-// INFO: Aligns with Backend contract
 export interface MeetingGroup {
   id: string;
   creatorId: string;
@@ -92,7 +104,6 @@ export interface MeetingGroup {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface CreateMeetingGroupPayload {
   calendarId: string;
   summary: string;
@@ -104,7 +115,6 @@ export interface CreateMeetingGroupPayload {
   timezone: string;
 }
 
-// INFO: Aligns with Backend contract
 // Meeting Participant types
 export type ParticipantInvitationState = "pending" | "accepted" | "declined";
 export type ParticipantAuthState =
@@ -112,11 +122,11 @@ export type ParticipantAuthState =
   | "authorized"
   | "not_required";
 
-// INFO: Aligns with Backend contract
 export interface MeetingParticipant {
   id: string;
   userId: string;
   meetingGroupId: string;
+  meetingGroup?: MeetingGroup;
   email: string;
   required: boolean;
   invitationState: ParticipantInvitationState;
@@ -125,7 +135,6 @@ export interface MeetingParticipant {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 // Meeting Slot types
 export interface MeetingSlot {
   id: string;
@@ -138,30 +147,26 @@ export interface MeetingSlot {
   createdAt?: string;
 }
 
-// INFO: Aligns with Backend contract
 export type CalculatedSlots = MeetingSlot[];
 
-// INFO: Aligns with Backend contract
 // Meeting types
 export interface Meeting {
   id: string;
   meetingGroupId: string;
   start: string;
   end: string;
-  meeting_group?: MeetingGroup;
+  meetingGroup?: MeetingGroup;
   attendees?: MeetingAttendee[];
   createdAt: string;
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface CreateMeetingPayload {
   meetingGroupId: string;
   start: string;
   end: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface MeetingAttendee {
   id: string;
   userId: string;
@@ -174,7 +179,6 @@ export interface MeetingAttendee {
   updatedAt: string;
 }
 
-// INFO: Aligns with Backend contract
 export interface CreateMeetingAttendeePayload {
   meetingId: string;
   userId: string;
@@ -182,7 +186,6 @@ export interface CreateMeetingAttendeePayload {
   email: string;
 }
 
-// API response types
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
