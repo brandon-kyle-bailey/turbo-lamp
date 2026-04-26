@@ -1,19 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import type {
   Availability,
   AvailabilityOverride,
   Calendar,
   ExternalCalendar,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -30,8 +30,6 @@ const DAYS = [
   "Saturday",
   "Sunday",
 ] as const;
-
-type DayKey = (typeof DAYS)[number];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,13 +74,6 @@ function normalizeChecked(value: unknown): boolean {
 /** Returns true if endTime is strictly after startTime */
 function isTimeRangeValid(startTime: string, endTime: string): boolean {
   return startTime < endTime;
-}
-
-function formatTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour = h % 12 || 12;
-  return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
 }
 
 // ─── Step Indicator ───────────────────────────────────────────────────────────
@@ -664,7 +655,7 @@ function OverridesStep({
                       <label className="text-xs text-muted-foreground">
                         Available
                       </label>
-                      <div className="flex h-[34px] items-center">
+                      <div className="flex h-8.5 items-center">
                         <Checkbox
                           id={`override-avail-${o.id}`}
                           checked={o.isAvailable}
@@ -777,12 +768,15 @@ export default function OnboardingClient({
   const [step, setStepState] = useState<Step>(1);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(STEP_SESSION_KEY);
-    if (!stored) return;
-    const parsed = parseInt(stored, 10);
-    if (parsed === 2 || parsed === 3) {
-      setStepState(parsed as Step);
+    async function process() {
+      const stored = sessionStorage.getItem(STEP_SESSION_KEY);
+      if (!stored) return;
+      const parsed = parseInt(stored, 10);
+      if (parsed === 2 || parsed === 3) {
+        setStepState(parsed as Step);
+      }
     }
+    process();
   }, []);
 
   function setStep(s: Step) {
@@ -819,16 +813,24 @@ export default function OnboardingClient({
 
   // Keep local state in sync if server props change (e.g. after revalidation).
   useEffect(() => {
-    setSelectedCalendarIds(new Set(calendars?.map((c) => c.externalId) ?? []));
+    async function process() {
+      setSelectedCalendarIds(
+        new Set(calendars?.map((c) => c.externalId) ?? []),
+      );
+    }
+    process();
   }, [calendars]);
 
   useEffect(() => {
-    if (availabilities?.length) {
-      setLocalAvailabilities(availabilities);
-    } else {
-      // Re-seed defaults if props change and there are still no saved availabilities.
-      setLocalAvailabilities(createDefaultAvailabilities(userId));
+    async function process() {
+      if (availabilities?.length) {
+        setLocalAvailabilities(availabilities);
+      } else {
+        // Re-seed defaults if props change and there are still no saved availabilities.
+        setLocalAvailabilities(createDefaultAvailabilities(userId));
+      }
     }
+    process();
   }, [availabilities, userId]);
 
   // ── Handlers ────────────────────────────────────────────────────────────────
@@ -836,7 +838,11 @@ export default function OnboardingClient({
   function toggleCalendar(id: string, checked: boolean) {
     setSelectedCalendarIds((prev) => {
       const next = new Set(prev);
-      checked ? next.add(id) : next.delete(id);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
       return next;
     });
   }
@@ -989,7 +995,9 @@ export default function OnboardingClient({
 
   function back() {
     setValidationError(null);
-    if (step > 1) setStep((s) => (s - 1) as Step);
+    if (step > 1) {
+      setStep((step - 1) as Step);
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────

@@ -5,19 +5,20 @@ import {
   updateAvailability,
   deleteAvailability,
 } from "./actions";
+import AvailabilityCalendar from "./availabilities-client";
 
 export default async function Page() {
   const data = await listAvailabilities();
 
   return (
-    <div className="p-6">
-      <AvailabilitiesClient
+    <div>
+      <AvailabilityCalendar
         initialData={data}
         actions={{
           create: createAvailability,
           update: updateAvailability,
           remove: deleteAvailability,
-          refresh: listAvailabilities,
+          list: listAvailabilities,
         }}
       />
     </div>
