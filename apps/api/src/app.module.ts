@@ -35,6 +35,9 @@ import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
 import { AvailabilityOverridesModule } from './modules/availability-overrides/availability-overrides.module';
 import { AvailabilitiesModule } from './modules/availabilities/availabilities.module';
+import { SlotEngineModule } from './modules/slot-engine/slot-engine.module';
+import { AvailabilityIntervalsModule } from './modules/availability-intervals/availability-intervals.module';
+import { OutboxModule } from './modules/outbox/outbox.module';
 
 @Module({
   imports: [
@@ -56,8 +59,6 @@ import { AvailabilitiesModule } from './modules/availabilities/availabilities.mo
           ),
           synchronize: true,
           autoLoadEntities: true,
-          migrations: [__dirname + '/migrations/*.{js,ts}'],
-          // migrationsRun: true,
           retryAttempts: 10,
           retryDelay: 5000,
         };
@@ -169,6 +170,9 @@ import { AvailabilitiesModule } from './modules/availabilities/availabilities.mo
     CalendarsModule,
     AvailabilityOverridesModule,
     AvailabilitiesModule,
+    SlotEngineModule,
+    AvailabilityIntervalsModule,
+    OutboxModule,
   ],
   controllers: [],
   providers: [

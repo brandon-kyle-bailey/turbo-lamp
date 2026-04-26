@@ -10,12 +10,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MeetingGroupStatus } from '../../../lib/constants';
 import { Calendar } from '../../calendars/entities/calendar.entity';
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
 import { MeetingSlot } from '../../meeting-slots/entities/meeting-slot.entity';
 import { Meeting } from '../../meetings/entities/meeting.entity';
 import { User } from '../../users/entities/user.entity';
+import { MeetingGroupVersion } from './meeting-group-version.entity';
+import { MeetingGroupStatus } from '../../../lib/constants';
 
 @Entity('meeting_groups')
 export class MeetingGroup {
@@ -33,6 +34,19 @@ export class MeetingGroup {
     (meetingParticipant) => meetingParticipant.meetingGroup,
   )
   participants: MeetingParticipant[];
+
+  @OneToMany(() => MeetingGroupVersion, (version) => version.meetingGroup)
+  versions: MeetingGroupVersion[];
+
+  @Column({ type: 'int', default: 1 })
+  currentVersion: number;
+
+  @Column({
+    type: 'enum',
+    enum: MeetingGroupStatus,
+    default: MeetingGroupStatus.OPEN,
+  })
+  status: MeetingGroupStatus;
 
   @Column()
   creatorId: string;
@@ -58,20 +72,20 @@ export class MeetingGroup {
   @Column({ nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ nullable: true })
+  location?: string;
+
+  @Column({ type: 'int' })
   duration: number;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   after: Date;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   before: Date;
 
   @Column()
   timezone: string;
-
-  @Column({ type: 'enum', enum: MeetingGroupStatus })
-  status: MeetingGroupStatus;
 
   @CreateDateColumn()
   createdAt: Date;

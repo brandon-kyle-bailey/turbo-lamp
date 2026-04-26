@@ -12,6 +12,8 @@ import {
   ExternalCalendarService,
 } from '../calendars/external-calendar.service';
 import { MeetingGroupsService } from '../meeting-groups/meeting-groups.service';
+import { MeetingGroupVersionsService } from '../meeting-groups/meeting-group-versions.service';
+import { MeetingGroupVersionStatus } from '../meeting-groups/entities/meeting-group-version.entity';
 import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
 import { UpdateMeetingSlotDto } from './dto/update-meeting-slot.dto';
 import { MeetingSlot } from './entities/meeting-slot.entity';
@@ -23,6 +25,8 @@ export class MeetingSlotsService {
     private readonly repository: Repository<MeetingSlot>,
     @Inject(MeetingGroupsService)
     private readonly meetingGroupService: MeetingGroupsService,
+    @Inject(MeetingGroupVersionsService)
+    private readonly versionService: MeetingGroupVersionsService,
     @Inject(ExternalCalendarService)
     private readonly externalCalendarService: ExternalCalendarService,
   ) {}
@@ -56,6 +60,15 @@ export class MeetingSlotsService {
     if (!meetingGroup) throw new NotFoundException();
     if (!meetingGroup.participants) throw new NotFoundException();
 
+    const activeVersion =
+      await this.versionService.findActiveVersion(meetingGroupId);
+
+    if (activeVersion.status !== MeetingGroupVersionStatus.ACTIVE) {
+      throw new Error(
+        'Can only compute slots for active meeting group versions',
+      );
+    }
+
     const flattenedCalendarEvents = await Promise.all(
       meetingGroup.participants.flatMap((participant) => {
         const account = participant.user.accounts.find(
@@ -67,8 +80,8 @@ export class MeetingSlotsService {
             {
               account,
               calendarId: calendar.externalId,
-              timeMin: meetingGroup.after.toISOString(),
-              timeMax: meetingGroup.before.toISOString(),
+              timeMin: activeVersion.after.toISOString(),
+              timeMax: activeVersion.before.toISOString(),
             },
           ),
         );
@@ -76,9 +89,9 @@ export class MeetingSlotsService {
     );
     const availabletimeSlots = this.getAvailableSlots(
       flattenedCalendarEvents,
-      meetingGroup.after,
-      meetingGroup.before,
-      meetingGroup.duration,
+      activeVersion.after,
+      activeVersion.before,
+      activeVersion.duration,
       5,
     );
 
@@ -93,6 +106,22 @@ export class MeetingSlotsService {
         }),
       );
     }
+
+    const computedSlots = availabletimeSlots.map((slot, idx) => ({
+      start: slot.start.toISOString(),
+      end: slot.end.toISOString(),
+      rank: idx,
+    }));
+
+    await this.versionService.updateVersion(
+      meetingGroupId,
+      activeVersion.version,
+      {
+        computedSlots,
+        slotsComputedAt: new Date(),
+      },
+    );
+
     return await Promise.all(createdMeetingSlots);
   }
 
@@ -173,7 +202,6 @@ export class MeetingSlotsService {
     const windowEndMs = windowEnd.getTime();
     const slotMs = slotMinutes * 60 * 1000;
 
-    // normalize + clamp + validate
     const allEvents = calendars
       .flat()
       .map((e) => {

@@ -1,5 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsStrongPassword } from 'class-validator';
+import {
+  IsEmail,
+  IsStrongPassword,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+} from 'class-validator';
+
+interface RegisterDtoPayload {
+  password: string;
+}
+
+@ValidatorConstraint({ name: 'passwordsMatch', async: false })
+class PasswordsMatchConstraint implements ValidatorConstraintInterface {
+  validate(confirmPassword: string, args: ValidationArguments) {
+    const obj = args.object as RegisterDtoPayload;
+    return obj.password === confirmPassword;
+  }
+
+  defaultMessage() {
+    return 'Password and confirm password must match';
+  }
+}
 
 export class RegisterDto {
   @ApiProperty({ description: 'The users email address.' })
@@ -10,7 +33,8 @@ export class RegisterDto {
   @IsStrongPassword()
   password: string;
 
-  @ApiProperty({ description: 'The users password.' })
+  @ApiProperty({ description: 'The users password confirmation.' })
   @IsStrongPassword()
+  @Validate(PasswordsMatchConstraint)
   confirmPassword: string;
 }

@@ -15,6 +15,7 @@ import { MeetingParticipant } from '../../meeting-participants/entities/meeting-
 import { Calendar } from '../../calendars/entities/calendar.entity';
 import { AvailabilityOverride } from '../../availability-overrides/entities/availability-override.entity';
 import { Availability } from '../../availabilities/entities/availability.entity';
+import { AvailabilityInterval } from '../../availability-intervals/entities/availability-interval.entity';
 
 @Entity('users')
 export class User {
@@ -29,6 +30,9 @@ export class User {
 
   @OneToMany(() => Availability, (availability) => availability.user)
   availabilities: Availability[];
+
+  @OneToMany(() => AvailabilityInterval, (interval) => interval.user)
+  availabilityIntervals: AvailabilityInterval[];
 
   @OneToMany(() => Calendar, (calendar) => calendar.user)
   calendars: Calendar[];
