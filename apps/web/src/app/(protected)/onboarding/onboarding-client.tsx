@@ -14,22 +14,13 @@ import type {
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { DAYS } from "@/lib/constants";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 // Sentinel times for "all day blocked" overrides (isAvailable: false)
 const ALL_DAY_START = "00:00";
 const ALL_DAY_END = "23:59";
-
-const DAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-] as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -978,8 +969,8 @@ export default function OnboardingClient({
         return;
       }
       if (step === 2) {
-        console.log(localAvailabilities.length);
-        setLocalAvailabilities(await saveAvailabilities(localAvailabilities));
+        const result = await saveAvailabilities(localAvailabilities);
+        setLocalAvailabilities(result);
         setStep(3);
         return;
       }

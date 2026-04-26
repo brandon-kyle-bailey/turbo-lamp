@@ -33,7 +33,6 @@ export async function saveCalendars(data: Calendar[]) {
 }
 
 export async function saveAvailabilities(data: Availability[]) {
-  console.log("data:", data);
   const payload = data.map((availability) =>
     createAvailabilitySchema.parse({
       dayOfWeek: availability.dayOfWeek,
@@ -42,16 +41,12 @@ export async function saveAvailabilities(data: Availability[]) {
       isAvailable: availability.isAvailable,
     }),
   );
-  console.log("payload:", payload);
 
   const promises = payload.map((availability) => {
-    console.log(availability);
     return availabilitiesApi.create(availability);
   });
 
-  const result = await Promise.all(promises);
-  console.log(result);
-  return result;
+  return await Promise.all(promises);
 }
 export async function saveAvailabilityOverrides(data: AvailabilityOverride[]) {
   const payload = data.map((override) =>

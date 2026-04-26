@@ -34,8 +34,6 @@ export default function AvailabilityClient({
   initialData: Availability[];
   actions: Actions;
 }) {
-  console.log(initialData, actions);
-
   const [availability, setAvailability] = useState<Availability[]>(initialData);
   const [hasChanges, setHasChanges] = useState(false);
 

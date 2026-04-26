@@ -51,10 +51,11 @@ export class AvailabilityOverridesService {
       | FindOptionsWhere<AvailabilityOverride>[],
     relations?: FindOptionsRelations<AvailabilityOverride>,
   ) {
-    return await this.repository.find({
+    const result = await this.repository.find({
       where,
       relations,
     });
+    return result;
   }
 
   async findOne(

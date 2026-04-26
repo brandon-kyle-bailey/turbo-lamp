@@ -18,10 +18,6 @@ export class AvailabilitiesService {
       createdBy: string;
     },
   ) {
-    console.log(
-      createAvailabilityDto.dayOfWeek,
-      createAvailabilityDto.isAvailable,
-    );
     await this.repository.upsert(createAvailabilityDto, {
       skipUpdateIfNoValuesChanged: true,
       conflictPaths: [
