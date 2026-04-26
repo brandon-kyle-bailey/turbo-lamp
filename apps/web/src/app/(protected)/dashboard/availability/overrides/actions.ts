@@ -2,20 +2,26 @@
 
 import { availabilityOverridesApi } from "@/lib/api/availability-overrides";
 import type { AvailabilityOverride } from "@/lib/types";
+import {
+  createAvailabilityOverrideSchema,
+  updateAvailabilityOverrideSchema,
+} from "@/lib/schemas";
 
 export async function listOverrides(): Promise<AvailabilityOverride[]> {
   return await availabilityOverridesApi.list();
 }
 
 export async function createOverride(data: Partial<AvailabilityOverride>) {
-  return await availabilityOverridesApi.create(data);
+  const payload = createAvailabilityOverrideSchema.parse(data);
+  return await availabilityOverridesApi.create(payload);
 }
 
 export async function updateOverride(
   id: string,
   data: Partial<AvailabilityOverride>,
 ) {
-  return await availabilityOverridesApi.update(id, data);
+  const payload = updateAvailabilityOverrideSchema.parse(data);
+  return await availabilityOverridesApi.update(id, payload);
 }
 
 export async function deleteOverride(id: string) {

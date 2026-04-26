@@ -9,14 +9,14 @@ export const calendarsApi = {
   create: (data: Partial<Calendar>) => api.post<Calendar>("/calendars", data),
   upsert: (data: Partial<Calendar>) =>
     api.post<Calendar>("/calendars/upsert", data),
-  batchCreate: (data: Calendar[]) =>
+  batchCreate: (data: Partial<Calendar>[]) =>
     api.post<Calendar[]>("/calendars/batch", data),
 
-  batchUpsert: (data: Calendar[]) =>
+  batchUpsert: (data: Partial<Calendar>[]) =>
     api.post<Calendar[]>("/calendars/batch/upsert", data),
 
   update: (id: string, data: Partial<Calendar>) =>
-    api.put<Calendar>(`/calendars/${id}`, data),
+    api.patch<Calendar>(`/calendars/${id}`, data),
 
   delete: (id: string) => api.del<void>(`/calendars/${id}`),
 

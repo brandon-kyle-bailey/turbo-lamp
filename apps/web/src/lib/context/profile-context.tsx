@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { authApi } from "../api/auth";
+import { ApiError } from "../api/client";
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,7 +12,15 @@ interface LayoutProps {
 export async function withProfile() {
   const token = (await cookies()).get("session")?.value;
   if (!token) redirect("/login");
-  return await authApi.profile(token);
+
+  try {
+    return await authApi.profile(token);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/login");
+    }
+    throw error;
+  }
 }
 
 export default async function ProfileContext({ children }: LayoutProps) {

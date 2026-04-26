@@ -10,7 +10,7 @@ export const meetingGroupsApi = {
     api.post<MeetingGroup>("/meeting-groups", data),
 
   update: (id: string, data: Partial<MeetingGroup>) =>
-    api.put<MeetingGroup>(`/meeting-groups/${id}`, data),
+    api.patch<MeetingGroup>(`/meeting-groups/${id}`, data),
 
   delete: (id: string) => api.del<void>(`/meeting-groups/${id}`),
 };

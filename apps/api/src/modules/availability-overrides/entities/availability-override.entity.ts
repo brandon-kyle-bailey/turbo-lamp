@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity('availability-overrides')
+@Entity('availability_overrides')
 @Unique(['userId', 'date', 'startTime', 'endTime'])
 export class AvailabilityOverride {
   @PrimaryGeneratedColumn('uuid')

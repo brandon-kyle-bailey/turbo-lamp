@@ -1,26 +1,16 @@
-import AvailabilitiesClient from "./availabilities-client";
-import {
-  listAvailabilities,
-  createAvailability,
-  updateAvailability,
-  deleteAvailability,
-} from "./actions";
-import AvailabilityCalendar from "./availabilities-client";
+import { availabilitiesApi } from "@/lib/api/availabilities";
+import { updateAvailabilityAction } from "./actions";
+import AvailabilityClient from "./availability-client";
 
 export default async function Page() {
-  const data = await listAvailabilities();
-
+  const initialData = await availabilitiesApi.list();
+  console.log(initialData);
   return (
-    <div>
-      <AvailabilityCalendar
-        initialData={data}
-        actions={{
-          create: createAvailability,
-          update: updateAvailability,
-          remove: deleteAvailability,
-          list: listAvailabilities,
-        }}
-      />
-    </div>
+    <AvailabilityClient
+      initialData={initialData.sort((a, b) => a.dayOfWeek - b.dayOfWeek)}
+      actions={{
+        update: updateAvailabilityAction,
+      }}
+    />
   );
 }

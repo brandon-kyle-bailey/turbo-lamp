@@ -12,7 +12,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 
 @Entity('availabilities')
-@Unique(['userId', 'dayOfWeek'])
+@Unique(['userId', 'dayOfWeek', 'startTime', 'endTime', 'isAvailable'])
 export class Availability {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -36,7 +36,7 @@ export class Availability {
   endTime: string;
 
   @Column()
-  isEnabled: boolean;
+  isAvailable: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

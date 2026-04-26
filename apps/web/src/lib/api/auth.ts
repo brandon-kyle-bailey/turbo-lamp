@@ -1,8 +1,30 @@
-import { toast } from "sonner";
-import { redirect } from "next/navigation";
 import { Login, Profile, Register } from "@/lib/types";
+import { ApiError } from "./client";
 
 const BASE_URL = "http://localhost:3001/api/core/v1";
+
+async function parseJsonSafe(res: Response): Promise<unknown> {
+  const text = await res.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return { message: text };
+  }
+}
+
+function toApiError(status: number, payload: unknown): ApiError {
+  const body =
+    payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+  const message =
+    typeof body.message === "string" ? body.message : "API request failed";
+  const code = typeof body.code === "string" ? body.code : undefined;
+  const details = "details" in body ? body.details : payload;
+  return new ApiError(status, details, message, code);
+}
 
 export const authApi = {
   login: async (data: Login) => {
@@ -15,10 +37,12 @@ export const authApi = {
       cache: "no-store",
       credentials: "include",
     });
+    const payload = await parseJsonSafe(res);
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      toast.error("Failed to login user.");
+      throw toApiError(res.status, payload);
     }
+
+    return payload;
   },
 
   register: async (data: Register) => {
@@ -31,10 +55,12 @@ export const authApi = {
       cache: "no-store",
       credentials: "include",
     });
+    const payload = await parseJsonSafe(res);
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      toast.error("Failed to register user.");
+      throw toApiError(res.status, payload);
     }
+
+    return payload;
   },
 
   profile: async (token?: string): Promise<Profile> => {
@@ -47,10 +73,11 @@ export const authApi = {
       cache: "no-store",
       credentials: "include",
     });
+    const payload = await parseJsonSafe(res);
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      redirect("/login");
+      throw toApiError(res.status, payload);
     }
-    return await res.json();
+
+    return payload as Profile;
   },
 };

@@ -22,13 +22,13 @@ const ALL_DAY_START = "00:00";
 const ALL_DAY_END = "23:59";
 
 const DAYS = [
+  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Saturday",
-  "Sunday",
 ] as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -42,9 +42,9 @@ type Props = {
   calendars: Calendar[];
   availabilities: Availability[];
   overrides: AvailabilityOverride[];
-  saveCalendars: (data: Calendar[]) => Promise<Calendar[]>;
-  saveAvailabilities: (data: Availability[]) => Promise<Availability[]>;
-  saveAvailabilityOverrides: (
+  saveCalendarsAction: (data: Calendar[]) => Promise<Calendar[]>;
+  saveAvailabilitiesAction: (data: Availability[]) => Promise<Availability[]>;
+  saveAvailabilityOverridesAction: (
     data: AvailabilityOverride[],
   ) => Promise<AvailabilityOverride[]>;
 };
@@ -53,14 +53,14 @@ type Props = {
 
 function createDefaultAvailabilities(userId: string): Availability[] {
   return DAYS.map((_, dayIndex) => {
-    const isWeekend = dayIndex >= 5;
+    const isWeekend = [0, 6].includes(dayIndex);
     return {
       id: crypto.randomUUID(),
       userId,
       dayOfWeek: dayIndex,
       startTime: "09:00",
       endTime: "17:00",
-      isEnabled: !isWeekend,
+      isAvailable: !isWeekend,
       createdAt: "",
       updatedAt: "",
     };
@@ -318,7 +318,7 @@ function AvailabilityStep({
   ) => void;
   error: ValidationError;
 }) {
-  const enabledCount = availabilities.filter((a) => a.isEnabled).length;
+  const enabledCount = availabilities.filter((a) => a.isAvailable).length;
 
   return (
     <Card>
@@ -374,13 +374,13 @@ function AvailabilityStep({
           .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
           .map((a) => {
             const invalid =
-              a.isEnabled && !isTimeRangeValid(a.startTime, a.endTime);
+              a.isAvailable && !isTimeRangeValid(a.startTime, a.endTime);
             return (
               <div
                 key={a.id}
                 className={cn(
                   "rounded-lg border p-3.5 transition-colors duration-150",
-                  a.isEnabled
+                  a.isAvailable
                     ? invalid
                       ? "border-destructive/40 bg-destructive/5"
                       : "border-primary/20 bg-primary/5"
@@ -391,7 +391,7 @@ function AvailabilityStep({
                   <div className="flex items-center gap-2.5">
                     <Checkbox
                       id={`day-${a.id}`}
-                      checked={a.isEnabled}
+                      checked={a.isAvailable}
                       onCheckedChange={() => onToggle(a.id)}
                     />
                     <select
@@ -406,7 +406,7 @@ function AvailabilityStep({
                       className={cn(
                         "w-28 rounded-md border border-input bg-background px-2 py-1.5 text-sm shadow-sm",
                         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-                        !a.isEnabled && "text-muted-foreground",
+                        !a.isAvailable && "text-muted-foreground",
                       )}
                     >
                       {DAYS.map((day, i) => (
@@ -418,7 +418,7 @@ function AvailabilityStep({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {a.isEnabled ? (
+                    {a.isAvailable ? (
                       <>
                         <TimeInput
                           value={a.startTime}
@@ -754,9 +754,9 @@ export default function OnboardingClient({
   calendars,
   availabilities,
   overrides,
-  saveCalendars,
-  saveAvailabilities,
-  saveAvailabilityOverrides,
+  saveCalendarsAction: saveCalendars,
+  saveAvailabilitiesAction: saveAvailabilities,
+  saveAvailabilityOverridesAction: saveAvailabilityOverrides,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -860,7 +860,7 @@ export default function OnboardingClient({
         dayOfWeek: nextDay,
         startTime: "09:00",
         endTime: "17:00",
-        isEnabled: true,
+        isAvailable: true,
         createdAt: "",
         updatedAt: "",
       },
@@ -873,7 +873,9 @@ export default function OnboardingClient({
 
   function toggleAvailability(id: string) {
     setLocalAvailabilities((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, isEnabled: !a.isEnabled } : a)),
+      prev.map((a) =>
+        a.id === id ? { ...a, isAvailable: !a.isAvailable } : a,
+      ),
     );
   }
 
@@ -928,7 +930,7 @@ export default function OnboardingClient({
       }
     }
     if (s === 2) {
-      const enabled = localAvailabilities.filter((a) => a.isEnabled);
+      const enabled = localAvailabilities.filter((a) => a.isAvailable);
       if (enabled.length === 0) {
         return "Enable at least one day of availability.";
       }
@@ -976,7 +978,8 @@ export default function OnboardingClient({
         return;
       }
       if (step === 2) {
-        await saveAvailabilities(localAvailabilities);
+        console.log(localAvailabilities.length);
+        setLocalAvailabilities(await saveAvailabilities(localAvailabilities));
         setStep(3);
         return;
       }

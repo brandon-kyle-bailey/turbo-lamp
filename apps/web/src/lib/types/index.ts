@@ -1,3 +1,10 @@
+export interface WeeklyAvailability {
+  id: string;
+  dayOfWeek: number; // 0-6 (Sunday-Saturday)
+  startTime: string; // HH:mm format
+  endTime: string; // HH:mm format
+  isAvailable: boolean;
+}
 export interface Login {
   username: string;
   password: string;
@@ -69,7 +76,7 @@ export interface Availability {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
-  isEnabled: boolean;
+  isAvailable: boolean;
   createdAt: string;
   updatedAt: string;
 }

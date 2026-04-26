@@ -11,7 +11,7 @@ export const meetingParticipantsApi = {
     api.post<MeetingParticipant>("/meeting-participants", data),
 
   update: (id: string, data: Partial<MeetingParticipant>) =>
-    api.put<MeetingParticipant>(`/meeting-participants/${id}`, data),
+    api.patch<MeetingParticipant>(`/meeting-participants/${id}`, data),
 
   delete: (id: string) => api.del<void>(`/meeting-participants/${id}`),
 };

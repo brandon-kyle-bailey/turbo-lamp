@@ -3,7 +3,6 @@ import {
   Post,
   Body,
   UseGuards,
-  Headers,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -14,7 +13,7 @@ import {
 } from './dto/calculate-slots.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
-@Controller('api/core/meeting-slots')
+@Controller({ path: 'meeting-slots', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class SlotEngineController {
   constructor(private readonly slotEngineService: SlotEngineService) {}
@@ -23,7 +22,6 @@ export class SlotEngineController {
   @HttpCode(HttpStatus.OK)
   async calculate(
     @Body() dto: CalculateSlotsDto,
-    @Headers('x-slot-engine-version') version?: string,
   ): Promise<CalculateSlotsResponseDto> {
     return this.slotEngineService.calculate(dto);
   }

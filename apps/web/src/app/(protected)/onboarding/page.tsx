@@ -24,9 +24,9 @@ export default async function Page() {
       calendars={calendars}
       availabilities={availabilities}
       overrides={overrides}
-      saveCalendars={saveCalendars}
-      saveAvailabilities={saveAvailabilities}
-      saveAvailabilityOverrides={saveAvailabilityOverrides}
+      saveCalendarsAction={saveCalendars}
+      saveAvailabilitiesAction={saveAvailabilities}
+      saveAvailabilityOverridesAction={saveAvailabilityOverrides}
     />
   );
 }

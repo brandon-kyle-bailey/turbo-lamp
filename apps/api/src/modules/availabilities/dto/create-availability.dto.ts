@@ -24,9 +24,9 @@ export class CreateAvailabilityDto {
   endTime: string;
 
   @ApiProperty({
-    description: 'Weather the availbility is enabled.',
+    description: "Weather you're available or not.",
     default: true,
   })
   @IsBoolean()
-  isEnabled: boolean;
+  isAvailable: boolean;
 }

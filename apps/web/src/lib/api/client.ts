@@ -4,6 +4,36 @@ const BASE_URL = "http://localhost:3001/api/core/v1";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
+type ApiEnvelope<T> = {
+  data: T;
+  meta?: Record<string, unknown>;
+};
+
+type ApiErrorBody = {
+  message?: string;
+  code?: string;
+  details?: unknown;
+};
+
+function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
+  return Boolean(
+    value && typeof value === "object" && "data" in (value as object),
+  );
+}
+
+async function parseJsonSafe(res: Response): Promise<unknown> {
+  const text = await res.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return { message: text };
+  }
+}
+
 async function request<T>(
   path: string,
   method: HttpMethod = "GET",
@@ -23,23 +53,39 @@ async function request<T>(
     cache: "no-store",
   });
 
+  const payload = await parseJsonSafe(res);
+
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
-    console.log(error);
-    return error;
+    const error = (payload ?? {}) as ApiErrorBody;
+    throw new ApiError(
+      res.status,
+      error.details,
+      error.message ?? "API request failed",
+      error.code,
+    );
   }
 
-  return res.json();
+  if (payload === null) {
+    return undefined as T;
+  }
+
+  if (isApiEnvelope<T>(payload)) {
+    return payload.data;
+  }
+
+  return payload as T;
 }
 
 export class ApiError extends Error {
   status: number;
   details: unknown;
+  code?: string;
 
-  constructor(status: number, details: unknown) {
-    super("API request failed");
+  constructor(status: number, details: unknown, message: string, code?: string) {
+    super(message);
     this.status = status;
     this.details = details;
+    this.code = code;
   }
 }
 

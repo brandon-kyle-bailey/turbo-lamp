@@ -18,11 +18,21 @@ export class AvailabilitiesService {
       createdBy: string;
     },
   ) {
+    console.log(
+      createAvailabilityDto.dayOfWeek,
+      createAvailabilityDto.isAvailable,
+    );
     await this.repository.upsert(createAvailabilityDto, {
       skipUpdateIfNoValuesChanged: true,
-      conflictPaths: ['userId', 'dayOfWeek'],
+      conflictPaths: [
+        'userId',
+        'dayOfWeek',
+        'startTime',
+        'endTime',
+        'isAvailable',
+      ],
     });
-    return this.findOneBy({
+    return await this.findOneBy({
       userId: createAvailabilityDto.userId,
       dayOfWeek: createAvailabilityDto.dayOfWeek,
     });
