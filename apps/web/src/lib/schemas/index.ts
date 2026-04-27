@@ -203,3 +203,13 @@ export const createAvailabilityOverrideSchema = z
 
 export const updateAvailabilityOverrideSchema =
   createAvailabilityOverrideSchema.partial();
+
+export const createMeetingParticipantSchema = z
+  .object(meetingParticipantSchema.shape)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    authState: true,
+    invitationState: true,
+  });

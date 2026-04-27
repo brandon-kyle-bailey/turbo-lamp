@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, CalendarOff, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,9 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { CalendarOff, Clock, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
-import type { AvailabilityOverride } from "@/lib/types";
 import { TIMES } from "@/lib/constants";
+import type { AvailabilityOverride } from "@/lib/types";
 
 type Actions = {
   createOverrideAction: (

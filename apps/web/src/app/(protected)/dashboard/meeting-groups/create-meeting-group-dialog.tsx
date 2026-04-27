@@ -1,0 +1,485 @@
+"use client";
+
+import { useState } from "react";
+import { z } from "zod";
+import { Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Calendar, MeetingGroup, MeetingParticipant } from "@/lib/types";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const DURATIONS = [
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "45", label: "45 minutes" },
+  { value: "60", label: "1 hour" },
+  { value: "90", label: "1.5 hours" },
+  { value: "120", label: "2 hours" },
+];
+
+const TIMEZONES = [
+  { value: "America/Halifax", label: "Atlantic Time (Halifax)" },
+  { value: "America/New_York", label: "Eastern Time (New York)" },
+  { value: "America/Chicago", label: "Central Time (Chicago)" },
+  { value: "America/Denver", label: "Mountain Time (Denver)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (LA)" },
+  { value: "UTC", label: "UTC" },
+  { value: "Europe/London", label: "London" },
+  { value: "Europe/Paris", label: "Paris" },
+  { value: "Asia/Tokyo", label: "Tokyo" },
+];
+
+const today = new Date().toISOString().split("T")[0];
+const oneWeek = new Date(Date.now() + 7 * 86_400_000)
+  .toISOString()
+  .split("T")[0];
+
+// ─── Zod schemas ──────────────────────────────────────────────────────────────
+
+const meetingGroupSchema = z
+  .object({
+    summary: z.string().min(1, "Summary is required"),
+    duration: z.number().min(15, "Minimum duration is 15 minutes"),
+    after: z.string().min(1, "Start date is required"),
+    before: z.string().min(1, "End date is required"),
+    timezone: z.string().min(1, "Timezone is required"),
+    calendarId: z.string().min(1, "Please select a calendar"),
+  })
+  .refine((d) => new Date(d.before) >= new Date(d.after), {
+    message: '"To" date must be on or after the "From" date',
+    path: ["before"],
+  });
+
+const emailSchema = z.string().email("Invalid email address");
+
+type FormData = z.input<typeof meetingGroupSchema>;
+type FormErrors = Partial<Record<keyof FormData | "root", string>>;
+
+type ParticipantDraft = {
+  email: string;
+  required: boolean;
+};
+
+// ─── Default form factory ─────────────────────────────────────────────────────
+
+function defaultForm(calendars: Calendar[]): FormData {
+  return {
+    summary: "",
+    duration: 60,
+    after: today,
+    before: oneWeek,
+    timezone:
+      Intl.DateTimeFormat().resolvedOptions().timeZone ?? "America/Halifax",
+    calendarId: calendars[0]?.id ?? "",
+  };
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function CreateGroupDialog({
+  calendars,
+  isDialogOpen,
+  setIsDialogOpenAction,
+  handleSubmitAction,
+  createMeetingGroupParticipantAction,
+}: {
+  calendars: Calendar[];
+  isDialogOpen: boolean;
+  setIsDialogOpenAction: (open: boolean) => void;
+  handleSubmitAction: (data: Partial<MeetingGroup>) => Promise<MeetingGroup>;
+  createMeetingGroupParticipantAction: (
+    data: Partial<MeetingParticipant>,
+  ) => Promise<MeetingParticipant>;
+}) {
+  const [form, setForm] = useState<FormData>(() => defaultForm(calendars));
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [participants, setParticipants] = useState<ParticipantDraft[]>([]);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailError, setEmailError] = useState<string>();
+  const [newRequired, setNewRequired] = useState(false);
+
+  // ── Form helpers ────────────────────────────────────────────────────────────
+
+  function handleChange<K extends keyof FormData>(key: K, value: FormData[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  }
+
+  function resetState() {
+    setForm(defaultForm(calendars));
+    setErrors({});
+    setParticipants([]);
+    setEmailInput("");
+    setEmailError(undefined);
+    setNewRequired(false);
+  }
+
+  function handleClose() {
+    resetState();
+    setIsDialogOpenAction(false);
+  }
+
+  // ── Participant helpers ─────────────────────────────────────────────────────
+
+  function addParticipant() {
+    const parsed = emailSchema.safeParse(emailInput.trim());
+    if (!parsed.success) {
+      setEmailError(parsed.error.issues[0]?.message ?? "Invalid email");
+      return;
+    }
+    if (participants.some((p) => p.email === parsed.data)) {
+      setEmailError("This email has already been added");
+      return;
+    }
+    setParticipants((prev) => [
+      ...prev,
+      { email: parsed.data, required: newRequired },
+    ]);
+    setEmailInput("");
+    setEmailError(undefined);
+    setNewRequired(false);
+  }
+
+  function removeParticipant(email: string) {
+    setParticipants((prev) => prev.filter((p) => p.email !== email));
+  }
+
+  function toggleRequired(email: string) {
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.email === email ? { ...p, required: !p.required } : p,
+      ),
+    );
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
+  async function handleSubmit() {
+    const result = meetingGroupSchema.safeParse(form);
+
+    if (!result.success) {
+      const fieldErrors: FormErrors = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof FormData;
+        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const now = new Date().toISOString();
+
+      const createdGroup = await handleSubmitAction({
+        id: crypto.randomUUID(),
+        creatorId: "",
+        summary: result.data.summary,
+        duration: result.data.duration,
+        after: new Date(result.data.after).toISOString(),
+        before: new Date(result.data.before).toISOString(),
+        calendarId: result.data.calendarId,
+        timezone: result.data.timezone,
+        status: "open",
+        participants: [],
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (participants.length > 0) {
+        await Promise.all(
+          participants.map((draft) =>
+            createMeetingGroupParticipantAction({
+              id: crypto.randomUUID(),
+              meetingGroupId: createdGroup.id,
+              email: draft.email,
+              required: draft.required,
+              createdAt: now,
+              updatedAt: now,
+            }),
+          ),
+        );
+      }
+
+      resetState();
+      setIsDialogOpenAction(false);
+    } catch {
+      setErrors({ root: "Something went wrong. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpenAction}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <Plus className="size-4" />
+          Create Group
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Meeting Group</DialogTitle>
+          <DialogDescription>
+            Define a time window and duration for group scheduling.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Summary */}
+          <div className="space-y-2">
+            <Label htmlFor="summary">Summary</Label>
+            <Input
+              id="summary"
+              placeholder="e.g. Team sync, 1-on-1 with manager"
+              value={form.summary}
+              onChange={(e) => handleChange("summary", e.target.value)}
+            />
+            {errors.summary && (
+              <p className="text-xs text-destructive">{errors.summary}</p>
+            )}
+          </div>
+
+          {/* Duration */}
+          <div className="space-y-2">
+            <Label>Duration</Label>
+            <Select
+              value={String(form.duration)}
+              onValueChange={(v) => handleChange("duration", Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select duration" />
+              </SelectTrigger>
+              <SelectContent>
+                {DURATIONS.map((d) => (
+                  <SelectItem key={d.value} value={d.value}>
+                    {d.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.duration && (
+              <p className="text-xs text-destructive">{errors.duration}</p>
+            )}
+          </div>
+
+          {/* Date range */}
+          <div className="flex items-start gap-3">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="after">From</Label>
+              <Input
+                id="after"
+                type="date"
+                value={form.after}
+                min={today}
+                onChange={(e) => handleChange("after", e.target.value)}
+              />
+              {errors.after && (
+                <p className="text-xs text-destructive">{errors.after}</p>
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="before">To</Label>
+              <Input
+                id="before"
+                type="date"
+                value={form.before}
+                min={form.after}
+                onChange={(e) => handleChange("before", e.target.value)}
+              />
+              {errors.before && (
+                <p className="text-xs text-destructive">{errors.before}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Timezone */}
+          <div className="space-y-2">
+            <Label>Timezone</Label>
+            <Select
+              value={form.timezone}
+              onValueChange={(v) => handleChange("timezone", v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select timezone" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONES.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.timezone && (
+              <p className="text-xs text-destructive">{errors.timezone}</p>
+            )}
+          </div>
+
+          {/* Calendar */}
+          <div className="space-y-2">
+            <Label>Calendar</Label>
+            <Select
+              value={form.calendarId}
+              onValueChange={(v) => handleChange("calendarId", v)}
+              disabled={calendars.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a calendar" />
+              </SelectTrigger>
+              <SelectContent>
+                {calendars.map((cal) => (
+                  <SelectItem key={cal.id} value={cal.id}>
+                    {cal.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {calendars.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                No calendars available.
+              </p>
+            )}
+            {errors.calendarId && (
+              <p className="text-xs text-destructive">{errors.calendarId}</p>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Participants */}
+          <div className="space-y-3">
+            <Label>Participants</Label>
+
+            {/* Email input row */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="email@example.com"
+                type="email"
+                value={emailInput}
+                onChange={(e) => {
+                  setEmailInput(e.target.value);
+                  setEmailError(undefined);
+                }}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addParticipant())
+                }
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={addParticipant}
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+
+            {/* Required toggle for next participant to be added */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="new-required"
+                checked={newRequired}
+                onCheckedChange={setNewRequired}
+              />
+              <Label
+                htmlFor="new-required"
+                className="text-xs text-muted-foreground cursor-pointer font-normal"
+              >
+                Mark as required attendee
+              </Label>
+            </div>
+
+            {emailError && (
+              <p className="text-xs text-destructive">{emailError}</p>
+            )}
+
+            {/* Participant list */}
+            {participants.length > 0 && (
+              <ul className="space-y-2">
+                {participants.map((p) => (
+                  <li
+                    key={p.email}
+                    className="flex items-center gap-2 rounded-md border px-3 py-2"
+                  >
+                    <span className="flex-1 truncate text-sm">{p.email}</span>
+
+                    {p.required && (
+                      <Badge variant="secondary" className="shrink-0 text-xs">
+                        Required
+                      </Badge>
+                    )}
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto shrink-0 px-2 py-0.5 text-xs text-muted-foreground"
+                      onClick={() => toggleRequired(p.email)}
+                    >
+                      {p.required ? "Make optional" : "Make required"}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeParticipant(p.email)}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Root / server error */}
+          {errors.root && (
+            <p className="text-sm text-destructive">{errors.root}</p>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Creating…" : "Create Group"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -20,7 +20,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  emailVerified: string;
+  emailVerified: boolean;
   image?: string;
 }
 
@@ -109,6 +109,8 @@ export interface MeetingGroup {
   timezone: string;
   createdAt: string;
   updatedAt: string;
+  participants: MeetingParticipant[];
+  meeting?: Meeting;
 }
 
 export interface CreateMeetingGroupPayload {
@@ -131,7 +133,8 @@ export type ParticipantAuthState =
 
 export interface MeetingParticipant {
   id: string;
-  userId: string;
+  user?: User;
+  userId?: string;
   meetingGroupId: string;
   meetingGroup?: MeetingGroup;
   email: string;

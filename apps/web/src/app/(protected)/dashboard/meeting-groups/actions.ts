@@ -1,29 +1,36 @@
 "use server";
 
 import { meetingGroupsApi } from "@/lib/api/meeting-groups";
-import type { MeetingGroup } from "@/lib/types";
 import {
   createMeetingGroupSchema,
-  updateMeetingGroupSchema,
+  createMeetingParticipantSchema,
 } from "@/lib/schemas";
+import { MeetingGroup, MeetingParticipant } from "@/lib/types";
+import { meetingParticipantsApi } from "../../../../lib/api/meeting-participants";
 
-export async function listMeetingGroups(): Promise<MeetingGroup[]> {
-  return await meetingGroupsApi.list();
-}
-
-export async function createMeetingGroup(data: Partial<MeetingGroup>) {
+export async function createMeetingGroupAction(data: Partial<MeetingGroup>) {
   const payload = createMeetingGroupSchema.parse(data);
   return await meetingGroupsApi.create(payload);
 }
 
-export async function updateMeetingGroup(
+export async function updateMeetingGroupAction(
   id: string,
   data: Partial<MeetingGroup>,
 ) {
-  const payload = updateMeetingGroupSchema.parse(data);
+  const payload = createMeetingGroupSchema.parse(data);
   return await meetingGroupsApi.update(id, payload);
 }
 
-export async function deleteMeetingGroup(id: string) {
+export async function deleteMeetingGroupAction(id: string) {
   return await meetingGroupsApi.delete(id);
+}
+
+export async function createMeetingGroupParticipantAction(
+  data: Partial<MeetingParticipant>,
+) {
+  const payload = createMeetingParticipantSchema.parse(data);
+  return await meetingParticipantsApi.create({
+    ...payload,
+    userId: payload.userId ?? undefined,
+  });
 }

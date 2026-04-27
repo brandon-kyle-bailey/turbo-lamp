@@ -60,11 +60,16 @@ export class MeetingGroupsController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    return await this.meetingGroupsService.findAllBy([
-      { creatorId: req.user.userId },
-      { participants: { userId: req.user.userId } },
-      { participants: { email: req.user.user.email } },
-    ]);
+    return await this.meetingGroupsService.findAllBy(
+      [
+        { creatorId: req.user.userId },
+        { participants: { userId: req.user.userId } },
+        { participants: { email: req.user.user.email } },
+      ],
+      {
+        participants: { user: true },
+      },
+    );
   }
 
   @Get(':id')
@@ -72,11 +77,16 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    return await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
-      { id, participants: { userId: req.user.userId } },
-      { id, participants: { email: req.user.user.email } },
-    ]);
+    return await this.meetingGroupsService.findOneBy(
+      [
+        { id, creatorId: req.user.userId },
+        { id, participants: { userId: req.user.userId } },
+        { id, participants: { email: req.user.user.email } },
+      ],
+      {
+        participants: true,
+      },
+    );
   }
 
   @Patch(':id')
