@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   LogOut,
   Settings,
+  User,
   User2,
   Users,
 } from "lucide-react";
@@ -88,6 +89,11 @@ export function AppSidebar() {
   ];
 
   const accountNavItems: NavItem[] = [
+    {
+      title: "My Profile",
+      icon: User,
+      url: "/dashboard/profile",
+    },
     {
       title: "Account Settings",
       icon: Settings,
