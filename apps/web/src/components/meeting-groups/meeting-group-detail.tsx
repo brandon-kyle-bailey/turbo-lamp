@@ -41,6 +41,7 @@ import { cn } from "../../lib/utils";
 import { Badge } from "../ui/badge";
 
 type Actions = {
+  listSlotsAction: (id: string) => Promise<MeetingSlot[]>;
   calculateSlotsAction: (id: string) => Promise<MeetingSlot[]>;
   createMeetingAction: (data: Partial<MeetingSlot>) => Promise<Meeting>;
 };

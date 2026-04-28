@@ -1,11 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  FindOptionsRelations,
-  FindOptionsWhere,
-  In,
-  Repository,
-} from 'typeorm';
+import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { AccountProvider, ParticipantAuthState } from '../../lib/constants';
 import {
   CalendarEvent,
@@ -34,14 +29,6 @@ export class MeetingSlotsService {
         id: meetingGroupId,
         participants: {
           authState: ParticipantAuthState.AUTHORIZED,
-          user: {
-            accounts: {
-              providerId: In([AccountProvider.GOOGLE]),
-            },
-            calendars: {
-              providerId: In([AccountProvider.GOOGLE]),
-            },
-          },
         },
       },
       {
@@ -49,12 +36,19 @@ export class MeetingSlotsService {
           user: {
             accounts: true,
             calendars: true,
+            availabilities: true,
+            availabilityOverrides: true,
           },
         },
       },
     );
     if (!meetingGroup) throw new NotFoundException();
     if (!meetingGroup.participants) throw new NotFoundException();
+    if (
+      meetingGroup.participants.filter((g) => g.userId !== authorId).length ===
+      0
+    )
+      return [];
 
     const flattenedCalendarEvents = await Promise.all(
       meetingGroup.participants.flatMap((participant) => {
@@ -67,8 +61,8 @@ export class MeetingSlotsService {
             {
               account,
               calendarId: calendar.externalId,
-              timeMin: meetingGroup.after.toISOString(),
-              timeMax: meetingGroup.before.toISOString(),
+              timeMin: meetingGroup.after.toUTCString(),
+              timeMax: meetingGroup.before.toUTCString(),
             },
           ),
         );

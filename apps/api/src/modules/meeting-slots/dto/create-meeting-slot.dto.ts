@@ -8,14 +8,14 @@ export class CreateMeetingSlotDto {
 
   @ApiProperty({
     description: 'the meeting slots start time.',
-    default: new Date().toISOString(),
+    default: new Date().toUTCString(),
   })
   @IsDateString()
   start: Date;
 
   @ApiProperty({
     description: 'the meeting slots end time.',
-    default: new Date().toISOString(),
+    default: new Date().toUTCString(),
   })
   @IsDateString()
   end: Date;

@@ -14,6 +14,7 @@ import {
 import { CalendarProvider } from '../../../lib/constants';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 import { User } from '../../users/entities/user.entity';
+import { Account } from '../../accounts/entities/account.entity';
 
 @Entity('calendars')
 @Unique(['userId', 'externalId', 'providerId'])
@@ -21,6 +22,15 @@ import { User } from '../../users/entities/user.entity';
 export class Calendar {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
+  accountId: string;
+
+  @ManyToOne(() => Account, (account) => account.calendars, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'accountId' })
+  account: Account;
 
   @Column()
   userId: string;

@@ -11,14 +11,14 @@ export class CreateAvailabilityDto {
 
   @ApiProperty({
     description: 'The start time of the availability period.',
-    default: new Date().toISOString().split('T')[1].split('.')[0],
+    default: new Date().toUTCString().split('T')[1].split('.')[0],
   })
   @IsString()
   startTime: string;
 
   @ApiProperty({
     description: 'The end time of the availability period.',
-    default: new Date().toISOString().split('T')[1].split('.')[0],
+    default: new Date().toUTCString().split('T')[1].split('.')[0],
   })
   @IsString()
   endTime: string;

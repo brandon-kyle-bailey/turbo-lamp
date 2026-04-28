@@ -5,12 +5,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { AccountProvider } from '../../../lib/constants';
 import { User } from '../../users/entities/user.entity';
+import { Calendar } from '../../calendars/entities/calendar.entity';
 
 @Entity('accounts')
 @Unique(['userId', 'providerId'])
@@ -29,6 +31,9 @@ export class Account {
 
   @Column()
   accountId: string;
+
+  @OneToMany(() => Calendar, (calendar) => calendar.account)
+  calendars: Calendar[];
 
   @Column({ type: 'enum', enum: AccountProvider })
   providerId: AccountProvider;

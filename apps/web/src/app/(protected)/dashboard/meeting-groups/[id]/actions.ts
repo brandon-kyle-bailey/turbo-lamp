@@ -5,6 +5,10 @@ import { meetingsApi } from "@/lib/api/meetings";
 import { createMeetingSchema } from "@/lib/schemas";
 import { MeetingSlot } from "@/lib/types";
 
+export async function listSlotsAction(id: string) {
+  return await meetingSlotsApi.list(id);
+}
+
 export async function calculateSlotsAction(id: string) {
   return await meetingSlotsApi.calculate(id);
 }

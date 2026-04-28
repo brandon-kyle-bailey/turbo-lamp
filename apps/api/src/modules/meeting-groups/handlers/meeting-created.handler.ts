@@ -1,6 +1,5 @@
 import { Inject, Logger } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { AccountProvider } from '../../../lib/constants';
 import { ExternalCalendarService } from '../../calendars/external-calendar.service';
 import { MeetingAttendeesService } from '../../meeting-attendees/meeting-attendees.service';
 import { MeetingCreatedEvent } from '../../meetings/events/meeting-created.event';
@@ -24,9 +23,8 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
     const meetingGroup = await this.meetingGroupsService.findOne(
       entity.meetingGroupId,
       {
-        participants: { user: true },
-        author: { accounts: true },
-        calendar: true,
+        participants: { user: { accounts: true } },
+        calendar: { account: true },
       },
     );
     if (!meetingGroup) {
@@ -34,25 +32,16 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
       return;
     }
 
-    const authorProviderAccount = meetingGroup.author.accounts.find(
-      (account) => account.providerId === AccountProvider.GOOGLE,
-    );
+    const authorProviderAccount = meetingGroup.calendar.account;
 
     if (!authorProviderAccount) {
       this.logger.warn(
-        `No Google provider account for author ${meetingGroup.authorId}`,
+        `No provider account for author ${meetingGroup.authorId}`,
       );
       return;
     }
 
-    const participants = meetingGroup.participants.filter((participant) => {
-      if (
-        participant.userId !== meetingGroup.authorId &&
-        participant.authState
-      ) {
-        return participant;
-      }
-    });
+    const participants = meetingGroup.participants;
 
     if (participants.length === 0) {
       this.logger.log(
@@ -70,15 +59,17 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
         event: {
           summary: meetingGroup.summary,
           description: meetingGroup.description,
-          attendees: participants.map((participant) => {
-            return { email: participant.user.email };
-          }),
+          attendees: participants
+            .filter((p) => p.userId !== meetingGroup.authorId)
+            .map((participant) => {
+              return { email: participant.user.email };
+            }),
           reminders: { useDefault: true },
           start: {
-            dateTime: new Date(entity.start).toISOString(),
+            dateTime: new Date(entity.start).toUTCString(),
           },
           end: {
-            dateTime: new Date(entity.end).toISOString(),
+            dateTime: new Date(entity.end).toUTCString(),
           },
         },
       },
