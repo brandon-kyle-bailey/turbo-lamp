@@ -27,7 +27,7 @@ import {
   Search,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreateGroupDialog } from "./create-meeting-group-dialog";
 
 function formatDate(dateString: string) {
@@ -37,20 +37,6 @@ function formatDate(dateString: string) {
     year: "numeric",
   });
 }
-
-type Actions = {
-  createMeetingGroupAction: (
-    data: Partial<MeetingGroup>,
-  ) => Promise<MeetingGroup>;
-  updateMeetingGroupAction: (
-    id: string,
-    data: MeetingGroup,
-  ) => Promise<MeetingGroup>;
-  deleteMeetingGroupAction: (id: string) => Promise<void>;
-  createMeetingGroupParticipantAction: (
-    data: Partial<MeetingParticipant>,
-  ) => Promise<MeetingParticipant>;
-};
 
 export default function MeetingGroupsClient({
   initialData,
@@ -65,8 +51,12 @@ export default function MeetingGroupsClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [meetingGroups, setMeetingGroups] =
     useState<MeetingGroup[]>(initialData);
-
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setMeetingGroups(initialData);
+  }, [initialData, refreshKey]);
 
   const filteredGroups = searchQuery
     ? meetingGroups.filter(
@@ -96,6 +86,10 @@ export default function MeetingGroupsClient({
           createMeetingGroupParticipantAction={
             actions.createMeetingGroupParticipantAction
           }
+          onSuccess={() => {
+            setRefreshKey((k) => k + 1);
+            router.refresh();
+          }}
         />
       </div>
 
@@ -115,6 +109,10 @@ export default function MeetingGroupsClient({
               createMeetingGroupParticipantAction={
                 actions.createMeetingGroupParticipantAction
               }
+              onSuccess={() => {
+                setRefreshKey((k) => k + 1);
+                router.refresh();
+              }}
             />
           </CardContent>
         </Card>

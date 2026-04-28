@@ -104,6 +104,7 @@ export function CreateGroupDialog({
   setIsDialogOpenAction,
   handleSubmitAction,
   createMeetingGroupParticipantAction,
+  onSuccess,
 }: {
   calendars: Calendar[];
   isDialogOpen: boolean;
@@ -112,6 +113,7 @@ export function CreateGroupDialog({
   createMeetingGroupParticipantAction: (
     data: Partial<MeetingParticipant>,
   ) => Promise<MeetingParticipant>;
+  onSuccess?: () => void;
 }) {
   const router = useRouter();
   const [form, setForm] = useState<FormData>(() => defaultForm(calendars));
@@ -228,6 +230,7 @@ export function CreateGroupDialog({
 
       resetState();
       setIsDialogOpenAction(false);
+      onSuccess?.();
       router.refresh();
     } catch {
       setErrors({ root: "Something went wrong. Please try again." });

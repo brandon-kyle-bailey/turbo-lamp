@@ -1,7 +1,7 @@
 "use server";
-import { meetingGroupsApi } from "@/lib/api/meeting-groups";
-import { meetingParticipantsApi } from "@/lib/api/meeting-participants";
 import { MeetingGroupDetail } from "@/components/meeting-groups/meeting-group-detail";
+import { meetingGroupsApi } from "@/lib/api/meeting-groups";
+import { meetingSlotsApi } from "../../../../../lib/api/meeting-slots";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -9,14 +9,16 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
-  const [group, allParticipants] = await Promise.all([
+  const [group, slots] = await Promise.all([
     meetingGroupsApi.get(id),
-    meetingParticipantsApi.list(),
+    meetingSlotsApi.list(id),
   ]);
 
-  const participants = allParticipants.filter((p) => p.meetingGroupId === id);
-
   return (
-    <MeetingGroupDetail group={group} initialParticipants={participants} />
+    <MeetingGroupDetail
+      group={group}
+      initialSlots={slots}
+      initialParticipants={group.participants}
+    />
   );
 }

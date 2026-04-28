@@ -22,10 +22,13 @@ import { SessionCookieInterceptor } from '../../interceptors/session-cookie.inte
 import {
   AccountProvider,
   CookieKey,
+  ParticipantAuthState,
+  ParticipantInvitationState,
   SANITIZED_ROUTES,
   VerificationValue,
 } from '../../lib/constants';
 import { Account } from '../accounts/entities/account.entity';
+import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
@@ -45,6 +48,8 @@ export class AuthController {
     private readonly verificationService: VerificationsService,
     @Inject(CookieService)
     private readonly cookieService: CookieService,
+    @Inject(MeetingParticipantsService)
+    private readonly meetingParticipantsService: MeetingParticipantsService,
   ) {}
 
   @UseInterceptors(SessionCookieInterceptor)
@@ -117,7 +122,16 @@ export class AuthController {
       const base = SANITIZED_ROUTES[payload.after];
       if (!base) throw new UnauthorizedException();
 
-      redirect = `${base}/${payload.id}`;
+      redirect = `${base}`;
+      // TODO:... abstract to invitation service for better handling?
+      if (base === SANITIZED_ROUTES.invite_complete) {
+        await this.meetingParticipantsService.update(payload.id, {
+          invitationState: ParticipantInvitationState.ACCEPTED,
+          authState: ParticipantAuthState.AUTHORIZED,
+          userId: req.user.userId,
+        });
+        redirect = SANITIZED_ROUTES.onboarding;
+      }
     }
 
     const session = await this.authService.login(req.user, {

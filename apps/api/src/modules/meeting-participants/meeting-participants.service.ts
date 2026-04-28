@@ -108,10 +108,10 @@ export class MeetingParticipantsService {
     },
   ) {
     const invitationState =
-      createMeetingParticipantDto.invitation_state ??
+      createMeetingParticipantDto.invitationState ??
       ParticipantInvitationState.PENDING;
     const authState =
-      createMeetingParticipantDto.auth_state ??
+      createMeetingParticipantDto.authState ??
       ParticipantAuthState.UNAUTHORIZED;
 
     const entity = this.repository.create({
@@ -133,7 +133,7 @@ export class MeetingParticipantsService {
           type: VerificationType.INVITE,
           id: result.id,
           to: result.email,
-          after: 'onboarding_complete',
+          after: 'invite_complete',
         } as VerificationValue,
         { expiresIn },
       ),
@@ -189,8 +189,8 @@ export class MeetingParticipantsService {
       });
     }
 
-    const newInvitationState = updateMeetingParticipantDto.invitation_state;
-    const newAuthState = updateMeetingParticipantDto.auth_state;
+    const newInvitationState = updateMeetingParticipantDto.invitationState;
+    const newAuthState = updateMeetingParticipantDto.authState;
 
     if (newInvitationState) {
       this.validateInvitationStateTransition(

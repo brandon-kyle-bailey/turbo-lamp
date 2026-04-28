@@ -51,11 +51,12 @@ export enum MeetingStatus {
 
 export const SANITIZED_ROUTES = {
   dashboard: '/dashboard',
-  onboarding_complete: '/onboarding/complete',
+  onboarding: '/onboarding',
+  invite_complete: '/meeting-participants',
 } as const;
 
 export enum VerificationType {
-  OAUTH_STATE = 'oauth_state',
+  OAUTH_STATE = 'oauthState',
   INVITE = 'invite',
 }
 

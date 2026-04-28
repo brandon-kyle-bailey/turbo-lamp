@@ -6,11 +6,11 @@ import { MeetingSlotsService } from './meeting-slots.service';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller({ path: 'meeting-groups', version: '1' })
+@Controller({ path: 'meeting-slots', version: '1' })
 export class MeetingSlotsController {
   constructor(private readonly meetingSlotsService: MeetingSlotsService) {}
 
-  @Get(':meetingGroupId/slots')
+  @Get(':meetingGroupId')
   async findSlots(
     @Req() req: Request & { user: Account },
     @Param('meetingGroupId') meetingGroupId: string,

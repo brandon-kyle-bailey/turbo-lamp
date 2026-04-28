@@ -16,9 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
-// import { meetingSlotsApi } from "@/lib/api/meeting-slots";
-// import { meetingsApi } from "@/lib/api/meetings";
 import { MeetingGroup, MeetingParticipant, MeetingSlot } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import {
@@ -38,6 +35,7 @@ import { toast } from "sonner";
 
 interface MeetingGroupDetailProps {
   group: MeetingGroup;
+  initialSlots: MeetingSlot[];
   initialParticipants: MeetingParticipant[];
 }
 
@@ -74,11 +72,12 @@ function getErrorMessage(err: unknown): string {
 
 export function MeetingGroupDetail({
   group,
+  initialSlots,
   initialParticipants,
 }: MeetingGroupDetailProps) {
   const router = useRouter();
   const [participants, setParticipants] = useState(initialParticipants);
-  const [slots, setSlots] = useState<MeetingSlot[]>([]);
+  const [slots, setSlots] = useState<MeetingSlot[]>(initialSlots);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<MeetingSlot | null>(null);
@@ -106,7 +105,7 @@ export function MeetingGroupDetail({
 
     try {
       // const result = await meetingSlotsApi.calculate(group.id);
-      const result: MeetingSlot[] = [];
+      const result: MeetingSlot[] = initialSlots;
 
       if (requestId !== requestIdRef.current) return;
 

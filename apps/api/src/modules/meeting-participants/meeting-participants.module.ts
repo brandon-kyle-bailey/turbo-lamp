@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { VerificationsModule } from '../verifications/verifications.module';
@@ -10,7 +10,7 @@ import { MeetingParticipantsService } from './meeting-participants.service';
   imports: [
     TypeOrmModule.forFeature([MeetingParticipant]),
     VerificationsModule,
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [MeetingParticipantsController],
   providers: [MeetingParticipantsService],

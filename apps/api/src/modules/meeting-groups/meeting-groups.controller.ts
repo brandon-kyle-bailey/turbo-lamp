@@ -22,11 +22,13 @@ import { MeetingParticipantsService } from '../meeting-participants/meeting-part
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { MeetingGroupsService } from './meeting-groups.service';
+import { Logger } from '@nestjs/common';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'meeting-groups', version: '1' })
 export class MeetingGroupsController {
+  private readonly logger = new Logger(MeetingGroupsController.name);
   constructor(
     @Inject(MeetingGroupsService)
     private readonly meetingGroupsService: MeetingGroupsService,
@@ -51,8 +53,8 @@ export class MeetingGroupsController {
       email: req.user.user.email,
       userId: req.user.userId,
       required: true,
-      auth_state: ParticipantAuthState.AUTHORIZED,
-      invitation_state: ParticipantInvitationState.ACCEPTED,
+      authState: ParticipantAuthState.AUTHORIZED,
+      invitationState: ParticipantInvitationState.ACCEPTED,
     });
 
     return result;
@@ -60,16 +62,18 @@ export class MeetingGroupsController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    return await this.meetingGroupsService.findAllBy(
+    this.logger.debug(req.user.userId);
+    const result = await this.meetingGroupsService.findAllBy(
       [
         { authorId: req.user.userId },
         { participants: { userId: req.user.userId } },
-        { participants: { email: req.user.user.email } },
       ],
       {
         participants: { user: true },
       },
     );
+    this.logger.debug(result);
+    return result;
   }
 
   @Get(':id')
@@ -77,16 +81,15 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    return await this.meetingGroupsService.findOneBy(
-      [
-        { id, authorId: req.user.userId },
-        { id, participants: { userId: req.user.userId } },
-        { id, participants: { email: req.user.user.email } },
-      ],
+    this.logger.debug(req.user.userId, id);
+    const result = await this.meetingGroupsService.findOneBy(
+      { id },
       {
-        participants: true,
+        participants: { user: true },
       },
     );
+    console.log(result);
+    return result;
   }
 
   @Patch(':id')

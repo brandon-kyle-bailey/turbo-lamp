@@ -40,7 +40,7 @@ export class CreateMeetingParticipantDto {
   })
   @IsOptional()
   @IsEnum(ParticipantAuthState)
-  auth_state?: ParticipantAuthState;
+  authState?: ParticipantAuthState;
 
   @ApiPropertyOptional({
     description: 'Invitation state of the participant.',
@@ -48,5 +48,5 @@ export class CreateMeetingParticipantDto {
   })
   @IsOptional()
   @IsEnum(ParticipantInvitationState)
-  invitation_state?: ParticipantInvitationState;
+  invitationState?: ParticipantInvitationState;
 }
