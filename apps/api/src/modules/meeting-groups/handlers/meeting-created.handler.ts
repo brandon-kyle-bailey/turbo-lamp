@@ -66,10 +66,10 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
             }),
           reminders: { useDefault: true },
           start: {
-            dateTime: new Date(entity.start).toUTCString(),
+            dateTime: new Date(entity.start).toISOString(),
           },
           end: {
-            dateTime: new Date(entity.end).toUTCString(),
+            dateTime: new Date(entity.end).toISOString(),
           },
         },
       },

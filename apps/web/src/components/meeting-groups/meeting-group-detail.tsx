@@ -119,6 +119,28 @@ export function MeetingGroupDetail({
     setSlotsError(null);
 
     try {
+      const result = await actions.listSlotsAction(group.id);
+
+      if (requestId !== requestIdRef.current) return;
+
+      setSlots(result);
+    } catch (err) {
+      if (requestId !== requestIdRef.current) return;
+      setSlotsError(getErrorMessage(err));
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setSlotsLoading(false);
+      }
+    }
+  }
+
+  async function refreshSlots() {
+    const requestId = ++requestIdRef.current;
+
+    setSlotsLoading(true);
+    setSlotsError(null);
+
+    try {
       const result = await actions.calculateSlotsAction(group.id);
 
       if (requestId !== requestIdRef.current) return;
@@ -300,7 +322,7 @@ export function MeetingGroupDetail({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={loadSlots}
+                  onClick={refreshSlots}
                   disabled={slotsLoading}
                 >
                   <RefreshCw

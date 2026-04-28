@@ -36,14 +36,14 @@ export class CreateMeetingGroupDto {
 
   @ApiProperty({
     description: 'The after date of the meeting group.',
-    default: new Date().toUTCString(),
+    default: new Date().toISOString(),
   })
   @IsDateString()
   after: Date;
 
   @ApiProperty({
     description: 'The before date of the meeting group.',
-    default: new Date().toUTCString(),
+    default: new Date().toISOString(),
   })
   @IsDateString()
   before: Date;

@@ -89,6 +89,7 @@ export class CalendarsController {
   ) {
     return await this.calendarService.upsert({
       ...createCalendarDto,
+      accountId: req.user.id,
       userId: req.user.userId,
       createdBy: req.user.userId,
     });
@@ -101,7 +102,9 @@ export class CalendarsController {
   ) {
     return await this.calendarService.create({
       ...createCalendarDto,
+      accountId: req.user.id,
       userId: req.user.userId,
+      createdBy: req.user.userId,
     });
   }
 
@@ -113,6 +116,7 @@ export class CalendarsController {
     const promises = createCalendarDto.map((dto) =>
       this.calendarService.upsert({
         ...dto,
+        accountId: req.user.id,
         userId: req.user.userId,
         createdBy: req.user.userId,
       }),
@@ -128,7 +132,9 @@ export class CalendarsController {
     const promises = createCalendarDto.map((dto) =>
       this.calendarService.create({
         ...dto,
+        accountId: req.user.id,
         userId: req.user.userId,
+        createdBy: req.user.userId,
       }),
     );
     return await Promise.all(promises);

@@ -11,14 +11,14 @@ export class CreateAvailabilityOverrideDto {
 
   @ApiProperty({
     description: 'The start time of the override.',
-    default: new Date().toUTCString().split('T')[1].split('.')[0],
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
   @IsString()
   startTime: string;
 
   @ApiProperty({
     description: 'The end time of the override.',
-    default: new Date().toUTCString().split('T')[1].split('.')[0],
+    default: new Date().toISOString().split('T')[1].split('.')[0],
   })
   @IsString()
   endTime: string;
