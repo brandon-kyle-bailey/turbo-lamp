@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { availabilityOverridesApi } from "@/lib/api/availability-overrides";
 import type { AvailabilityOverride } from "@/lib/types";
 import {
@@ -13,7 +14,9 @@ export async function listOverrides(): Promise<AvailabilityOverride[]> {
 
 export async function createOverride(data: Partial<AvailabilityOverride>) {
   const payload = createAvailabilityOverrideSchema.parse(data);
-  return await availabilityOverridesApi.create(payload);
+  const result = await availabilityOverridesApi.create(payload);
+  revalidatePath("/dashboard/availability/overrides");
+  return result;
 }
 
 export async function updateOverride(
@@ -21,9 +24,13 @@ export async function updateOverride(
   data: Partial<AvailabilityOverride>,
 ) {
   const payload = updateAvailabilityOverrideSchema.parse(data);
-  return await availabilityOverridesApi.update(id, payload);
+  const result = await availabilityOverridesApi.update(id, payload);
+  revalidatePath("/dashboard/availability/overrides");
+  return result;
 }
 
 export async function deleteOverride(id: string) {
-  return await availabilityOverridesApi.delete(id);
+  const result = await availabilityOverridesApi.delete(id);
+  revalidatePath("/dashboard/availability/overrides");
+  return result;
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { availabilitiesApi } from "@/lib/api/availabilities";
 import { availabilityOverridesApi } from "@/lib/api/availability-overrides";
 import { calendarsApi } from "@/lib/api/calendars";
@@ -29,25 +30,23 @@ export async function saveCalendars(data: Calendar[]) {
       }),
   );
 
-  return await calendarsApi.batchUpsert(payload);
+  const result = await calendarsApi.batchUpsert(payload);
+  revalidatePath("/onboarding");
+  return result;
 }
 
 export async function saveAvailabilities(data: Availability[]) {
-  const payload = data.map((availability) =>
+  const payload = data.map((d) =>
     createAvailabilitySchema.parse({
-      dayOfWeek: availability.dayOfWeek,
-      startTime: availability.startTime,
-      endTime: availability.endTime,
-      isAvailable: availability.isAvailable,
+      dayOfWeek: d.dayOfWeek,
+      startTime: d.startTime,
+      endTime: d.endTime,
+      isAvailable: d.isAvailable,
     }),
   );
-
-  console.log(payload);
-  const promises = payload.map((availability) => {
-    return availabilitiesApi.create(availability);
-  });
-
-  return await Promise.all(promises);
+  const result = await availabilitiesApi.batchUpsert(payload);
+  revalidatePath("/onboarding");
+  return result;
 }
 export async function saveAvailabilityOverrides(data: AvailabilityOverride[]) {
   const payload = data.map((override) =>
@@ -59,7 +58,9 @@ export async function saveAvailabilityOverrides(data: AvailabilityOverride[]) {
     }),
   );
 
-  return await Promise.all(
+  const result = await Promise.all(
     payload.map((override) => availabilityOverridesApi.upsert(override)),
   );
+  revalidatePath("/onboarding");
+  return result;
 }

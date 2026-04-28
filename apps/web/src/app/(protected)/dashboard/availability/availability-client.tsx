@@ -2,6 +2,7 @@
 
 import { Availability } from "@/lib/types";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ export default function AvailabilityClient({
   initialData: Availability[];
   actions: Actions;
 }) {
+  const router = useRouter();
   const [availability, setAvailability] = useState<Availability[]>(initialData);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -51,6 +53,7 @@ export default function AvailabilityClient({
   const handleSave = async () => {
     await Promise.all(availability.map((a) => actions.update(a)));
     setHasChanges(false);
+    router.refresh();
   };
 
   return (

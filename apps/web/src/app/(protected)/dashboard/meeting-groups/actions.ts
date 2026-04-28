@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { meetingGroupsApi } from "@/lib/api/meeting-groups";
 import {
   createMeetingGroupSchema,
@@ -10,7 +11,9 @@ import { meetingParticipantsApi } from "../../../../lib/api/meeting-participants
 
 export async function createMeetingGroupAction(data: Partial<MeetingGroup>) {
   const payload = createMeetingGroupSchema.parse(data);
-  return await meetingGroupsApi.create(payload);
+  const result = await meetingGroupsApi.create(payload);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
 }
 
 export async function updateMeetingGroupAction(
@@ -18,11 +21,15 @@ export async function updateMeetingGroupAction(
   data: Partial<MeetingGroup>,
 ) {
   const payload = createMeetingGroupSchema.parse(data);
-  return await meetingGroupsApi.update(id, payload);
+  const result = await meetingGroupsApi.update(id, payload);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
 }
 
 export async function deleteMeetingGroupAction(id: string) {
-  return await meetingGroupsApi.delete(id);
+  const result = await meetingGroupsApi.delete(id);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
 }
 
 export async function createMeetingGroupParticipantAction(

@@ -25,11 +25,28 @@ export class AvailabilitiesController {
   private readonly logger = new Logger(AvailabilitiesController.name);
   constructor(private readonly availabilitiesService: AvailabilitiesService) {}
 
+  @Post('upsert/batch')
+  async upsertBatch(
+    @Req() req: Request & { user: Account },
+    @Body() createAvailabilityDto: CreateAvailabilityDto[] & { userId: string },
+  ) {
+    this.logger.debug('batch upserting', createAvailabilityDto.length);
+    const promises = createAvailabilityDto.map((dto) => {
+      return this.availabilitiesService.upsert({
+        ...dto,
+        userId: req.user.userId,
+        createdBy: req.user.userId,
+      });
+    });
+    return await Promise.all(promises);
+  }
+
   @Post('upsert')
   async upsert(
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
   ) {
+    this.logger.debug('creating for:', createAvailabilityDto.dayOfWeek);
     return await this.availabilitiesService.upsert({
       ...createAvailabilityDto,
       userId: req.user.userId,

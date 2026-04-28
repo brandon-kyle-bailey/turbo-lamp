@@ -1,24 +1,30 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
 import type { MeetingAttendee } from "@/lib/types";
 
 export async function listMeetingAttendees(): Promise<MeetingAttendee[]> {
-  const paginated = await meetingAttendeesApi.list({ page: 1, perPage: 100 });
-  return paginated.data;
+  return await meetingAttendeesApi.list();
 }
 
 export async function createMeetingAttendees(data: Partial<MeetingAttendee>) {
-  return await meetingAttendeesApi.create(data);
+  const result = await meetingAttendeesApi.create(data);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }
 
 export async function updateMeetingAttendees(
   id: string,
   data: Partial<MeetingAttendee>,
 ) {
-  return await meetingAttendeesApi.update(id, data);
+  const result = await meetingAttendeesApi.update(id, data);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }
 
 export async function deleteMeetingAttendees(id: string) {
-  return await meetingAttendeesApi.delete(id);
+  const result = await meetingAttendeesApi.delete(id);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }

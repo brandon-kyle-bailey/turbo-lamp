@@ -51,8 +51,8 @@ export class MeetingGroupsController {
       email: req.user.user.email,
       userId: req.user.userId,
       required: true,
-      auth_state: ParticipantAuthState.UNAUTHORIZED,
-      invitation_state: ParticipantInvitationState.PENDING,
+      auth_state: ParticipantAuthState.AUTHORIZED,
+      invitation_state: ParticipantInvitationState.ACCEPTED,
     });
 
     return result;

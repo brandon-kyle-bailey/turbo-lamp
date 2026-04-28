@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
 import { Calendar, MeetingGroup, MeetingParticipant } from "@/lib/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -112,6 +113,7 @@ export function CreateGroupDialog({
     data: Partial<MeetingParticipant>,
   ) => Promise<MeetingParticipant>;
 }) {
+  const router = useRouter();
   const [form, setForm] = useState<FormData>(() => defaultForm(calendars));
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -226,6 +228,7 @@ export function CreateGroupDialog({
 
       resetState();
       setIsDialogOpenAction(false);
+      router.refresh();
     } catch {
       setErrors({ root: "Something went wrong. Please try again." });
     } finally {

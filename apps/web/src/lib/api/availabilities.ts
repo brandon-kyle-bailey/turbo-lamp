@@ -21,14 +21,21 @@ export const availabilitiesApi = {
     );
   },
 
+  batchUpsert: async (data: Partial<Availability>[]) => {
+    return await serverRequest<Availability[]>(
+      "/availabilities/upsert/batch",
+      "POST",
+      data,
+    );
+  },
+
   create: async (data: Partial<Availability>) => {
-    const payload = createAvailabilitySchema.parse(data);
-    console.log("payload:", payload);
-    return await serverRequest<Availability>(
+    const result = await serverRequest<Availability>(
       "/availabilities",
       "POST",
-      payload,
+      data,
     );
+    return result;
   },
 
   update: async (id: string, data: Partial<Availability>) => {
