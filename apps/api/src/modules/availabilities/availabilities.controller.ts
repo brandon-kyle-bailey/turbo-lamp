@@ -30,7 +30,6 @@ export class AvailabilitiesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityDto: CreateAvailabilityDto[] & { userId: string },
   ) {
-    this.logger.debug('batch upserting', createAvailabilityDto.length);
     const promises = createAvailabilityDto.map((dto) => {
       return this.availabilitiesService.upsert({
         ...dto,
@@ -46,7 +45,6 @@ export class AvailabilitiesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
   ) {
-    this.logger.debug('creating for:', createAvailabilityDto.dayOfWeek);
     return await this.availabilitiesService.upsert({
       ...createAvailabilityDto,
       userId: req.user.userId,
@@ -59,7 +57,6 @@ export class AvailabilitiesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
   ) {
-    this.logger.debug('backend controller:', createAvailabilityDto);
     return await this.availabilitiesService.create({
       ...createAvailabilityDto,
       userId: req.user.userId,

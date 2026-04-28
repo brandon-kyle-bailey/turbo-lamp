@@ -44,7 +44,6 @@ export class AvailabilityOverridesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityOverrideDto: CreateAvailabilityOverrideDto,
   ) {
-    this.logger.debug('backend controller:', createAvailabilityOverrideDto);
     return await this.availabilityOverridesService.create({
       ...createAvailabilityOverrideDto,
       createdBy: req.user.userId,

@@ -62,7 +62,6 @@ export class MeetingGroupsController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    this.logger.debug(req.user.userId);
     const result = await this.meetingGroupsService.findAllBy(
       [
         { authorId: req.user.userId },
@@ -72,7 +71,6 @@ export class MeetingGroupsController {
         participants: { user: true },
       },
     );
-    this.logger.debug(result);
     return result;
   }
 
@@ -81,14 +79,12 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    this.logger.debug(req.user.userId, id);
     const result = await this.meetingGroupsService.findOneBy(
       { id },
       {
         participants: { user: true },
       },
     );
-    console.log(result);
     return result;
   }
 

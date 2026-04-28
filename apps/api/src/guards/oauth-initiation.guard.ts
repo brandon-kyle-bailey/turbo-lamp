@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,6 +18,7 @@ import { VerificationsService } from '../modules/verifications/verifications.ser
 
 @Injectable()
 export class OAuthInitiationGuard implements CanActivate {
+  private readonly logger: Logger = new Logger(OAuthInitiationGuard.name);
   constructor(
     @Inject(TokenService)
     private readonly tokenService: TokenService,
@@ -63,16 +65,20 @@ export class OAuthInitiationGuard implements CanActivate {
       value.id = payload.id;
       value.to = payload.to;
       value.after = payload.after;
+      this.logger.debug('payload...value', payload);
     }
 
     const expiresIn = 300000;
     // 5 minutes
     const expiresAt = new Date(Date.now() + expiresIn);
+    this.logger.debug('value', value);
     const verification = await this.verificationService.create({
       identifier: this.tokenService.randomHash(),
       value: this.tokenService.sign(value, { expiresIn }),
       expiresAt,
     });
+
+    this.logger.debug('verification', verification);
 
     guard.getAuthenticateOptions = () => ({
       session: false,

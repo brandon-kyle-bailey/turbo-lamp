@@ -4,6 +4,7 @@ import {
   Get,
   Inject,
   Ip,
+  Logger,
   Post,
   Query,
   Req,
@@ -39,6 +40,7 @@ import { TokenService } from './token.service';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
+  private readonly logger: Logger = new Logger(AuthController.name);
   constructor(
     @Inject(AuthService)
     private readonly authService: AuthService,
@@ -113,18 +115,27 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    let redirect: string = SANITIZED_ROUTES.dashboard;
+    let redirect: string = SANITIZED_ROUTES.onboarding;
 
     if (verification.value !== '') {
       const payload = this.tokenService.verify<VerificationValue>(
         verification.value,
       );
+      this.logger.debug('payload.after', payload.after);
       const base = SANITIZED_ROUTES[payload.after];
       if (!base) throw new UnauthorizedException();
+
+      this.logger.debug('base', base, SANITIZED_ROUTES);
 
       redirect = `${base}`;
       // TODO:... abstract to invitation service for better handling?
       if (base === SANITIZED_ROUTES.invite_complete) {
+        this.logger.debug('updating meeting participant', {
+          id: payload.id,
+          invitationState: ParticipantInvitationState.ACCEPTED,
+          authState: ParticipantAuthState.AUTHORIZED,
+          userId: req.user.userId,
+        });
         await this.meetingParticipantsService.update(payload.id, {
           invitationState: ParticipantInvitationState.ACCEPTED,
           authState: ParticipantAuthState.AUTHORIZED,
@@ -140,6 +151,8 @@ export class AuthController {
     });
 
     this.cookieService.attachCookie(res, CookieKey.SESSION, session.token);
-    res.redirect(`http://localhost:3000${redirect}`);
+    res.redirect(
+      `http://localhost:3000/${req.user.user.calendars && req.user.user.calendars.length > 0 ? SANITIZED_ROUTES.dashboard : redirect}`,
+    );
   }
 }
