@@ -24,7 +24,7 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
     const meetingGroup = await this.meetingGroupsService.findOne(
       entity.meetingGroupId,
       {
-        participants: true,
+        participants: { user: true },
         author: { accounts: true },
         calendar: true,
       },
@@ -71,7 +71,7 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
           summary: meetingGroup.summary,
           description: meetingGroup.description,
           attendees: participants.map((participant) => {
-            return { email: participant.email };
+            return { email: participant.user.email };
           }),
           reminders: { useDefault: true },
           start: {
@@ -90,7 +90,7 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
           userId: participant.userId,
           meetingId: entity.id,
           externalEventId: externalEvent.id!,
-          email: participant.email,
+          email: participant.user.email,
           createdBy: meetingGroup.authorId,
         }),
       ),

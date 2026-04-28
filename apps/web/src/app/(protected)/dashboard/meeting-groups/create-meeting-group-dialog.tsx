@@ -61,6 +61,7 @@ const oneWeek = new Date(Date.now() + 7 * 86_400_000)
 const meetingGroupSchema = z
   .object({
     summary: z.string().min(1, "Summary is required"),
+    description: z.string().min(1, "Description is required"),
     duration: z.number().min(15, "Minimum duration is 15 minutes"),
     after: z.string().min(1, "Start date is required"),
     before: z.string().min(1, "End date is required"),
@@ -87,6 +88,7 @@ type ParticipantDraft = {
 function defaultForm(calendars: Calendar[]): FormData {
   return {
     summary: "",
+    description: "",
     duration: 60,
     after: today,
     before: oneWeek,
@@ -202,6 +204,7 @@ export function CreateGroupDialog({
         id: crypto.randomUUID(),
         authorId: "",
         summary: result.data.summary,
+        description: result.data.description,
         duration: result.data.duration,
         after: new Date(result.data.after).toISOString(),
         before: new Date(result.data.before).toISOString(),
@@ -268,6 +271,19 @@ export function CreateGroupDialog({
             />
             {errors.summary && (
               <p className="text-xs text-destructive">{errors.summary}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="summary">Description</Label>
+            <Input
+              id="description"
+              placeholder="e.g. Team sync, 1-on-1 with manager"
+              value={form.description}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+            {errors.description && (
+              <p className="text-xs text-destructive">{errors.description}</p>
             )}
           </div>
 

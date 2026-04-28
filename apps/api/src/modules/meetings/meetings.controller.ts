@@ -41,10 +41,12 @@ export class MeetingsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    const result = await this.meetingsService.findOneBy({
-      id,
-      meetingGroup: { participants: { userId: req.user.userId } },
-    });
+    const result = await this.meetingsService.findOneBy(
+      {
+        id,
+      },
+      { attendees: true, meetingGroup: true },
+    );
     if (!result) {
       throw new NotFoundException();
     }

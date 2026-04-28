@@ -24,4 +24,15 @@ export class MeetingSlotsController {
       },
     ]);
   }
+
+  @Get(':meetingGroupId/calculate')
+  async calculate(
+    @Req() req: Request & { user: Account },
+    @Param('meetingGroupId') meetingGroupId: string,
+  ) {
+    return await this.meetingSlotsService.calculate(
+      meetingGroupId,
+      req.user.userId,
+    );
+  }
 }

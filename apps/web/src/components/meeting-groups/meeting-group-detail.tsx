@@ -16,7 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MeetingGroup, MeetingParticipant, MeetingSlot } from "@/lib/types";
+import {
+  Meeting,
+  MeetingGroup,
+  MeetingParticipant,
+  MeetingSlot,
+} from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import {
   AlertCircle,
@@ -32,11 +37,19 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "../../lib/utils";
+import { Badge } from "../ui/badge";
+
+type Actions = {
+  calculateSlotsAction: (id: string) => Promise<MeetingSlot[]>;
+  createMeetingAction: (data: Partial<MeetingSlot>) => Promise<Meeting>;
+};
 
 interface MeetingGroupDetailProps {
   group: MeetingGroup;
   initialSlots: MeetingSlot[];
   initialParticipants: MeetingParticipant[];
+  actions: Actions;
 }
 
 type InvitationState = "pending" | "accepted" | "declined";
@@ -74,6 +87,7 @@ export function MeetingGroupDetail({
   group,
   initialSlots,
   initialParticipants,
+  actions,
 }: MeetingGroupDetailProps) {
   const router = useRouter();
   const [participants, setParticipants] = useState(initialParticipants);
@@ -104,8 +118,7 @@ export function MeetingGroupDetail({
     setSlotsError(null);
 
     try {
-      // const result = await meetingSlotsApi.calculate(group.id);
-      const result: MeetingSlot[] = initialSlots;
+      const result = await actions.calculateSlotsAction(group.id);
 
       if (requestId !== requestIdRef.current) return;
 
@@ -141,27 +154,16 @@ export function MeetingGroupDetail({
     setIsScheduling(true);
 
     try {
-      // const meeting = await meetingsApi.create({
-      //   meetingGroupId: group.id,
-      //   start: selectedSlot.start,
-      //   end: selectedSlot.end,
-      // });
-      //
-      // await Promise.all(
-      //   activeParticipants.map((p) =>
-      //     meetingAttendeesApi.create({
-      //       meetingId: meeting.id,
-      //       userId: p.userId ?? "",
-      //       email: p.email,
-      //       externalEventId: "",
-      //     }),
-      //   ),
-      // );
+      const meeting = await actions.createMeetingAction({
+        id: selectedSlot.id,
+        meetingGroupId: group.id,
+        start: selectedSlot.start,
+        end: selectedSlot.end,
+      });
 
       toast.success("Meeting scheduled successfully");
       setConfirmOpen(false);
-      // router.push(`/dashboard/meetings/${meeting.id}`);
-      router.push(`/dashboard/meetings`);
+      router.push(`/dashboard/meetings/${meeting.id}`);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -170,12 +172,14 @@ export function MeetingGroupDetail({
   }
 
   const slotsByDay = useMemo(() => {
-    return slots.reduce<Record<string, MeetingSlot[]>>((acc, slot) => {
-      const day = format(parseISO(slot.start), "yyyy-MM-dd");
-      if (!acc[day]) acc[day] = [];
-      acc[day].push(slot);
-      return acc;
-    }, {});
+    return slots
+      .sort((a, b) => a.rank! - b.rank!)
+      .reduce<Record<string, MeetingSlot[]>>((acc, slot) => {
+        const day = format(parseISO(slot.start), "yyyy-MM-dd");
+        if (!acc[day]) acc[day] = [];
+        acc[day].push(slot);
+        return acc;
+      }, {});
   }, [slots]);
 
   return (
@@ -344,11 +348,11 @@ export function MeetingGroupDetail({
               ) : (
                 Object.entries(slotsByDay).map(([day, daySlots]) => (
                   <div key={day} className="mb-6">
-                    <div className="text-xs font-semibold mb-2">
+                    <div className="text-s font-semibold mb-2">
                       {format(parseISO(day), "EEEE, MMM d")}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="w-full flex flex-wrap gap-2 justify-start align-middle items-center text-center">
                       {daySlots.map((slot) => (
                         <SlotCard
                           key={`${slot.start}-${slot.end}`}
@@ -410,17 +414,28 @@ function SlotCard({
   slot: MeetingSlot;
   onSelect: () => void;
 }) {
+  const border_color =
+    slot.rank === 0
+      ? "border-green-500 dark:border-green-300"
+      : slot.rank! < 4
+        ? "border-yellow-500 dark:border-yellow-300"
+        : "border-red-500 dark:border-red-300";
+
   return (
-    <button
+    <Button
+      variant={"outline"}
       onClick={onSelect}
-      className="border rounded p-3 text-left hover:border-primary hover:bg-primary/5"
+      className={cn(
+        `border rounded p-3 text-left hover:border-primary hover:bg-primary/5 ${border_color}`,
+      )}
     >
+      {slot.rank === 0 ? <Badge>Best</Badge> : undefined}
       <div className="text-sm font-medium">
         {format(parseISO(slot.start), "h:mm a")}
       </div>
       <div className="text-xs text-muted-foreground">
         {format(parseISO(slot.end), "h:mm a")}
       </div>
-    </button>
+    </Button>
   );
 }

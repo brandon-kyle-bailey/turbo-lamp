@@ -965,7 +965,9 @@ export default function OnboardingClient({
             enabled: true,
           })) as Calendar[];
         await saveCalendars(payload);
-        setStep(2);
+        const result = await saveAvailabilities(localAvailabilities);
+        setLocalAvailabilities(result);
+        setStep(3);
         return;
       }
       if (step === 2) {
@@ -983,7 +985,7 @@ export default function OnboardingClient({
       );
       await saveAvailabilityOverrides(overridePayload);
       sessionStorage.removeItem(STEP_SESSION_KEY);
-      router.push("/dashboard");
+      router.push("/dashboard/meeting-groups");
     });
   }
 
