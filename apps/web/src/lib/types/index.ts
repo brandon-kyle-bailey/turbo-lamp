@@ -97,7 +97,7 @@ export type MeetingGroupStatus = "open" | "finalized" | "cancelled";
 
 export interface MeetingGroup {
   id: string;
-  creatorId: string;
+  authorId: string;
   summary: string;
   description?: string;
   location?: string;

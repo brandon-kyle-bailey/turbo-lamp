@@ -257,16 +257,24 @@ export function MeetingGroupDetail({
                       </p>
                     </div>
                   </div>
-
-                  <span
-                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${
-                      invitationColors[
-                        (p.invitationState as InvitationState) || "pending"
-                      ]
-                    }`}
-                  >
-                    {p.invitationState}
-                  </span>
+                  <div className="space-x-2">
+                    {p.userId === group.authorId ? (
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${invitationColors["pending"]}`}
+                      >
+                        Author
+                      </span>
+                    ) : undefined}
+                    <span
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${
+                        invitationColors[
+                          (p.invitationState as InvitationState) || "pending"
+                        ]
+                      }`}
+                    >
+                      {p.invitationState}
+                    </span>
+                  </div>
                 </div>
               ))}
             </CardContent>

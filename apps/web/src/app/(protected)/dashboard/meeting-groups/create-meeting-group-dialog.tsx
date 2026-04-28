@@ -200,7 +200,7 @@ export function CreateGroupDialog({
 
       const createdGroup = await handleSubmitAction({
         id: crypto.randomUUID(),
-        creatorId: "",
+        authorId: "",
         summary: result.data.summary,
         duration: result.data.duration,
         after: new Date(result.data.after).toISOString(),
