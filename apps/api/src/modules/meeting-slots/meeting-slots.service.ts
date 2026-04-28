@@ -61,6 +61,7 @@ export class MeetingSlotsService {
       (participant) => ({
         availabilities: participant.user.availabilities,
         overrides: participant.user.availabilityOverrides,
+        timezone: participant.user.calendars[0].timezone || 'UTC',
       }),
     );
 
@@ -273,6 +274,7 @@ export class MeetingSlotsService {
     participantData: {
       availabilities: Availability[];
       overrides: AvailabilityOverride[];
+      timezone: string;
     }[],
     windowStart: Date,
     windowEnd: Date,
@@ -332,6 +334,7 @@ export class MeetingSlotsService {
     participantData: {
       availabilities: Availability[];
       overrides: AvailabilityOverride[];
+      timezone: string;
     }[],
     dayOfWeek: number,
     dayStart: number,
@@ -348,6 +351,7 @@ export class MeetingSlotsService {
       this.buildParticipantDayAvailability(
         participant.availabilities,
         participant.overrides,
+        participant.timezone,
         dayOfWeek,
         dayStart,
         dayEnd,
@@ -370,6 +374,7 @@ export class MeetingSlotsService {
   private buildParticipantDayAvailability(
     availabilities: Availability[],
     overrides: AvailabilityOverride[],
+    timezone: string,
     dayOfWeek: number,
     dayStart: number,
     dayEnd: number,
@@ -390,9 +395,13 @@ export class MeetingSlotsService {
 
     if (override) {
       const [startH, startM] = override.startTime.split(':').map(Number);
+      const availabilityStart = new Date(
+        new Date(dayStart).setHours(startH, startM),
+      ).getTime();
       const [endH, endM] = override.endTime.split(':').map(Number);
-      const availabilityStart = dayStart + startH * 3600000 + startM * 60000;
-      const availabilityEnd = dayStart + endH * 3600000 + endM * 60000;
+      const availabilityEnd = new Date(
+        new Date(dayStart).setHours(endH, endM),
+      ).getTime();
 
       if (override.isAvailable) {
         return [{ start: availabilityStart, end: availabilityEnd }];
@@ -413,11 +422,13 @@ export class MeetingSlotsService {
 
     for (const avail of dayAvailabilities) {
       const [startH, startM] = avail.startTime.split(':').map(Number);
-      const testStart = new Date(new Date(dayStart).setHours(startH, startM));
+      const availabilityStart = new Date(
+        new Date(dayStart).setHours(startH, startM),
+      ).getTime();
       const [endH, endM] = avail.endTime.split(':').map(Number);
-      const testEnd = new Date(new Date(dayStart).setHours(endH, endM));
-      const availabilityStart = testStart.getTime();
-      const availabilityEnd = testEnd.getTime();
+      const availabilityEnd = new Date(
+        new Date(dayStart).setHours(endH, endM),
+      ).getTime();
 
       if (avail.isAvailable) {
         available.push({ start: availabilityStart, end: availabilityEnd });
