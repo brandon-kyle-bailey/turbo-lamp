@@ -42,6 +42,7 @@ export async function saveAvailabilities(data: Availability[]) {
     }),
   );
 
+  console.log(payload);
   const promises = payload.map((availability) => {
     return availabilitiesApi.create(availability);
   });

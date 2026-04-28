@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -16,6 +17,7 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('calendars')
 @Unique(['userId', 'externalId', 'providerId'])
+@Index(['userId'])
 export class Calendar {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -32,7 +34,7 @@ export class Calendar {
   @Column({ enum: CalendarProvider })
   providerId: CalendarProvider;
 
-  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.creator)
+  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.author)
   meetingGroups: MeetingGroup[];
 
   @Column()

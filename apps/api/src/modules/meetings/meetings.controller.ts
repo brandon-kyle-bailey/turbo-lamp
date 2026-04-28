@@ -10,9 +10,11 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { IdempotencyInterceptor } from '../../interceptors/idempotency.interceptor';
 import { Account } from '../accounts/entities/account.entity';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
@@ -50,6 +52,7 @@ export class MeetingsController {
   }
 
   @Post()
+  @UseInterceptors(IdempotencyInterceptor)
   async create(
     @Req() req: Request & { user: Account },
     @Body() createMeetingDto: CreateMeetingDto,
@@ -65,7 +68,7 @@ export class MeetingsController {
   ) {
     const found = await this.meetingsService.findOneBy({
       id,
-      meetingGroup: { creatorId: req.user.userId },
+      meetingGroup: { authorId: req.user.userId },
     });
     if (!found) throw new NotFoundException();
     return await this.meetingsService.update(id, updateMeetingDto);
@@ -78,7 +81,7 @@ export class MeetingsController {
   ) {
     const found = await this.meetingsService.findOneBy({
       id,
-      meetingGroup: { creatorId: req.user.userId },
+      meetingGroup: { authorId: req.user.userId },
     });
     if (!found) throw new NotFoundException();
     return await this.meetingsService.remove(id);

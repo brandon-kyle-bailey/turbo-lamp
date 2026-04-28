@@ -90,9 +90,16 @@ export class MeetingGroupsService {
     where: FindOptionsWhere<MeetingGroup> | FindOptionsWhere<MeetingGroup>[],
     relations?: FindOptionsRelations<MeetingGroup>,
   ) {
+    const defaultRelations: FindOptionsRelations<MeetingGroup> = {
+      participants: true,
+      calendar: true,
+    };
+
+    const mergedRelations = { ...defaultRelations, ...relations };
+
     return await this.repository.find({
       where,
-      relations,
+      relations: mergedRelations,
     });
   }
 
@@ -130,7 +137,7 @@ export class MeetingGroupsService {
 
     if (updateMeetingGroupDto.status) {
       this.validateStatusTransition(
-        meetingGroup.status as MeetingGroupStatus,
+        meetingGroup.status,
         updateMeetingGroupDto.status,
       );
     }

@@ -1,20 +1,51 @@
-import { api } from "./client";
+import { serverRequest } from "@/lib/api/client";
+import {
+  createAvailabilityOverrideSchema,
+  updateAvailabilityOverrideSchema,
+} from "@/lib/schemas";
 import type { AvailabilityOverride } from "@/lib/types";
 
 export const availabilityOverridesApi = {
-  get: (id: string) =>
-    api.get<AvailabilityOverride>(`/availability-overrides/${id}`),
+  get: async (id: string) =>
+    await serverRequest<AvailabilityOverride>(
+      `/availability-overrides/${id}`,
+      "GET",
+    ),
 
-  list: () => api.get<AvailabilityOverride[]>("/availability-overrides"),
+  list: async () => {
+    return await serverRequest<AvailabilityOverride[]>(
+      `/availability-overrides`,
+      "GET",
+    );
+  },
 
-  create: (data: Partial<AvailabilityOverride>) =>
-    api.post<AvailabilityOverride>("/availability-overrides", data),
+  create: async (data: Partial<AvailabilityOverride>) => {
+    const payload = createAvailabilityOverrideSchema.parse(data);
+    return await serverRequest<AvailabilityOverride>(
+      "/availability-overrides",
+      "POST",
+      payload,
+    );
+  },
 
-  upsert: (data: Partial<AvailabilityOverride>) =>
-    api.post<AvailabilityOverride>("/availability-overrides/upsert", data),
+  upsert: async (data: Partial<AvailabilityOverride>) => {
+    const payload = createAvailabilityOverrideSchema.parse(data);
+    return await serverRequest<AvailabilityOverride>(
+      "/availability-overrides/upsert",
+      "POST",
+      payload,
+    );
+  },
 
-  update: (id: string, data: Partial<AvailabilityOverride>) =>
-    api.patch<AvailabilityOverride>(`/availability-overrides/${id}`, data),
+  update: async (id: string, data: Partial<AvailabilityOverride>) => {
+    const payload = updateAvailabilityOverrideSchema.parse(data);
+    return await serverRequest<AvailabilityOverride>(
+      `/availability-overrides/${id}`,
+      "PATCH",
+      payload,
+    );
+  },
 
-  delete: (id: string) => api.del<void>(`/availability-overrides/${id}`),
+  delete: async (id: string) =>
+    await serverRequest<void>(`/availability-overrides/${id}`, "DELETE"),
 };

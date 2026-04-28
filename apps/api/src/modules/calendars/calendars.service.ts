@@ -40,7 +40,7 @@ export class CalendarsService {
     });
   }
 
-  async upsert(createCalendarDto: CreateCalendarDto) {
+  async upsert(createCalendarDto: CreateCalendarDto & { createdBy: string }) {
     await this.repository.upsert(createCalendarDto, {
       skipUpdateIfNoValuesChanged: true,
       conflictPaths: ['userId', 'externalId', 'providerId'],

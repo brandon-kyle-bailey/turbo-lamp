@@ -3,10 +3,10 @@ import { updateAvailabilityAction } from "./actions";
 import AvailabilityClient from "./availability-client";
 
 export default async function Page() {
-  const initialData = await availabilitiesApi.list();
+  const result = await availabilitiesApi.list();
   return (
     <AvailabilityClient
-      initialData={initialData.sort((a, b) => a.dayOfWeek - b.dayOfWeek)}
+      initialData={result.sort((a, b) => a.dayOfWeek - b.dayOfWeek)}
       actions={{
         update: updateAvailabilityAction,
       }}

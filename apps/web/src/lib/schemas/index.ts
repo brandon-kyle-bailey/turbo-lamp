@@ -44,6 +44,12 @@ export const calendarSchema = z.object({
   updatedAt: isoDateTimeSchema.optional(),
 });
 
+export const createCalendarSchema = z.object(calendarSchema.shape).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const availabilitySchema = z
   .object({
     id: z.uuid().optional(),
@@ -117,7 +123,7 @@ export const meetingParticipantAuthStateSchema = z.enum([
 
 export const meetingParticipantSchema = z
   .object({
-    id: z.uuid().optional(),
+    id: z.uuid(),
     userId: z.uuid().nullable().optional(),
     meetingGroupId: z.uuid(),
     email: z.email(),
@@ -213,3 +219,35 @@ export const createMeetingParticipantSchema = z
     authState: true,
     invitationState: true,
   });
+
+export const meetingStatusSchema = z.enum(["scheduled", "cancelled"]);
+
+export const createMeetingSchema = z.object({
+  meetingGroupId: z.uuid(),
+  start: isoDateTimeSchema,
+  end: isoDateTimeSchema,
+  status: meetingStatusSchema.optional(),
+});
+
+export const updateMeetingSchema = createMeetingSchema.partial();
+
+export const createParticipantSchema = z
+  .object(meetingParticipantSchema.shape)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+export const updateParticipantSchema = createParticipantSchema.partial();
+
+export const createMeetingAttendeeSchema = z
+  .object(meetingAttendeeSchema.shape)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  });
+
+export const updateMeetingAttendeeSchema =
+  createMeetingAttendeeSchema.partial();

@@ -12,7 +12,7 @@ import {
 export default async function Page() {
   const [externalCalendars, calendars, availabilities, overrides] =
     await Promise.all([
-      calendarsApi.getExternal(),
+      calendarsApi.listExternal(),
       calendarsApi.list(),
       availabilitiesApi.list(),
       availabilityOverridesApi.list(),

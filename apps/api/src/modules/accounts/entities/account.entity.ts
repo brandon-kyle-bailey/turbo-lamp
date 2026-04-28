@@ -3,17 +3,17 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { AccountProvider } from '../../../lib/constants';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('accounts')
-@Index(['userId', 'providerId'], { unique: true })
+@Unique(['userId', 'providerId'])
 export class Account {
   @PrimaryGeneratedColumn('uuid')
   id: string;

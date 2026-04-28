@@ -15,7 +15,6 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { TokenService } from './token.service';
 import { HttpModule } from '@nestjs/axios';
 import { CookieService } from './cookie.service';
-import { PermissionsModule } from './permissions/permissions.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { PermissionsModule } from './permissions/permissions.module';
     SessionsModule,
     VerificationsModule,
     HttpModule,
-    PermissionsModule,
   ],
   providers: [
     JwtService,
@@ -39,12 +37,6 @@ import { PermissionsModule } from './permissions/permissions.module';
     CookieService,
   ],
   controllers: [AuthController],
-  exports: [
-    JwtService,
-    AuthService,
-    TokenService,
-    GoogleAuthManager,
-    PermissionsModule,
-  ],
+  exports: [JwtService, AuthService, TokenService, GoogleAuthManager],
 })
 export class AuthModule {}

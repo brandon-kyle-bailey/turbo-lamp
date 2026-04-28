@@ -13,9 +13,9 @@ import { MeetingGroupStatus } from '../../../lib/constants';
 export class CreateMeetingGroupDto {
   @IsOptional()
   @IsUUID()
-  creatorId?: string;
+  authorId?: string;
 
-  @ApiProperty({ description: 'The ID of the creators calendar.' })
+  @ApiProperty({ description: 'The ID of the authors calendar.' })
   @IsUUID()
   calendarId: string;
 

@@ -1,16 +1,38 @@
-import { api } from "./client";
 import type { MeetingAttendee } from "@/lib/types";
+import {
+  createMeetingAttendeeSchema,
+  updateMeetingAttendeeSchema,
+} from "../schemas";
+import { serverRequest } from "./client";
 
 export const meetingAttendeesApi = {
-  get: (id: string) => api.get<MeetingAttendee>(`/meeting-attendees/${id}`),
+  get: async (id: string) =>
+    await serverRequest<MeetingAttendee>(`/meeting-attendees/${id}`, "GET"),
 
-  list: () => api.get<MeetingAttendee[]>("/meeting-attendees"),
+  list: async () => {
+    return await serverRequest<MeetingAttendee[]>(`/meeting-attendees$`, "GET");
+  },
 
-  create: (data: Partial<MeetingAttendee>) =>
-    api.post<MeetingAttendee>("/meeting-attendees", data),
+  create: async (data: Partial<MeetingAttendee>) => {
+    const payload = createMeetingAttendeeSchema.parse(data);
 
-  update: (id: string, data: Partial<MeetingAttendee>) =>
-    api.patch<MeetingAttendee>(`/meeting-attendees/${id}`, data),
+    return await serverRequest<MeetingAttendee>(
+      "/meeting-attendees",
+      "POST",
+      payload,
+    );
+  },
 
-  delete: (id: string) => api.del<void>(`/meeting-attendees/${id}`),
+  update: async (id: string, data: Partial<MeetingAttendee>) => {
+    const payload = updateMeetingAttendeeSchema.parse(data);
+    return await serverRequest<MeetingAttendee>(
+      `/meeting-attendees/${id}`,
+      "PATCH",
+      payload,
+    );
+  },
+
+  delete: async (id: string) =>
+    await serverRequest<void>(`/meeting-attendees/${id}`, "DELETE"),
 };
+

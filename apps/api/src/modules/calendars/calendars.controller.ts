@@ -11,9 +11,11 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { IdempotencyInterceptor } from '../../interceptors/idempotency.interceptor';
 import { Account } from '../accounts/entities/account.entity';
 import { CalendarsService } from './calendars.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
@@ -80,6 +82,7 @@ export class CalendarsController {
   }
 
   @Post('upsert')
+  @UseInterceptors(IdempotencyInterceptor)
   async upsert(
     @Req() req: Request & { user: Account },
     @Body() createCalendarDto: CreateCalendarDto,
@@ -87,6 +90,7 @@ export class CalendarsController {
     return await this.calendarService.upsert({
       ...createCalendarDto,
       userId: req.user.userId,
+      createdBy: req.user.userId,
     });
   }
 
@@ -110,6 +114,7 @@ export class CalendarsController {
       this.calendarService.upsert({
         ...dto,
         userId: req.user.userId,
+        createdBy: req.user.userId,
       }),
     );
     return await Promise.all(promises);

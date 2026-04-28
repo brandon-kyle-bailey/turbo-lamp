@@ -200,10 +200,7 @@ export class MeetingParticipantsService {
     }
 
     if (newAuthState) {
-      this.validateAuthStateTransition(
-        existing.authState,
-        newAuthState,
-      );
+      this.validateAuthStateTransition(existing.authState, newAuthState);
     }
 
     const updateData: Partial<MeetingParticipant> = {
@@ -221,10 +218,7 @@ export class MeetingParticipantsService {
       throw new NotFoundException();
     }
     const result = await this.findOne(id);
-    if (
-      result &&
-      newAuthState === ParticipantAuthState.AUTHORIZED
-    ) {
+    if (result && newAuthState === ParticipantAuthState.AUTHORIZED) {
       await this.eventBus.publish(
         new MeetingParticipantAuthorizedEvent(result),
       );

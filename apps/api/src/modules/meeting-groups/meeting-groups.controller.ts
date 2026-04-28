@@ -41,7 +41,7 @@ export class MeetingGroupsController {
   ) {
     const result = await this.meetingGroupsService.create({
       ...createMeetingGroupDto,
-      creatorId: req.user.userId,
+      authorId: req.user.userId,
       createdBy: req.user.userId,
     });
 
@@ -62,7 +62,7 @@ export class MeetingGroupsController {
   async findAll(@Req() req: Request & { user: Account }) {
     return await this.meetingGroupsService.findAllBy(
       [
-        { creatorId: req.user.userId },
+        { authorId: req.user.userId },
         { participants: { userId: req.user.userId } },
         { participants: { email: req.user.user.email } },
       ],
@@ -79,7 +79,7 @@ export class MeetingGroupsController {
   ) {
     return await this.meetingGroupsService.findOneBy(
       [
-        { id, creatorId: req.user.userId },
+        { id, authorId: req.user.userId },
         { id, participants: { userId: req.user.userId } },
         { id, participants: { email: req.user.user.email } },
       ],
@@ -96,7 +96,7 @@ export class MeetingGroupsController {
     @Body() updateMeetingGroupDto: UpdateMeetingGroupDto,
   ) {
     const found = await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
+      { id, authorId: req.user.userId },
     ]);
     if (!found) {
       throw new NotFoundException();
@@ -110,7 +110,7 @@ export class MeetingGroupsController {
     @Param('id') id: string,
   ) {
     const found = await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
+      { id, authorId: req.user.userId },
     ]);
     if (!found) {
       throw new NotFoundException();

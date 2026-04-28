@@ -4,7 +4,8 @@ import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
 import type { MeetingAttendee } from "@/lib/types";
 
 export async function listMeetingAttendees(): Promise<MeetingAttendee[]> {
-  return await meetingAttendeesApi.list();
+  const paginated = await meetingAttendeesApi.list({ page: 1, perPage: 100 });
+  return paginated.data;
 }
 
 export async function createMeetingAttendees(data: Partial<MeetingAttendee>) {

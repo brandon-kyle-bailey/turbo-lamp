@@ -4,19 +4,42 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import ProfileContext from "@/lib/context/profile-context";
+import { ProfileProvider } from "@/lib/providers/profile-provider";
 import { ReactNode } from "react";
 import { Header } from "@/components/dashboard/header";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { authApi } from "@/lib/api/auth";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
 }
 
+async function validateSession() {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("session");
+
+    if (!sessionCookie) {
+      redirect("/login");
+    }
+
+    const profile = await authApi.profile();
+    return profile;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    console.log(err);
+    redirect("/login");
+  }
+}
+
 export default async function ProtectedLayout({
   children,
 }: ProtectedLayoutProps) {
+  const profile = await validateSession();
+
   return (
-    <ProfileContext>
+    <ProfileProvider profile={profile}>
       <SidebarProvider>
         <AppSidebar />
         <SidebarTrigger />
@@ -25,6 +48,6 @@ export default async function ProtectedLayout({
           {children}
         </SidebarInset>
       </SidebarProvider>
-    </ProfileContext>
+    </ProfileProvider>
   );
 }

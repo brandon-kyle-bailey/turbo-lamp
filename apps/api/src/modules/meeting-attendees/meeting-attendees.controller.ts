@@ -28,7 +28,10 @@ export class MeetingAttendeesController {
     @Req() req: Request & { user: Account },
     @Body() createMeetingAttendeeDto: CreateMeetingAttendeeDto,
   ) {
-    return await this.attendeeService.create(createMeetingAttendeeDto);
+    return await this.attendeeService.create({
+      ...createMeetingAttendeeDto,
+      createdBy: req.user.userId,
+    });
   }
 
   @Get()
@@ -36,7 +39,7 @@ export class MeetingAttendeesController {
     return await this.attendeeService.findAllBy([
       { createdBy: req.user.userId },
       { userId: req.user.userId },
-      { meeting: { meetingGroup: { creatorId: req.user.userId } } },
+      { meeting: { meetingGroup: { authorId: req.user.userId } } },
     ]);
   }
 
@@ -48,7 +51,7 @@ export class MeetingAttendeesController {
     return await this.attendeeService.findOneBy([
       { id, createdBy: req.user.userId },
       { id, userId: req.user.userId },
-      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+      { id, meeting: { meetingGroup: { authorId: req.user.userId } } },
     ]);
   }
 
@@ -60,7 +63,7 @@ export class MeetingAttendeesController {
   ) {
     const found = await this.attendeeService.findOneBy([
       { id, createdBy: req.user.userId },
-      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+      { id, meeting: { meetingGroup: { authorId: req.user.userId } } },
     ]);
     if (!found) {
       throw new NotFoundException();
@@ -75,7 +78,7 @@ export class MeetingAttendeesController {
   ) {
     const found = await this.attendeeService.findOneBy([
       { id, createdBy: req.user.userId },
-      { id, meeting: { meetingGroup: { creatorId: req.user.userId } } },
+      { id, meeting: { meetingGroup: { authorId: req.user.userId } } },
     ]);
     if (!found) {
       throw new NotFoundException();

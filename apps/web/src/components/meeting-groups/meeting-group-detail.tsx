@@ -16,9 +16,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
-import { meetingSlotsApi } from "@/lib/api/meeting-slots";
-import { meetingsApi } from "@/lib/api/meetings";
+// import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
+// import { meetingSlotsApi } from "@/lib/api/meeting-slots";
+// import { meetingsApi } from "@/lib/api/meetings";
 import { MeetingGroup, MeetingParticipant, MeetingSlot } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 import {
@@ -53,14 +53,17 @@ const statusConfig: Record<
   MeetingGroup["status"],
   { label: string; className: string }
 > = {
-  draft: { label: "Draft", className: "bg-muted text-muted-foreground border" },
-  scheduling: {
-    label: "Scheduling",
+  open: {
+    label: "Open",
     className: "bg-blue-50 text-blue-700 border-blue-200",
   },
-  scheduled: {
+  finalized: {
     label: "Scheduled",
     className: "bg-green-50 text-green-700 border-green-200",
+  },
+  cancelled: {
+    label: "Cancelled",
+    className: "bg-red-50 text-red-700 border-red-200",
   },
 };
 
@@ -87,7 +90,7 @@ export function MeetingGroupDetail({
   const statusConf = statusConfig[group.status];
 
   const activeParticipants = useMemo(
-    () => participants.filter((p) => p.invitation_state !== "declined"),
+    () => participants.filter((p) => p.invitationState !== "declined"),
     [participants],
   );
 
@@ -102,7 +105,8 @@ export function MeetingGroupDetail({
     setSlotsError(null);
 
     try {
-      const result = await meetingSlotsApi.calculate(group.id);
+      // const result = await meetingSlotsApi.calculate(group.id);
+      const result: MeetingSlot[] = [];
 
       if (requestId !== requestIdRef.current) return;
 
@@ -118,7 +122,7 @@ export function MeetingGroupDetail({
   }
 
   useEffect(() => {
-    if (group.status !== "scheduled") {
+    if (group.status !== "finalized") {
       loadSlots();
     }
   }, [group.id, group.status]);
@@ -138,30 +142,27 @@ export function MeetingGroupDetail({
     setIsScheduling(true);
 
     try {
-      const meeting = await meetingsApi.create({
-        meeting_group_id: group.id,
-        start_datetime: selectedSlot.start_datetime,
-        end_datetime: selectedSlot.end_datetime,
-        summary: group.summary,
-        description: group.description,
-        location: group.location,
-        calendar_id: group.calendar_id,
-      });
-
-      await Promise.all(
-        activeParticipants.map((p) =>
-          meetingAttendeesApi.create({
-            meeting_id: meeting.id,
-            name: p.attendee?.name || "",
-            email: p.attendee?.email || "",
-            status: "invited",
-          }),
-        ),
-      );
+      // const meeting = await meetingsApi.create({
+      //   meetingGroupId: group.id,
+      //   start: selectedSlot.start,
+      //   end: selectedSlot.end,
+      // });
+      //
+      // await Promise.all(
+      //   activeParticipants.map((p) =>
+      //     meetingAttendeesApi.create({
+      //       meetingId: meeting.id,
+      //       userId: p.userId ?? "",
+      //       email: p.email,
+      //       externalEventId: "",
+      //     }),
+      //   ),
+      // );
 
       toast.success("Meeting scheduled successfully");
       setConfirmOpen(false);
-      router.push(`/meetings/${meeting.id}`);
+      // router.push(`/dashboard/meetings/${meeting.id}`);
+      router.push(`/dashboard/meetings`);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -171,7 +172,7 @@ export function MeetingGroupDetail({
 
   const slotsByDay = useMemo(() => {
     return slots.reduce<Record<string, MeetingSlot[]>>((acc, slot) => {
-      const day = format(parseISO(slot.start_datetime), "yyyy-MM-dd");
+      const day = format(parseISO(slot.start), "yyyy-MM-dd");
       if (!acc[day]) acc[day] = [];
       acc[day].push(slot);
       return acc;
@@ -207,24 +208,17 @@ export function MeetingGroupDetail({
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>{group.duration_minutes} minutes</span>
+                <span>{group.duration} minutes</span>
               </div>
 
               <div className="flex items-start gap-2 text-muted-foreground">
                 <CalendarDays className="h-4 w-4 mt-0.5" />
                 <div>
                   <div>
-                    {format(
-                      parseISO(group.after_datetime),
-                      "MMM d, yyyy h:mm a",
-                    )}
+                    {format(parseISO(group.after), "MMM d, yyyy h:mm a")}
                   </div>
                   <div className="text-xs">
-                    to{" "}
-                    {format(
-                      parseISO(group.before_datetime),
-                      "MMM d, yyyy h:mm a",
-                    )}
+                    to {format(parseISO(group.before), "MMM d, yyyy h:mm a")}
                   </div>
                 </div>
               </div>
@@ -253,14 +247,14 @@ export function MeetingGroupDetail({
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {(p.attendee?.name || "?")[0]?.toUpperCase()}
+                      {(p.email[0] || "?").toUpperCase()}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">
-                        {p.attendee?.name}
+                        {p.user?.name || p.email}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {p.attendee?.email}
+                        {p.email}
                       </p>
                     </div>
                   </div>
@@ -268,11 +262,11 @@ export function MeetingGroupDetail({
                   <span
                     className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs border ${
                       invitationColors[
-                        (p.invitation_state as InvitationState) || "pending"
+                        (p.invitationState as InvitationState) || "pending"
                       ]
                     }`}
                   >
-                    {p.invitation_state}
+                    {p.invitationState}
                   </span>
                 </div>
               ))}
@@ -290,7 +284,7 @@ export function MeetingGroupDetail({
                 </CardDescription>
               </div>
 
-              {group.status !== "scheduled" && (
+              {group.status !== "finalized" && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -308,7 +302,7 @@ export function MeetingGroupDetail({
             </CardHeader>
 
             <CardContent>
-              {group.status === "scheduled" ? (
+              {group.status === "finalized" ? (
                 <div className="text-center py-10">
                   <CheckCircle className="h-10 w-10 mx-auto text-green-500 mb-3" />
                   <p className="font-medium">Scheduled</p>
@@ -350,7 +344,7 @@ export function MeetingGroupDetail({
                     <div className="grid grid-cols-2 gap-2">
                       {daySlots.map((slot) => (
                         <SlotCard
-                          key={`${slot.start_datetime}-${slot.end_datetime}`}
+                          key={`${slot.start}-${slot.end}`}
                           slot={slot}
                           onSelect={() => handleSelectSlot(slot)}
                         />
@@ -375,10 +369,8 @@ export function MeetingGroupDetail({
 
           {selectedSlot && (
             <div className="text-sm space-y-2 border rounded p-3 bg-muted/30">
-              <div>
-                {format(parseISO(selectedSlot.start_datetime), "PPP p")}
-              </div>
-              <div>{format(parseISO(selectedSlot.end_datetime), "p")}</div>
+              <div>{format(parseISO(selectedSlot.start), "PPP p")}</div>
+              <div>{format(parseISO(selectedSlot.end), "p")}</div>
             </div>
           )}
 
@@ -417,10 +409,10 @@ function SlotCard({
       className="border rounded p-3 text-left hover:border-primary hover:bg-primary/5"
     >
       <div className="text-sm font-medium">
-        {format(parseISO(slot.start_datetime), "h:mm a")}
+        {format(parseISO(slot.start), "h:mm a")}
       </div>
       <div className="text-xs text-muted-foreground">
-        {format(parseISO(slot.end_datetime), "h:mm a")}
+        {format(parseISO(slot.end), "h:mm a")}
       </div>
     </button>
   );

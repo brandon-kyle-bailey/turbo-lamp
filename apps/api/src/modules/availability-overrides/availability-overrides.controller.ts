@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -20,6 +22,7 @@ import { UpdateAvailabilityOverrideDto } from './dto/update-availability-overrid
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'availability-overrides', version: '1' })
 export class AvailabilityOverridesController {
+  private readonly logger = new Logger(AvailabilityOverridesController.name);
   constructor(
     private readonly availabilityOverridesService: AvailabilityOverridesService,
   ) {}
@@ -41,6 +44,7 @@ export class AvailabilityOverridesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityOverrideDto: CreateAvailabilityOverrideDto,
   ) {
+    this.logger.debug('backend controller:', createAvailabilityOverrideDto);
     return await this.availabilityOverridesService.create({
       ...createAvailabilityOverrideDto,
       createdBy: req.user.userId,
@@ -72,6 +76,13 @@ export class AvailabilityOverridesController {
     @Param('id') id: string,
     @Body() updateAvailabilityOverrideDto: UpdateAvailabilityOverrideDto,
   ) {
+    const existing = await this.availabilityOverridesService.findOneBy({
+      id,
+      userId: req.user.userId,
+    });
+    if (!existing) {
+      throw new NotFoundException();
+    }
     return await this.availabilityOverridesService.update(
       id,
       updateAvailabilityOverrideDto,
@@ -83,6 +94,13 @@ export class AvailabilityOverridesController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
+    const existing = await this.availabilityOverridesService.findOneBy({
+      id,
+      userId: req.user.userId,
+    });
+    if (!existing) {
+      throw new NotFoundException();
+    }
     return await this.availabilityOverridesService.remove(id);
   }
 }

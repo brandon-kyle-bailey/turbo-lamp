@@ -15,7 +15,7 @@ import {
 import { plainToInstance } from 'class-transformer';
 import type { Request } from 'express';
 import express from 'express';
-import { LocalAuthGuard } from 'src/guards/local-auth.guard';
+import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { OAuthGuard } from '../../guards/oauth-auth.guard';
 import { OAuthInitiationGuard } from '../../guards/oauth-initiation.guard';
 import { SessionCookieInterceptor } from '../../interceptors/session-cookie.interceptor';
@@ -64,8 +64,8 @@ export class AuthController {
     });
   }
 
-  @UseGuards(LocalAuthGuard)
   @UseInterceptors(SessionCookieInterceptor)
+  @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(
     @Req() req: Request,

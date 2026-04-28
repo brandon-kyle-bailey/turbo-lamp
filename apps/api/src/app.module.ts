@@ -35,9 +35,7 @@ import { MeetingParticipantsModule } from './modules/meeting-participants/meetin
 import { MeetingSlotsModule } from './modules/meeting-slots/meeting-slots.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-import { OutboxModule } from './modules/outbox/outbox.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
-import { SlotEngineModule } from './modules/slot-engine/slot-engine.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
 
@@ -172,8 +170,6 @@ import { VerificationsModule } from './modules/verifications/verifications.modul
     CalendarsModule,
     AvailabilityOverridesModule,
     AvailabilitiesModule,
-    SlotEngineModule,
-    OutboxModule,
   ],
   controllers: [],
   providers: [

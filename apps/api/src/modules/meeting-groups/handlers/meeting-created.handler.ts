@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { AccountProvider } from '../../../lib/constants';
 import { ExternalCalendarService } from '../../calendars/external-calendar.service';
@@ -8,6 +8,8 @@ import { MeetingGroupsService } from '../meeting-groups.service';
 
 @EventsHandler(MeetingCreatedEvent)
 export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent> {
+  private readonly logger = new Logger(MeetingCreatedHandler.name);
+
   constructor(
     @Inject(MeetingGroupsService)
     private readonly meetingGroupsService: MeetingGroupsService,
@@ -23,40 +25,47 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
       entity.meetingGroupId,
       {
         participants: true,
-        creator: { accounts: true },
+        author: { accounts: true },
         calendar: true,
       },
     );
     if (!meetingGroup) {
-      console.log('no meeting group found.');
+      this.logger.warn(`MeetingGroup not found for meeting ${entity.id}`);
       return;
     }
 
-    const creatorProviderAccount = meetingGroup.creator.accounts.find(
+    const authorProviderAccount = meetingGroup.author.accounts.find(
       (account) => account.providerId === AccountProvider.GOOGLE,
     );
 
-    if (!creatorProviderAccount) {
-      console.log('no creator provider account found.');
+    if (!authorProviderAccount) {
+      this.logger.warn(
+        `No Google provider account for author ${meetingGroup.authorId}`,
+      );
       return;
     }
 
-    // omit creator of group and users not oauth_connected
     const participants = meetingGroup.participants.filter((participant) => {
       if (
-        participant.userId !== meetingGroup.creatorId &&
+        participant.userId !== meetingGroup.authorId &&
         participant.authState
       ) {
         return participant;
       }
     });
 
+    if (participants.length === 0) {
+      this.logger.log(
+        `No valid participants to invite for meeting ${entity.id}`,
+      );
+    }
+
     const externalCalendarId = meetingGroup.calendar.externalId;
 
     const externalEvent = await this.externalCalendarService.createEvent(
       'google',
       {
-        account: creatorProviderAccount,
+        account: authorProviderAccount,
         calendarId: externalCalendarId,
         event: {
           summary: meetingGroup.summary,
@@ -74,14 +83,24 @@ export class MeetingCreatedHandler implements IEventHandler<MeetingCreatedEvent>
         },
       },
     );
-    for (const participant of participants) {
-      await this.meetingAttendeesService.create({
-        userId: participant.userId,
-        meetingId: entity.id,
-        externalEventId: externalEvent.id!,
-        email: participant.email,
-      });
+
+    const results = await Promise.allSettled(
+      participants.map((participant) =>
+        this.meetingAttendeesService.create({
+          userId: participant.userId,
+          meetingId: entity.id,
+          externalEventId: externalEvent.id!,
+          email: participant.email,
+          createdBy: meetingGroup.authorId,
+        }),
+      ),
+    );
+
+    const failed = results.filter((r) => r.status === 'rejected');
+    if (failed.length > 0) {
+      this.logger.error(
+        `Failed to create ${failed.length} attendees for meeting ${entity.id}`,
+      );
     }
-    return;
   }
 }

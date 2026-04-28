@@ -10,13 +10,12 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { MeetingGroupStatus } from '../../../lib/constants';
 import { Calendar } from '../../calendars/entities/calendar.entity';
 import { MeetingParticipant } from '../../meeting-participants/entities/meeting-participant.entity';
 import { MeetingSlot } from '../../meeting-slots/entities/meeting-slot.entity';
 import { Meeting } from '../../meetings/entities/meeting.entity';
 import { User } from '../../users/entities/user.entity';
-import { MeetingGroupVersion } from './meeting-group-version.entity';
-import { MeetingGroupStatus } from '../../../lib/constants';
 
 @Entity('meeting_groups')
 export class MeetingGroup {
@@ -35,12 +34,6 @@ export class MeetingGroup {
   )
   participants: MeetingParticipant[];
 
-  @OneToMany(() => MeetingGroupVersion, (version) => version.meetingGroup)
-  versions: MeetingGroupVersion[];
-
-  @Column({ type: 'int', default: 1 })
-  currentVersion: number;
-
   @Column({
     type: 'enum',
     enum: MeetingGroupStatus,
@@ -49,13 +42,13 @@ export class MeetingGroup {
   status: MeetingGroupStatus;
 
   @Column()
-  creatorId: string;
+  authorId: string;
 
   @ManyToOne(() => User, (user) => user.meetingGroups, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'creatorId' })
-  creator: User;
+  @JoinColumn({ name: 'authorId' })
+  author: User;
 
   @Column()
   calendarId: string;

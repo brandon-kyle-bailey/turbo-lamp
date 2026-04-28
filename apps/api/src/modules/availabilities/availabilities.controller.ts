@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -20,6 +22,7 @@ import { UpdateAvailabilityDto } from './dto/update-availability.dto';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'availabilities', version: '1' })
 export class AvailabilitiesController {
+  private readonly logger = new Logger(AvailabilitiesController.name);
   constructor(private readonly availabilitiesService: AvailabilitiesService) {}
 
   @Post('upsert')
@@ -39,6 +42,7 @@ export class AvailabilitiesController {
     @Req() req: Request & { user: Account },
     @Body() createAvailabilityDto: CreateAvailabilityDto & { userId: string },
   ) {
+    this.logger.debug('backend controller:', createAvailabilityDto);
     return await this.availabilitiesService.create({
       ...createAvailabilityDto,
       userId: req.user.userId,
@@ -70,6 +74,13 @@ export class AvailabilitiesController {
     @Param('id') id: string,
     @Body() updateAvailabilityDto: UpdateAvailabilityDto,
   ) {
+    const existing = await this.availabilitiesService.findOneBy({
+      id,
+      userId: req.user.userId,
+    });
+    if (!existing) {
+      throw new NotFoundException();
+    }
     return await this.availabilitiesService.update(id, updateAvailabilityDto);
   }
 
@@ -78,6 +89,13 @@ export class AvailabilitiesController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
+    const existing = await this.availabilitiesService.findOneBy({
+      id,
+      userId: req.user.userId,
+    });
+    if (!existing) {
+      throw new NotFoundException();
+    }
     return await this.availabilitiesService.remove(id);
   }
 }

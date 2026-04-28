@@ -57,13 +57,13 @@ export interface ExternalCalendar {
 
 // Availability types
 export type DayOfWeek =
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday"
-  | "sunday";
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday"
+  | "Sunday";
 
 export interface TimeBlock {
   start_time: string; // HH:MM

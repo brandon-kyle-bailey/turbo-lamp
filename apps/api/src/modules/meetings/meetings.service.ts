@@ -64,9 +64,16 @@ export class MeetingsService {
     where?: FindOptionsWhere<Meeting>,
     relations?: FindOptionsRelations<Meeting>,
   ) {
+    const defaultRelations: FindOptionsRelations<Meeting> = {
+      attendees: true,
+      meetingGroup: true,
+    };
+
+    const mergedRelations = { ...defaultRelations, ...relations };
+
     return await this.repository.find({
       where,
-      relations,
+      relations: mergedRelations,
     });
   }
 

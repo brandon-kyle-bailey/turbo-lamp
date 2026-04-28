@@ -20,12 +20,13 @@ import { Input } from "@/components/ui/input";
 
 import { Calendar, MeetingGroup, MeetingParticipant } from "@/lib/types";
 import {
+  Calendar as CalendarIcon,
   Clock,
   FolderOpen,
   MoreHorizontal,
   Search,
-  Calendar as CalendarIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateGroupDialog } from "./create-meeting-group-dialog";
 
@@ -60,6 +61,7 @@ export default function MeetingGroupsClient({
   calendars: Calendar[];
   actions: Actions;
 }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [meetingGroups, setMeetingGroups] =
     useState<MeetingGroup[]>(initialData);
@@ -142,9 +144,21 @@ export default function MeetingGroupsClient({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit group</DropdownMenuItem>
-                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          router.push(`/dashboard/meeting-groups/${group.id}`)
+                        }
+                      >
+                        View details
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onSelect={() =>
+                          router.push(`/dashboard/meeting-groups/${group.id}`)
+                        }
+                      >
+                        Edit group
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
                         Delete group
                       </DropdownMenuItem>

@@ -121,7 +121,7 @@ export default function OverridesClient({
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="gap-2">
+          <Button className="gap-2 self-end">
             <Plus className="size-4" />
             Add Override
           </Button>
@@ -227,7 +227,7 @@ export default function OverridesClient({
         </DialogContent>
       </Dialog>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg">Upcoming Overrides</CardTitle>
           <CardDescription>

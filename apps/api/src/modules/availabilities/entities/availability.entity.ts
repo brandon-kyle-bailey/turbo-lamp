@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -13,6 +14,7 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('availabilities')
 @Unique(['userId', 'dayOfWeek', 'startTime', 'endTime', 'isAvailable'])
+@Index(['userId', 'dayOfWeek'])
 export class Availability {
   @PrimaryGeneratedColumn('uuid')
   id: string;

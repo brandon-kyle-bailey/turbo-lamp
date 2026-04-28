@@ -1,8 +1,10 @@
-import { headers as nextHeaders } from "next/headers";
+import { cookies } from "next/headers";
 
 const BASE_URL = "http://localhost:3001/api/core/v1";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+type IdempotentMethod = "POST" | "PUT" | "PATCH" | "DELETE";
 
 type ApiEnvelope<T> = {
   data: T;
@@ -34,22 +36,53 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
-async function request<T>(
+function isIdempotentMethod(method: HttpMethod): method is IdempotentMethod {
+  return ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+}
+
+export class ApiError extends Error {
+  status: number;
+  details: unknown;
+  code?: string;
+
+  constructor(
+    status: number,
+    details: unknown,
+    message: string,
+    code?: string,
+  ) {
+    super(message);
+    this.status = status;
+    this.details = details;
+    this.code = code;
+  }
+}
+
+export async function serverRequest<T>(
   path: string,
   method: HttpMethod = "GET",
   body?: unknown,
   headers: HeadersInit = {},
+  idempotencyKey?: string,
 ): Promise<T> {
-  const headerStore = await nextHeaders();
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")!;
+
+  const headersCopy = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token.value!}`,
+    ...headers,
+  };
+
+  if (isIdempotentMethod(method) && idempotencyKey) {
+    (headersCopy as Record<string, string>)["Idempotency-Key"] = idempotencyKey;
+  }
 
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
-    headers: {
-      Cookie: headerStore.get("cookie") ?? "",
-      "Content-Type": "application/json",
-      ...headers,
-    },
+    headers: headersCopy,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
     cache: "no-store",
   });
 
@@ -76,23 +109,12 @@ async function request<T>(
   return payload as T;
 }
 
-export class ApiError extends Error {
-  status: number;
-  details: unknown;
-  code?: string;
-
-  constructor(status: number, details: unknown, message: string, code?: string) {
-    super(message);
-    this.status = status;
-    this.details = details;
-    this.code = code;
-  }
-}
-
 export const api = {
-  get: <T>(path: string) => request<T>(path, "GET"),
-  post: <T>(path: string, body: unknown) => request<T>(path, "POST", body),
-  put: <T>(path: string, body: unknown) => request<T>(path, "PUT", body),
-  patch: <T>(path: string, body: unknown) => request<T>(path, "PATCH", body),
-  del: <T>(path: string) => request<T>(path, "DELETE"),
+  get: <T>(path: string) => serverRequest<T>(path, "GET"),
+  post: <T>(path: string, body: unknown) =>
+    serverRequest<T>(path, "POST", body),
+  put: <T>(path: string, body: unknown) => serverRequest<T>(path, "PUT", body),
+  patch: <T>(path: string, body: unknown) =>
+    serverRequest<T>(path, "PATCH", body),
+  del: <T>(path: string) => serverRequest<T>(path, "DELETE"),
 };
