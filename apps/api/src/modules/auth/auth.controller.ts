@@ -23,6 +23,7 @@ import { SessionCookieInterceptor } from '../../interceptors/session-cookie.inte
 import {
   AccountProvider,
   CookieKey,
+  EnvironmentVariables,
   ParticipantAuthState,
   ParticipantInvitationState,
   SANITIZED_ROUTES,
@@ -38,11 +39,14 @@ import { RegisterDto } from './dto/register.dto';
 import { SessionResponseDto } from './dto/session.response.dto';
 import { TokenService } from './token.service';
 import { OAuthRegisterInitiationGuard } from '../../guards/oauth-register-initiation.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   private readonly logger: Logger = new Logger(AuthController.name);
   constructor(
+    @Inject(ConfigService)
+    private readonly configService: ConfigService,
     @Inject(AuthService)
     private readonly authService: AuthService,
     @Inject(TokenService)
@@ -150,6 +154,10 @@ export class AuthController {
     });
 
     this.cookieService.attachCookie(res, CookieKey.SESSION, session.token);
-    res.redirect(`http://localhost:3000/${redirect}`);
+
+    const frontendUrl = this.configService.get<string>(
+      EnvironmentVariables.FRONTEND_URL,
+    )!;
+    res.redirect(`${frontendUrl}/${redirect}`);
   }
 }

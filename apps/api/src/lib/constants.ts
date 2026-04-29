@@ -49,6 +49,10 @@ export enum MeetingStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FrontendRoutes {
+  ONBOARDING_AUTH = '/onboarding/auth',
+}
+
 export const SANITIZED_ROUTES = {
   dashboard: '/dashboard',
   onboarding: '/onboarding',
