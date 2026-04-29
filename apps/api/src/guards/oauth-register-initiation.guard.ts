@@ -17,8 +17,10 @@ import { TokenService } from '../modules/auth/token.service';
 import { VerificationsService } from '../modules/verifications/verifications.service';
 
 @Injectable()
-export class OAuthInitiationGuard implements CanActivate {
-  private readonly logger: Logger = new Logger(OAuthInitiationGuard.name);
+export class OAuthRegisterInitiationGuard implements CanActivate {
+  private readonly logger: Logger = new Logger(
+    OAuthRegisterInitiationGuard.name,
+  );
   constructor(
     @Inject(TokenService)
     private readonly tokenService: TokenService,
@@ -44,7 +46,7 @@ export class OAuthInitiationGuard implements CanActivate {
       type: VerificationType.OAUTH_STATE,
       id: '',
       to: '',
-      after: 'meeting_groups',
+      after: 'onboarding',
     };
 
     if (req.query?.token) {

@@ -237,7 +237,7 @@ export default function RegisterClient({ actions }: { actions: Actions }) {
                 variant="outline"
                 className="h-11"
                 onClick={() => {
-                  window.location.href = `http://localhost:3001/api/core/v1/auth/oauth/google`;
+                  window.location.href = `http://localhost:3001/api/core/v1/auth/oauth/register/google`;
                 }}
               >
                 <IconBrandGoogle />
@@ -247,7 +247,7 @@ export default function RegisterClient({ actions }: { actions: Actions }) {
                 variant="outline"
                 className="h-11"
                 onClick={() => {
-                  window.location.href = `http://localhost:3001/api/core/v1/auth/oauth/github`;
+                  window.location.href = `http://localhost:3001/api/core/v1/auth/oauth/register/github`;
                 }}
               >
                 <IconBrandGithub />

@@ -59,13 +59,6 @@ export class MeetingGroupsController {
       sanitizedBefore,
       calendar.timezone,
     );
-    this.logger.debug('creating meeting group', {
-      ...createMeetingGroupDto,
-      sanitizedAfter,
-      sanitizedBefore,
-      timezonedAfter,
-      timezonedBefore,
-    });
     const result = await this.meetingGroupsService.create({
       ...createMeetingGroupDto,
       after: timezonedAfter,
@@ -74,7 +67,6 @@ export class MeetingGroupsController {
       authorId: req.user.userId,
       createdBy: req.user.userId,
     });
-    this.logger.debug('result', result);
 
     await this.meetingParticipantService.create({
       createdBy: req.user.userId,

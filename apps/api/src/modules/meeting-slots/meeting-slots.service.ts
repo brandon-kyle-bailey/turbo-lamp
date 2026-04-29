@@ -71,11 +71,6 @@ export class MeetingSlotsService {
         const account = participant.user.accounts.find(
           (account) => account.providerId === AccountProvider.GOOGLE,
         )!;
-        this.logger.debug('calendar events lookup', {
-          userId: participant.userId,
-          providerId: account.providerId,
-          calendarIds: participant.user.calendars.map((c) => c.externalId),
-        });
         return participant.user.calendars.map((calendar) =>
           this.externalCalendarService.listEvents(
             calendar.providerId as 'google',
@@ -89,7 +84,6 @@ export class MeetingSlotsService {
         );
       }),
     );
-    this.logger.debug('flattened events', flattenedCalendarEvents.length);
 
     const baseAvailableWindows = this.intersectParticipantAvailabilityWindows(
       participantAvailabilityWindows,
@@ -97,19 +91,15 @@ export class MeetingSlotsService {
       meetingGroup.before,
     );
 
-    this.logger.debug('windows', baseAvailableWindows.length);
-
     const availabletimeSlots = this.getAvailableSlots(
       flattenedCalendarEvents,
       baseAvailableWindows,
       meetingGroup.duration,
       5,
     );
-    this.logger.debug('available slots', availabletimeSlots.length);
 
     const createdMeetingSlots: Promise<MeetingSlot | null>[] = [];
     for (const [idx, slot] of availabletimeSlots.entries()) {
-      this.logger.debug('creating slot', slot.start, slot.end);
       createdMeetingSlots.push(
         this.upsert({
           meetingGroupId: meetingGroup.id,
@@ -280,12 +270,6 @@ export class MeetingSlotsService {
     windowStart: Date,
     windowEnd: Date,
   ): { start: number; end: number }[] {
-    this.logger.debug(
-      'intersect begin',
-      participantData,
-      windowStart,
-      windowEnd,
-    );
     if (participantData.length === 0) {
       return [{ start: windowStart.getTime(), end: windowEnd.getTime() }];
     }
@@ -341,13 +325,6 @@ export class MeetingSlotsService {
     dayStart: number,
     dayEnd: number,
   ): { start: number; end: number }[] {
-    this.logger.debug(
-      'intersect ranges for day',
-      participantData,
-      dayOfWeek,
-      dayStart,
-      dayEnd,
-    );
     const participantRanges = participantData.map((participant) =>
       this.buildParticipantDayAvailability(
         participant.availabilities,
@@ -380,19 +357,11 @@ export class MeetingSlotsService {
     dayStart: number,
     dayEnd: number,
   ): { start: number; end: number }[] {
-    this.logger.debug(
-      'build participant avilability',
-      availabilities,
-      dayOfWeek,
-      dayStart,
-      dayEnd,
-    );
     const override = overrides.find(
       (o) =>
         new Date(o.date).toISOString().slice(0, 16) ===
         new Date(dayStart).toISOString().slice(0, 16),
     );
-    this.logger.debug('override found', override);
 
     if (override) {
       const availabilityStart = this.convertLocalTimeToUtc(
@@ -463,7 +432,6 @@ export class MeetingSlotsService {
       result = this.subtractRange(result, block);
     }
 
-    this.logger.debug('merged available', result);
     return result;
   }
 

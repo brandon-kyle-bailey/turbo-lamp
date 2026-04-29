@@ -53,6 +53,7 @@ export const SANITIZED_ROUTES = {
   dashboard: '/dashboard',
   onboarding: '/onboarding',
   invite_complete: '/meeting-participants',
+  meeting_groups: '/dashboard/meeting-groups',
 } as const;
 
 export enum VerificationType {
