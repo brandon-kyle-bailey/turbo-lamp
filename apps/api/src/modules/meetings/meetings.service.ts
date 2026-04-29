@@ -10,7 +10,7 @@ import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { Meeting } from './entities/meeting.entity';
 import { MeetingCreatedEvent } from './events/meeting-created.event';
-import { MeetingStatus } from '../../lib/constants';
+import { MeetingStatus } from '../../libs/constants';
 
 const ALLOWED_MEETING_STATUS_TRANSITIONS: Record<
   MeetingStatus,

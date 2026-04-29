@@ -6,7 +6,7 @@ import {
   AccountProvider,
   EnvironmentVariables,
   PROVIDERS,
-} from '../../../lib/constants';
+} from '../../../libs/constants';
 import { AccountsService } from '../../accounts/accounts.service';
 import { Account } from '../../accounts/entities/account.entity';
 import { UsersService } from '../../users/users.service';

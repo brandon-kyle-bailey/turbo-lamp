@@ -6,7 +6,7 @@ import {
   IsDateString,
   IsEnum,
 } from 'class-validator';
-import { AccountProvider } from '../../../lib/constants';
+import { AccountProvider } from '../../../libs/constants';
 
 export class CreateAccountDto {
   @ApiProperty({ description: 'The ID of the user.' })

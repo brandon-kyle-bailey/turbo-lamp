@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { AccountProvider, EnvironmentVariables } from '../../lib/constants';
+import { AccountProvider, EnvironmentVariables } from '../../libs/constants';
 import { AccountsService } from '../accounts/accounts.service';
 import { Account } from '../accounts/entities/account.entity';
 import { Session } from '../sessions/entities/session.entity';

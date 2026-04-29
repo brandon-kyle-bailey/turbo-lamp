@@ -10,7 +10,7 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { AccountProvider } from '../../../lib/constants';
+import { AccountProvider } from '../../../libs/constants';
 import { User } from '../../users/entities/user.entity';
 import { Calendar } from '../../calendars/entities/calendar.entity';
 

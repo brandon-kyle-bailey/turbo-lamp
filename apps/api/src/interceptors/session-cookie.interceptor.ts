@@ -8,7 +8,7 @@ import {
 import { tap } from 'rxjs';
 import express from 'express';
 import { CookieService } from '../modules/auth/cookie.service';
-import { CookieKey } from '../lib/constants';
+import { CookieKey } from '../libs/constants';
 
 @Injectable()
 export class SessionCookieInterceptor implements NestInterceptor {

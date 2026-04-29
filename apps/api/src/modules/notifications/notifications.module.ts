@@ -4,7 +4,7 @@ import { NotificationsService } from './notifications.service';
 import { ResendMailer } from './adapters/resend.adapter';
 import { SmtpMailer } from './adapters/smtp.adapter';
 import { MAILER } from './mailer.interface';
-import { EnvironmentVariables } from '../../lib/constants';
+import { EnvironmentVariables } from '../../libs/constants';
 import { InvitationCreatedHandler } from './handlers/invitation-created.handler';
 import { AuthModule } from '../auth/auth.module';
 

@@ -7,7 +7,7 @@ import {
   FindOptionsWhere,
   Repository,
 } from 'typeorm';
-import { VerificationType, VerificationValue } from '../../lib/constants';
+import { VerificationType, VerificationValue } from '../../libs/constants';
 import { TokenService } from '../auth/token.service';
 import { CreateVerificationDto } from './dto/create-verification.dto';
 import { UpdateVerificationDto } from './dto/update-verification.dto';
@@ -75,7 +75,7 @@ export class VerificationsService {
     const payload: VerificationValue = await this.tokenService.verify(
       createVerificationDto.value,
     );
-    if (payload.type === VerificationType.INVITE) {
+    if (payload.type === VerificationType.MEETING_INVITATION) {
       await this.eventBus.publish(new InvitationCreatedEvent(verification));
     }
     return verification;

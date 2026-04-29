@@ -8,7 +8,7 @@ import {
   IsTimeZone,
   IsUUID,
 } from 'class-validator';
-import { MeetingGroupStatus } from '../../../lib/constants';
+import { MeetingGroupStatus } from '../../../libs/constants';
 
 export class CreateMeetingGroupDto {
   @IsOptional()

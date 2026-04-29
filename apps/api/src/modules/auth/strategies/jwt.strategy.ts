@@ -11,7 +11,7 @@ import {
   TOKEN_ALGORITHM,
   TOKEN_ISSUER,
   TOKEN_AUDIENCE,
-} from '../../../lib/constants';
+} from '../../../libs/constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

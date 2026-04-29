@@ -9,7 +9,7 @@ import {
 import {
   ParticipantAuthState,
   ParticipantInvitationState,
-} from '../../../lib/constants';
+} from '../../../libs/constants';
 
 export class CreateMeetingParticipantDto {
   @ApiProperty({ description: 'ID of the meeting group' })

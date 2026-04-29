@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { EnvironmentVariables } from '../../../lib/constants';
+import { EnvironmentVariables } from '../../../libs/constants';
 import { Mailer, SendEmailParams } from '../mailer.interface';
 
 @Injectable()

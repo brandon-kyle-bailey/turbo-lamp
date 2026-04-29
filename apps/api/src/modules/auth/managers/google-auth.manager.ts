@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EnvironmentVariables } from '../../../lib/constants';
+import { EnvironmentVariables } from '../../../libs/constants';
 import { AccountsService } from '../../accounts/accounts.service';
 import { Account } from '../../accounts/entities/account.entity';
 import { GoogleTokenService } from '../google-token.service';

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
-import { PROVIDERS, STRATEGIES } from '../lib/constants';
+import { PROVIDERS, STRATEGIES } from '../libs/constants';
 
 @Injectable()
 export class OAuthGuard implements CanActivate {

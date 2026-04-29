@@ -10,7 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { MeetingStatus } from '../../../lib/constants';
+import { MeetingStatus } from '../../../libs/constants';
 import { MeetingAttendee } from '../../meeting-attendees/entities/meeting-attendee.entity';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 
