@@ -124,7 +124,7 @@ export class MeetingParticipantsService {
     if (authState && ParticipantAuthState.AUTHORIZED === authState)
       return result;
     const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
-    const expiresIn = ttl * 1000;
+    const expiresIn = ttl * 1000 * 24 * 7;
     const expiresAt = new Date(Date.now() + expiresIn);
     await this.verificationService.create({
       identifier: this.tokenService.randomHash(),
