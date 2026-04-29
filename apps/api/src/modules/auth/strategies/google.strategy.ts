@@ -75,6 +75,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, PROVIDER) {
       email,
       emailVerified: true,
     });
+    user.calendars = [];
     account = await this.accountService.create({
       userId: user.id,
       accountId: profile.id,

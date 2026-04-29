@@ -3,15 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import {
-  EnvironmentVariables,
-  TOKEN_ALGORITHM,
-  TOKEN_AUDIENCE,
-  TOKEN_ISSUER,
-} from 'src/lib/constants';
 import { AccountsService } from '../../accounts/accounts.service';
 import { Account } from '../../accounts/entities/account.entity';
 import { TokenSchema } from '../token.service';
+import {
+  EnvironmentVariables,
+  TOKEN_ALGORITHM,
+  TOKEN_ISSUER,
+  TOKEN_AUDIENCE,
+} from '../../../lib/constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -48,7 +48,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         user: { id: payload.sub, email: payload.username },
       },
       {
-        user: true,
+        user: { calendars: true },
+        calendars: true,
       },
     );
 

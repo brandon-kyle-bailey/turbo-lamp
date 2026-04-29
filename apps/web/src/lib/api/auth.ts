@@ -1,56 +1,25 @@
-import { toast } from "sonner";
-import { redirect } from "next/navigation";
 import { Login, Profile, Register } from "@/lib/types";
-
-const BASE_URL = "http://localhost:3001/api/core/v1";
+import { serverRequest } from "@/lib/api/client";
+import { loginSchema, registerSchema } from "@/lib/schemas";
+import { cookies } from "next/headers";
 
 export const authApi = {
+  logout: async () => {
+    const cookieStore = await cookies();
+    if (cookieStore.has("session")) cookieStore.delete("session");
+    return;
+  },
   login: async (data: Login) => {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      cache: "no-store",
-      credentials: "include",
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      toast.error("Failed to login user.");
-    }
+    const payload = loginSchema.parse(data);
+    return await serverRequest<Profile>("/auth/login", "POST", payload);
   },
 
   register: async (data: Register) => {
-    const res = await fetch(`${BASE_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      cache: "no-store",
-      credentials: "include",
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      toast.error("Failed to register user.");
-    }
+    const payload = registerSchema.parse(data);
+    return await serverRequest<Profile>("/auth/register", "POST", payload);
   },
 
-  profile: async (token?: string): Promise<Profile> => {
-    const res = await fetch(`${BASE_URL}/users/profile`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-      credentials: "include",
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      redirect("/login");
-    }
-    return await res.json();
+  profile: async () => {
+    return await serverRequest<Profile>("/users/profile", "GET");
   },
 };

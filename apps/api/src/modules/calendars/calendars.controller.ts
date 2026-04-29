@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -11,9 +12,11 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { IdempotencyInterceptor } from '../../interceptors/idempotency.interceptor';
 import { Account } from '../accounts/entities/account.entity';
 import { CalendarsService } from './calendars.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
@@ -24,6 +27,7 @@ import { ExternalCalendarService } from './external-calendar.service';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'calendars', version: '1' })
 export class CalendarsController {
+  private readonly logger: Logger = new Logger(CalendarsController.name);
   constructor(
     private readonly calendarService: CalendarsService,
     private readonly externalCalendarService: ExternalCalendarService,
@@ -80,13 +84,16 @@ export class CalendarsController {
   }
 
   @Post('upsert')
+  @UseInterceptors(IdempotencyInterceptor)
   async upsert(
     @Req() req: Request & { user: Account },
     @Body() createCalendarDto: CreateCalendarDto,
   ) {
     return await this.calendarService.upsert({
       ...createCalendarDto,
+      accountId: req.user.id,
       userId: req.user.userId,
+      createdBy: req.user.userId,
     });
   }
 
@@ -97,7 +104,9 @@ export class CalendarsController {
   ) {
     return await this.calendarService.create({
       ...createCalendarDto,
+      accountId: req.user.id,
       userId: req.user.userId,
+      createdBy: req.user.userId,
     });
   }
 
@@ -109,7 +118,9 @@ export class CalendarsController {
     const promises = createCalendarDto.map((dto) =>
       this.calendarService.upsert({
         ...dto,
+        accountId: req.user.id,
         userId: req.user.userId,
+        createdBy: req.user.userId,
       }),
     );
     return await Promise.all(promises);
@@ -123,7 +134,9 @@ export class CalendarsController {
     const promises = createCalendarDto.map((dto) =>
       this.calendarService.create({
         ...dto,
+        accountId: req.user.id,
         userId: req.user.userId,
+        createdBy: req.user.userId,
       }),
     );
     return await Promise.all(promises);

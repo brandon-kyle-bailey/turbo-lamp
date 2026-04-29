@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
@@ -17,7 +18,9 @@ import {
 } from '../../../lib/constants';
 
 @Entity('meeting_participants')
-@Index(['meetingGroupId', 'email'], { unique: true })
+@Unique(['meetingGroupId', 'email'])
+@Index(['meetingGroupId'])
+@Index(['meetingGroupId', 'userId'])
 export class MeetingParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;

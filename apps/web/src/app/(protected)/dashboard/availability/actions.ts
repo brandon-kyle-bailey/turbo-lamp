@@ -1,23 +1,14 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { availabilitiesApi } from "@/lib/api/availabilities";
-import type { Availability } from "@/lib/types";
+import { availabilitySchema, updateAvailabilitySchema } from "@/lib/schemas";
+import { Availability } from "@/lib/types";
 
-export async function listAvailabilities(): Promise<Availability[]> {
-  return await availabilitiesApi.list();
-}
-
-export async function createAvailability(data: Partial<Availability>) {
-  return await availabilitiesApi.create(data);
-}
-
-export async function updateAvailability(
-  id: string,
-  data: Partial<Availability>,
-) {
-  return await availabilitiesApi.update(id, data);
-}
-
-export async function deleteAvailability(id: string) {
-  return await availabilitiesApi.delete(id);
+export async function updateAvailabilityAction(data: Availability) {
+  const activity = availabilitySchema.parse(data);
+  const payload = updateAvailabilitySchema.parse(data);
+  const result = await availabilitiesApi.update(activity.id!, payload);
+  revalidatePath("/dashboard/availability");
+  return result;
 }

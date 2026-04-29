@@ -34,14 +34,21 @@ export class MeetingGroup {
   )
   participants: MeetingParticipant[];
 
+  @Column({
+    type: 'enum',
+    enum: MeetingGroupStatus,
+    default: MeetingGroupStatus.OPEN,
+  })
+  status: MeetingGroupStatus;
+
   @Column()
-  creatorId: string;
+  authorId: string;
 
   @ManyToOne(() => User, (user) => user.meetingGroups, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'creatorId' })
-  creator: User;
+  @JoinColumn({ name: 'authorId' })
+  author: User;
 
   @Column()
   calendarId: string;
@@ -58,20 +65,20 @@ export class MeetingGroup {
   @Column({ nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ nullable: true })
+  location?: string;
+
+  @Column({ type: 'int' })
   duration: number;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   after: Date;
 
-  @Column()
+  @Column({ type: 'timestamp' })
   before: Date;
 
   @Column()
   timezone: string;
-
-  @Column({ type: 'enum', enum: MeetingGroupStatus })
-  status: MeetingGroupStatus;
 
   @CreateDateColumn()
   createdAt: Date;

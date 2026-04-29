@@ -1,19 +1,52 @@
-import { api } from "./client";
 import type { Availability } from "@/lib/types";
+import { serverRequest } from "@/lib/api/client";
+import {
+  createAvailabilitySchema,
+  updateAvailabilitySchema,
+} from "@/lib/schemas";
 
 export const availabilitiesApi = {
-  get: (id: string) => api.get<Availability>(`/availabilities/${id}`),
+  get: async (id: string) =>
+    await serverRequest<Availability>(`/availabilities/${id}`, "GET"),
 
-  list: () => api.get<Availability[]>("/availabilities"),
+  list: async () =>
+    await serverRequest<Availability[]>(`/availabilities`, "GET"),
 
-  upsert: (data: Partial<Availability>) =>
-    api.post<Availability>("/availabilities/upsert", data),
+  upsert: async (data: Partial<Availability>) => {
+    const payload = createAvailabilitySchema.parse(data);
+    return await serverRequest<Availability>(
+      "/availabilities/upsert",
+      "POST",
+      payload,
+    );
+  },
 
-  create: (data: Partial<Availability>) =>
-    api.post<Availability>("/availabilities", data),
+  batchUpsert: async (data: Partial<Availability>[]) => {
+    return await serverRequest<Availability[]>(
+      "/availabilities/upsert/batch",
+      "POST",
+      data,
+    );
+  },
 
-  update: (id: string, data: Partial<Availability>) =>
-    api.patch<Availability>(`/availabilities/${id}`, data),
+  create: async (data: Partial<Availability>) => {
+    const result = await serverRequest<Availability>(
+      "/availabilities",
+      "POST",
+      data,
+    );
+    return result;
+  },
 
-  delete: (id: string) => api.del<void>(`/availabilities/${id}`),
+  update: async (id: string, data: Partial<Availability>) => {
+    const payload = updateAvailabilitySchema.parse(data);
+    return await serverRequest<Availability>(
+      `/availabilities/${id}`,
+      "PATCH",
+      payload,
+    );
+  },
+
+  delete: async (id: string) =>
+    await serverRequest<void>(`/availabilities/${id}`, "DELETE"),
 };

@@ -11,7 +11,9 @@ export class MeetingAttendeesService {
     @InjectRepository(MeetingAttendee)
     private readonly repository: Repository<MeetingAttendee>,
   ) {}
-  async create(createMeetingAttendeeDto: CreateMeetingAttendeeDto) {
+  async create(
+    createMeetingAttendeeDto: CreateMeetingAttendeeDto & { createdBy: string },
+  ) {
     const meetingAttendee = this.repository.create(createMeetingAttendeeDto);
     return await this.repository.save(meetingAttendee);
   }

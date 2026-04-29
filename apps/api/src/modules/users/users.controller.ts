@@ -2,11 +2,11 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
   Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -39,7 +39,7 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
     if (id !== req.user.userId) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException('Cannot update other user');
     }
     return await this.usersService.update(id, updateUserDto);
   }
@@ -50,7 +50,7 @@ export class UsersController {
     @Param('id') id: string,
   ) {
     if (id !== req.user.userId) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException('Cannot delete other user');
     }
     return await this.usersService.remove(id);
   }

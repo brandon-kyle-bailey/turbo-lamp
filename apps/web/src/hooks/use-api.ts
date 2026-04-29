@@ -40,10 +40,7 @@ export function useApi<TArgs extends unknown[], TResult>(
         let message = "Unknown error";
 
         if (err instanceof ApiError) {
-          message =
-            typeof err.details === "string"
-              ? err.details
-              : `Request failed (${err.status})`;
+          message = err.message || `Request failed (${err.status})`;
         } else if (err instanceof Error) {
           message = err.message;
         }

@@ -1,6 +1,7 @@
 export enum EnvironmentVariables {
   ALLOWED_ORIGINS = 'ALLOWED_ORIGINS',
   DATABASE_URL = 'DATABASE_URL',
+  TYPEORM_SYNCHRONIZE = 'TYPEORM_SYNCHRONIZE',
   REDIS_CACHE_URL = 'REDIS_CACHE_URL',
   REDIS_QUEUE_URL = 'REDIS_QUEUE_URL',
   REDIS_THROTTLE_URL = 'REDIS_THROTTLE_URL',
@@ -48,13 +49,19 @@ export enum MeetingStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FrontendRoutes {
+  ONBOARDING_AUTH = '/onboarding/auth',
+}
+
 export const SANITIZED_ROUTES = {
   dashboard: '/dashboard',
-  onboarding_complete: '/onboarding/complete',
+  onboarding: '/onboarding',
+  invite_complete: '/meeting-participants',
+  meeting_groups: '/dashboard/meeting-groups',
 } as const;
 
 export enum VerificationType {
-  OAUTH_STATE = 'oauth_state',
+  OAUTH_STATE = 'oauthState',
   INVITE = 'invite',
 }
 

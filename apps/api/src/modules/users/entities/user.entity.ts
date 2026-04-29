@@ -42,7 +42,7 @@ export class User {
   @OneToMany(() => Session, (session) => session.user)
   sessions: Session[];
 
-  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.creator)
+  @OneToMany(() => MeetingGroup, (meetingGroup) => meetingGroup.author)
   meetingGroups: MeetingGroup[];
 
   @OneToMany(() => MeetingAttendee, (meetingAttendee) => meetingAttendee.user)

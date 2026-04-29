@@ -1,25 +1,21 @@
-import AvailabilityOverridesClient from "./availability-overrides-client";
 import {
-  listOverrides,
   createOverride,
-  updateOverride,
   deleteOverride,
+  listOverrides,
+  updateOverride,
 } from "./actions";
+import OverridesClient from "./overrides-client";
 
 export default async function Page() {
-  const data = await listOverrides();
-
+  const initialData = await listOverrides();
   return (
-    <div>
-      <AvailabilityOverridesClient
-        initialData={data}
-        actions={{
-          create: createOverride,
-          update: updateOverride,
-          remove: deleteOverride,
-          refresh: listOverrides,
-        }}
-      />
-    </div>
+    <OverridesClient
+      initialData={initialData}
+      actions={{
+        createOverrideAction: createOverride,
+        updateOverrideAction: updateOverride,
+        deleteOverrideAction: deleteOverride,
+      }}
+    />
   );
 }

@@ -1,24 +1,41 @@
-import { api } from "./client";
+import { createCalendarSchema } from "@/lib/schemas";
 import type { Calendar, ExternalCalendar } from "@/lib/types";
+import { serverRequest } from "./client";
 
 export const calendarsApi = {
-  list: () => api.get<Calendar[]>("/calendars"),
+  list: async () => {
+    return await serverRequest<Calendar[]>(`/calendars`, "GET");
+  },
 
-  get: (id: string) => api.get<Calendar>(`/calendars/${id}`),
+  get: async (id: string) =>
+    await serverRequest<Calendar>(`/calendars/${id}`, "GET"),
 
-  create: (data: Partial<Calendar>) => api.post<Calendar>("/calendars", data),
-  upsert: (data: Partial<Calendar>) =>
-    api.post<Calendar>("/calendars/upsert", data),
-  batchCreate: (data: Calendar[]) =>
-    api.post<Calendar[]>("/calendars/batch", data),
+  create: async (data: Partial<Calendar>) => {
+    const payload = createCalendarSchema.parse(data);
+    return await serverRequest<Calendar>("/calendars", "POST", payload);
+  },
 
-  batchUpsert: (data: Calendar[]) =>
-    api.post<Calendar[]>("/calendars/batch/upsert", data),
+  batchUpsert: async (data: Partial<Calendar>[]) => {
+    const payload = data.map((c) => createCalendarSchema.parse(c));
+    return await serverRequest<Calendar[]>(
+      "/calendars/batch/upsert",
+      "POST",
+      payload,
+    );
+  },
 
-  update: (id: string, data: Partial<Calendar>) =>
-    api.put<Calendar>(`/calendars/${id}`, data),
+  upsert: async (data: Partial<Calendar>) => {
+    const payload = createCalendarSchema.parse(data);
+    return await serverRequest<Calendar>("/calendars/upsert", "POST", payload);
+  },
 
-  delete: (id: string) => api.del<void>(`/calendars/${id}`),
+  update: async (id: string, data: Partial<Calendar>) => {
+    return await serverRequest<Calendar>(`/calendars/${id}`, "PATCH", data);
+  },
 
-  getExternal: () => api.get<ExternalCalendar[]>("/calendars/external"),
+  delete: async (id: string) =>
+    await serverRequest<void>(`/calendars/${id}`, "DELETE"),
+
+  listExternal: async () =>
+    await serverRequest<ExternalCalendar[]>("/calendars/external", "GET"),
 };

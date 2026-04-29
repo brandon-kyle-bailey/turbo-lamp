@@ -3,17 +3,19 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { AccountProvider } from '../../../lib/constants';
+import { User } from '../../users/entities/user.entity';
+import { Calendar } from '../../calendars/entities/calendar.entity';
 
 @Entity('accounts')
-@Index(['userId', 'providerId'], { unique: true })
+@Unique(['userId', 'providerId'])
 export class Account {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,6 +31,9 @@ export class Account {
 
   @Column()
   accountId: string;
+
+  @OneToMany(() => Calendar, (calendar) => calendar.account)
+  calendars: Calendar[];
 
   @Column({ type: 'enum', enum: AccountProvider })
   providerId: AccountProvider;

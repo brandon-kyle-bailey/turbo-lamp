@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -22,11 +23,14 @@ import { MeetingParticipantsService } from '../meeting-participants/meeting-part
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { MeetingGroupsService } from './meeting-groups.service';
+import { Logger } from '@nestjs/common';
+import { convertDateToTimezone } from '../../util/helpers/datetimes';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'meeting-groups', version: '1' })
 export class MeetingGroupsController {
+  private readonly logger = new Logger(MeetingGroupsController.name);
   constructor(
     @Inject(MeetingGroupsService)
     private readonly meetingGroupsService: MeetingGroupsService,
@@ -39,9 +43,28 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Body() createMeetingGroupDto: CreateMeetingGroupDto,
   ) {
+    const calendar = req.user.calendars.find(
+      (c) => c.id === createMeetingGroupDto.calendarId,
+    );
+    if (!calendar) {
+      throw new BadRequestException();
+    }
+    const sanitizedAfter = new Date(createMeetingGroupDto.after);
+    const sanitizedBefore = new Date(createMeetingGroupDto.before);
+    const timezonedAfter = convertDateToTimezone(
+      sanitizedAfter,
+      calendar.timezone,
+    );
+    const timezonedBefore = convertDateToTimezone(
+      sanitizedBefore,
+      calendar.timezone,
+    );
     const result = await this.meetingGroupsService.create({
       ...createMeetingGroupDto,
-      creatorId: req.user.userId,
+      after: timezonedAfter,
+      before: timezonedBefore,
+      timezone: calendar.timezone,
+      authorId: req.user.userId,
       createdBy: req.user.userId,
     });
 
@@ -51,8 +74,8 @@ export class MeetingGroupsController {
       email: req.user.user.email,
       userId: req.user.userId,
       required: true,
-      auth_state: ParticipantAuthState.UNAUTHORIZED,
-      invitation_state: ParticipantInvitationState.PENDING,
+      authState: ParticipantAuthState.AUTHORIZED,
+      invitationState: ParticipantInvitationState.ACCEPTED,
     });
 
     return result;
@@ -60,11 +83,16 @@ export class MeetingGroupsController {
 
   @Get()
   async findAll(@Req() req: Request & { user: Account }) {
-    return await this.meetingGroupsService.findAllBy([
-      { creatorId: req.user.userId },
-      { participants: { userId: req.user.userId } },
-      { participants: { email: req.user.user.email } },
-    ]);
+    const result = await this.meetingGroupsService.findAllBy(
+      [
+        { authorId: req.user.userId },
+        { participants: { userId: req.user.userId } },
+      ],
+      {
+        participants: { user: true },
+      },
+    );
+    return result;
   }
 
   @Get(':id')
@@ -72,11 +100,13 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Param('id') id: string,
   ) {
-    return await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
-      { id, participants: { userId: req.user.userId } },
-      { id, participants: { email: req.user.user.email } },
-    ]);
+    const result = await this.meetingGroupsService.findOneBy(
+      { id },
+      {
+        participants: { user: true },
+      },
+    );
+    return result;
   }
 
   @Patch(':id')
@@ -86,7 +116,7 @@ export class MeetingGroupsController {
     @Body() updateMeetingGroupDto: UpdateMeetingGroupDto,
   ) {
     const found = await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
+      { id, authorId: req.user.userId },
     ]);
     if (!found) {
       throw new NotFoundException();
@@ -100,7 +130,7 @@ export class MeetingGroupsController {
     @Param('id') id: string,
   ) {
     const found = await this.meetingGroupsService.findOneBy([
-      { id, creatorId: req.user.userId },
+      { id, authorId: req.user.userId },
     ]);
     if (!found) {
       throw new NotFoundException();

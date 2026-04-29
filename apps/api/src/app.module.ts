@@ -1,17 +1,20 @@
 import KeyvRedis from '@keyv/redis';
-import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+// import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import {
+  // APP_GUARD,
+  APP_INTERCEPTOR,
+} from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+// import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
-import Redis from 'ioredis';
+// import Redis from 'ioredis';
 import Keyv from 'keyv';
 import { UseCacheInterceptor } from './interceptors/cache.interceptor';
 import {
@@ -22,19 +25,19 @@ import {
 } from './lib/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AvailabilitiesModule } from './modules/availabilities/availabilities.module';
+import { AvailabilityOverridesModule } from './modules/availability-overrides/availability-overrides.module';
 import { CalendarsModule } from './modules/calendars/calendars.module';
-import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HealthModule } from './modules/health/health.module';
 import { MeetingAttendeesModule } from './modules/meeting-attendees/meeting-attendees.module';
 import { MeetingGroupsModule } from './modules/meeting-groups/meeting-groups.module';
 import { MeetingParticipantsModule } from './modules/meeting-participants/meeting-participants.module';
 import { MeetingSlotsModule } from './modules/meeting-slots/meeting-slots.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { VerificationsModule } from './modules/verifications/verifications.module';
-import { AvailabilityOverridesModule } from './modules/availability-overrides/availability-overrides.module';
-import { AvailabilitiesModule } from './modules/availabilities/availabilities.module';
 
 @Module({
   imports: [
@@ -56,8 +59,6 @@ import { AvailabilitiesModule } from './modules/availabilities/availabilities.mo
           ),
           synchronize: true,
           autoLoadEntities: true,
-          migrations: [__dirname + '/migrations/*.{js,ts}'],
-          // migrationsRun: true,
           retryAttempts: 10,
           retryDelay: 5000,
         };
@@ -106,29 +107,29 @@ import { AvailabilitiesModule } from './modules/availabilities/availabilities.mo
         };
       },
     }),
-    ThrottlerModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        throttlers: [
-          { name: 'short', ttl: 1_000, limit: 10 },
-          { name: 'medium', ttl: 60_000, limit: 100 },
-          { name: 'long', ttl: 3_600_000, limit: 1000 },
-        ],
-        storage: new ThrottlerStorageRedisService(
-          new Redis(
-            config.get<string>(EnvironmentVariables.REDIS_THROTTLE_URL)!,
-            {
-              connectTimeout: 5_000,
-              commandTimeout: 2_000,
-              maxRetriesPerRequest: 3,
-              retryStrategy: (times) => Math.min(times * 200, 2_000),
-              keepAlive: 10_000,
-              enableOfflineQueue: false,
-            },
-          ),
-        ),
-      }),
-    }),
+    // ThrottlerModule.forRootAsync({
+    //   inject: [ConfigService],
+    //   useFactory: (config: ConfigService) => ({
+    //     throttlers: [
+    //       { name: 'short', ttl: 1_000, limit: 100 },
+    //       { name: 'medium', ttl: 60_000, limit: 1000 },
+    //       { name: 'long', ttl: 3_600_000, limit: 10000 },
+    //     ],
+    //     storage: new ThrottlerStorageRedisService(
+    //       new Redis(
+    //         config.get<string>(EnvironmentVariables.REDIS_THROTTLE_URL)!,
+    //         {
+    //           connectTimeout: 5_000,
+    //           commandTimeout: 2_000,
+    //           maxRetriesPerRequest: 3,
+    //           retryStrategy: (times) => Math.min(times * 200, 2_000),
+    //           keepAlive: 10_000,
+    //           enableOfflineQueue: false,
+    //         },
+    //       ),
+    //     ),
+    //   }),
+    // }),
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -176,10 +177,10 @@ import { AvailabilitiesModule } from './modules/availabilities/availabilities.mo
       provide: APP_INTERCEPTOR,
       useClass: UseCacheInterceptor,
     },
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
   ],
 })
 export class AppModule {}

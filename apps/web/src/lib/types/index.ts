@@ -1,3 +1,10 @@
+export interface WeeklyAvailability {
+  id: string;
+  dayOfWeek: number; // 0-6 (Sunday-Saturday)
+  startTime: string; // HH:mm format
+  endTime: string; // HH:mm format
+  isAvailable: boolean;
+}
 export interface Login {
   username: string;
   password: string;
@@ -13,7 +20,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  emailVerified: string;
+  emailVerified: boolean;
   image?: string;
 }
 
@@ -50,13 +57,13 @@ export interface ExternalCalendar {
 
 // Availability types
 export type DayOfWeek =
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday"
-  | "saturday"
-  | "sunday";
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday"
+  | "Sunday";
 
 export interface TimeBlock {
   start_time: string; // HH:MM
@@ -69,7 +76,7 @@ export interface Availability {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
-  isEnabled: boolean;
+  isAvailable: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,7 +97,7 @@ export type MeetingGroupStatus = "open" | "finalized" | "cancelled";
 
 export interface MeetingGroup {
   id: string;
-  creatorId: string;
+  authorId: string;
   summary: string;
   description?: string;
   location?: string;
@@ -102,6 +109,8 @@ export interface MeetingGroup {
   timezone: string;
   createdAt: string;
   updatedAt: string;
+  participants: MeetingParticipant[];
+  meeting?: Meeting;
 }
 
 export interface CreateMeetingGroupPayload {
@@ -124,7 +133,8 @@ export type ParticipantAuthState =
 
 export interface MeetingParticipant {
   id: string;
-  userId: string;
+  user?: User;
+  userId?: string;
   meetingGroupId: string;
   meetingGroup?: MeetingGroup;
   email: string;

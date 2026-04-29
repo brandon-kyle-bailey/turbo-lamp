@@ -21,7 +21,7 @@ export class MeetingParticipantAuthorizedHandler implements IEventHandler<Meetin
 
     await this.meetingSlotsService.calculate(
       entity.meetingGroupId,
-      meetingGroup.creatorId,
+      meetingGroup.authorId,
     );
   }
 }

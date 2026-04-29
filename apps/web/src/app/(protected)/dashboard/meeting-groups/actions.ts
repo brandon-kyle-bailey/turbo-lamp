@@ -1,23 +1,44 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { meetingGroupsApi } from "@/lib/api/meeting-groups";
-import type { MeetingGroup } from "@/lib/types";
+import {
+  createMeetingGroupSchema,
+  createMeetingParticipantSchema,
+} from "@/lib/schemas";
+import { MeetingGroup, MeetingParticipant } from "@/lib/types";
+import { meetingParticipantsApi } from "../../../../lib/api/meeting-participants";
 
-export async function listMeetingGroups(): Promise<MeetingGroup[]> {
-  return await meetingGroupsApi.list();
+export async function createMeetingGroupAction(data: Partial<MeetingGroup>) {
+  console.log(data);
+  const payload = createMeetingGroupSchema.parse(data);
+  const result = await meetingGroupsApi.create(payload);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
 }
 
-export async function createMeetingGroup(data: Partial<MeetingGroup>) {
-  return await meetingGroupsApi.create(data);
-}
-
-export async function updateMeetingGroup(
+export async function updateMeetingGroupAction(
   id: string,
   data: Partial<MeetingGroup>,
 ) {
-  return await meetingGroupsApi.update(id, data);
+  const payload = createMeetingGroupSchema.parse(data);
+  const result = await meetingGroupsApi.update(id, payload);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
 }
 
-export async function deleteMeetingGroup(id: string) {
-  return await meetingGroupsApi.delete(id);
+export async function deleteMeetingGroupAction(id: string) {
+  const result = await meetingGroupsApi.delete(id);
+  revalidatePath("/dashboard/meeting-groups");
+  return result;
+}
+
+export async function createMeetingGroupParticipantAction(
+  data: Partial<MeetingParticipant>,
+) {
+  const payload = createMeetingParticipantSchema.parse(data);
+  return await meetingParticipantsApi.create({
+    ...payload,
+    userId: payload.userId ?? undefined,
+  });
 }

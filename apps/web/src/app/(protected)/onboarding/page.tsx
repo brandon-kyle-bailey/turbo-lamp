@@ -12,7 +12,7 @@ import {
 export default async function Page() {
   const [externalCalendars, calendars, availabilities, overrides] =
     await Promise.all([
-      calendarsApi.getExternal(),
+      calendarsApi.listExternal(),
       calendarsApi.list(),
       availabilitiesApi.list(),
       availabilityOverridesApi.list(),
@@ -24,9 +24,9 @@ export default async function Page() {
       calendars={calendars}
       availabilities={availabilities}
       overrides={overrides}
-      saveCalendars={saveCalendars}
-      saveAvailabilities={saveAvailabilities}
-      saveAvailabilityOverrides={saveAvailabilityOverrides}
+      saveCalendarsAction={saveCalendars}
+      saveAvailabilitiesAction={saveAvailabilities}
+      saveAvailabilityOverridesAction={saveAvailabilityOverrides}
     />
   );
 }

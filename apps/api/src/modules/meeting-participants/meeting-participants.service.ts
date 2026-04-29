@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +11,7 @@ import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import {
   EnvironmentVariables,
   ParticipantAuthState,
+  ParticipantInvitationState,
   VerificationType,
   VerificationValue,
 } from '../../lib/constants';
@@ -15,6 +21,36 @@ import { MeetingParticipantAuthorizedEvent } from './events/meeting-participant-
 import { CreateMeetingParticipantDto } from './dto/create-meeting-participant.dto';
 import { UpdateMeetingParticipantDto } from './dto/update-meeting-participant.dto';
 import { MeetingParticipant } from './entities/meeting-participant.entity';
+
+const ALLOWED_INVITATION_TRANSITIONS: Record<
+  ParticipantInvitationState,
+  ParticipantInvitationState[]
+> = {
+  [ParticipantInvitationState.PENDING]: [
+    ParticipantInvitationState.ACCEPTED,
+    ParticipantInvitationState.DECLINED,
+  ],
+  [ParticipantInvitationState.ACCEPTED]: [ParticipantInvitationState.DECLINED],
+  [ParticipantInvitationState.DECLINED]: [],
+};
+
+const ALLOWED_AUTH_TRANSITIONS: Record<
+  ParticipantAuthState,
+  ParticipantAuthState[]
+> = {
+  [ParticipantAuthState.UNAUTHORIZED]: [
+    ParticipantAuthState.AUTHORIZED,
+    ParticipantAuthState.NOT_REQUIRED,
+  ],
+  [ParticipantAuthState.AUTHORIZED]: [
+    ParticipantAuthState.UNAUTHORIZED,
+    ParticipantAuthState.NOT_REQUIRED,
+  ],
+  [ParticipantAuthState.NOT_REQUIRED]: [
+    ParticipantAuthState.UNAUTHORIZED,
+    ParticipantAuthState.AUTHORIZED,
+  ],
+};
 
 @Injectable()
 export class MeetingParticipantsService {
@@ -29,21 +65,66 @@ export class MeetingParticipantsService {
     private readonly verificationService: VerificationsService,
     private readonly eventBus: EventBus,
   ) {}
+
+  private validateInvitationStateTransition(
+    current: ParticipantInvitationState,
+    next: ParticipantInvitationState,
+  ): void {
+    const allowed = ALLOWED_INVITATION_TRANSITIONS[current] || [];
+    if (!allowed.includes(next)) {
+      throw new BadRequestException({
+        message: `Invalid invitation state transition from '${current}' to '${next}'`,
+        code: 'INVALID_INVITATION_STATE_TRANSITION',
+        details: {
+          current,
+          next,
+          allowed: allowed.length > 0 ? allowed : 'none',
+        },
+      });
+    }
+  }
+
+  private validateAuthStateTransition(
+    current: ParticipantAuthState,
+    next: ParticipantAuthState,
+  ): void {
+    const allowed = ALLOWED_AUTH_TRANSITIONS[current] || [];
+    if (!allowed.includes(next)) {
+      throw new BadRequestException({
+        message: `Invalid auth state transition from '${current}' to '${next}'`,
+        code: 'INVALID_AUTH_STATE_TRANSITION',
+        details: {
+          current,
+          next,
+          allowed: allowed.length > 0 ? allowed : 'none',
+        },
+      });
+    }
+  }
+
   async create(
     createMeetingParticipantDto: CreateMeetingParticipantDto & {
       createdBy: string;
     },
   ) {
-    const result = await this.repository.save(
-      this.repository.create(createMeetingParticipantDto),
-    );
-    if (
-      createMeetingParticipantDto.auth_state &&
-      ParticipantAuthState.AUTHORIZED === createMeetingParticipantDto.auth_state
-    )
+    const invitationState =
+      createMeetingParticipantDto.invitationState ??
+      ParticipantInvitationState.PENDING;
+    const authState =
+      createMeetingParticipantDto.authState ??
+      ParticipantAuthState.UNAUTHORIZED;
+
+    const entity = this.repository.create({
+      ...createMeetingParticipantDto,
+      invitationState,
+      authState,
+    });
+
+    const result = await this.repository.save(entity);
+    if (authState && ParticipantAuthState.AUTHORIZED === authState)
       return result;
     const ttl = this.configService.get<number>(EnvironmentVariables.TOKEN_TTL)!;
-    const expiresIn = ttl * 1000;
+    const expiresIn = ttl * 1000 * 24 * 7;
     const expiresAt = new Date(Date.now() + expiresIn);
     await this.verificationService.create({
       identifier: this.tokenService.randomHash(),
@@ -52,7 +133,7 @@ export class MeetingParticipantsService {
           type: VerificationType.INVITE,
           id: result.id,
           to: result.email,
-          after: 'onboarding_complete',
+          after: 'invite_complete',
         } as VerificationValue,
         { expiresIn },
       ),
@@ -100,17 +181,44 @@ export class MeetingParticipantsService {
     id: string,
     updateMeetingParticipantDto: UpdateMeetingParticipantDto,
   ) {
-    const updated = await this.repository.update(id, {
+    const existing = await this.findOne(id);
+    if (!existing) {
+      throw new NotFoundException({
+        message: 'MeetingParticipant not found',
+        code: 'NOT_FOUND',
+      });
+    }
+
+    const newInvitationState = updateMeetingParticipantDto.invitationState;
+    const newAuthState = updateMeetingParticipantDto.authState;
+
+    if (newInvitationState) {
+      this.validateInvitationStateTransition(
+        existing.invitationState,
+        newInvitationState,
+      );
+    }
+
+    if (newAuthState) {
+      this.validateAuthStateTransition(existing.authState, newAuthState);
+    }
+
+    const updateData: Partial<MeetingParticipant> = {
       ...updateMeetingParticipantDto,
-    });
+    };
+    if (newInvitationState) {
+      updateData.invitationState = newInvitationState;
+    }
+    if (newAuthState) {
+      updateData.authState = newAuthState;
+    }
+
+    const updated = await this.repository.update(id, updateData);
     if (!updated.affected) {
       throw new NotFoundException();
     }
     const result = await this.findOne(id);
-    if (
-      result &&
-      updateMeetingParticipantDto.auth_state === ParticipantAuthState.AUTHORIZED
-    ) {
+    if (result && newAuthState === ParticipantAuthState.AUTHORIZED) {
       await this.eventBus.publish(
         new MeetingParticipantAuthorizedEvent(result),
       );

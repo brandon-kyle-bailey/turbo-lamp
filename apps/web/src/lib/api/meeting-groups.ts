@@ -1,16 +1,37 @@
-import { api } from "./client";
 import type { MeetingGroup } from "@/lib/types";
+import { serverRequest } from "./client";
+import {
+  createMeetingGroupSchema,
+  updateMeetingGroupSchema,
+} from "@/lib/schemas";
 
 export const meetingGroupsApi = {
-  list: () => api.get<MeetingGroup[]>("/meeting-groups"),
+  list: async () => {
+    return await serverRequest<MeetingGroup[]>(`/meeting-groups`, "GET");
+  },
 
-  get: (id: string) => api.get<MeetingGroup>(`/meeting-groups/${id}`),
+  get: async (id: string) =>
+    await serverRequest<MeetingGroup>(`/meeting-groups/${id}`, "GET"),
 
-  create: (data: Partial<MeetingGroup>) =>
-    api.post<MeetingGroup>("/meeting-groups", data),
+  create: async (data: Partial<MeetingGroup>) => {
+    console.log(data);
+    const payload = createMeetingGroupSchema.parse(data);
+    return await serverRequest<MeetingGroup>(
+      "/meeting-groups",
+      "POST",
+      payload,
+    );
+  },
 
-  update: (id: string, data: Partial<MeetingGroup>) =>
-    api.put<MeetingGroup>(`/meeting-groups/${id}`, data),
+  update: async (id: string, data: Partial<MeetingGroup>) => {
+    const payload = updateMeetingGroupSchema.parse(data);
+    return await serverRequest<MeetingGroup>(
+      `/meeting-groups/${id}`,
+      "PATCH",
+      payload,
+    );
+  },
 
-  delete: (id: string) => api.del<void>(`/meeting-groups/${id}`),
+  delete: async (id: string) =>
+    await serverRequest<void>(`/meeting-groups/${id}`, "DELETE"),
 };

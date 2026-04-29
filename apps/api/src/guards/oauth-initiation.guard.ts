@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,6 +18,7 @@ import { VerificationsService } from '../modules/verifications/verifications.ser
 
 @Injectable()
 export class OAuthInitiationGuard implements CanActivate {
+  private readonly logger: Logger = new Logger(OAuthInitiationGuard.name);
   constructor(
     @Inject(TokenService)
     private readonly tokenService: TokenService,
@@ -42,7 +44,7 @@ export class OAuthInitiationGuard implements CanActivate {
       type: VerificationType.OAUTH_STATE,
       id: '',
       to: '',
-      after: 'dashboard',
+      after: 'meeting_groups',
     };
 
     if (req.query?.token) {

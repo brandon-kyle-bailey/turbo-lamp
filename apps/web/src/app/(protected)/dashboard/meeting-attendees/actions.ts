@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { meetingAttendeesApi } from "@/lib/api/meeting-attendees";
 import type { MeetingAttendee } from "@/lib/types";
 
@@ -8,16 +9,22 @@ export async function listMeetingAttendees(): Promise<MeetingAttendee[]> {
 }
 
 export async function createMeetingAttendees(data: Partial<MeetingAttendee>) {
-  return await meetingAttendeesApi.create(data);
+  const result = await meetingAttendeesApi.create(data);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }
 
 export async function updateMeetingAttendees(
   id: string,
   data: Partial<MeetingAttendee>,
 ) {
-  return await meetingAttendeesApi.update(id, data);
+  const result = await meetingAttendeesApi.update(id, data);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }
 
 export async function deleteMeetingAttendees(id: string) {
-  return await meetingAttendeesApi.delete(id);
+  const result = await meetingAttendeesApi.delete(id);
+  revalidatePath("/dashboard/meeting-attendees");
+  return result;
 }

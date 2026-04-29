@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -11,8 +12,9 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity('availability-overrides')
+@Entity('availability_overrides')
 @Unique(['userId', 'date', 'startTime', 'endTime'])
+@Index(['userId', 'date'])
 export class AvailabilityOverride {
   @PrimaryGeneratedColumn('uuid')
   id: string;

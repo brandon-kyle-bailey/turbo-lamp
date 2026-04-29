@@ -40,7 +40,12 @@ export class CalendarsService {
     });
   }
 
-  async upsert(createCalendarDto: CreateCalendarDto) {
+  async upsert(
+    createCalendarDto: CreateCalendarDto & {
+      accountId: string;
+      createdBy: string;
+    },
+  ) {
     await this.repository.upsert(createCalendarDto, {
       skipUpdateIfNoValuesChanged: true,
       conflictPaths: ['userId', 'externalId', 'providerId'],
@@ -52,7 +57,12 @@ export class CalendarsService {
     });
   }
 
-  async create(createCalendarDto: CreateCalendarDto) {
+  async create(
+    createCalendarDto: CreateCalendarDto & {
+      accountId: string;
+      createdBy: string;
+    },
+  ) {
     return await this.repository.save(
       this.repository.create(createCalendarDto),
     );

@@ -4,6 +4,7 @@ import {
   Get,
   Inject,
   Ip,
+  Logger,
   Post,
   Query,
   Req,
@@ -15,17 +16,21 @@ import {
 import { plainToInstance } from 'class-transformer';
 import type { Request } from 'express';
 import express from 'express';
-import { LocalAuthGuard } from 'src/guards/local-auth.guard';
+import { LocalAuthGuard } from '../../guards/local-auth.guard';
 import { OAuthGuard } from '../../guards/oauth-auth.guard';
 import { OAuthInitiationGuard } from '../../guards/oauth-initiation.guard';
 import { SessionCookieInterceptor } from '../../interceptors/session-cookie.interceptor';
 import {
   AccountProvider,
   CookieKey,
+  EnvironmentVariables,
+  ParticipantAuthState,
+  ParticipantInvitationState,
   SANITIZED_ROUTES,
   VerificationValue,
 } from '../../lib/constants';
 import { Account } from '../accounts/entities/account.entity';
+import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
@@ -33,10 +38,15 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { SessionResponseDto } from './dto/session.response.dto';
 import { TokenService } from './token.service';
+import { OAuthRegisterInitiationGuard } from '../../guards/oauth-register-initiation.guard';
+import { ConfigService } from '@nestjs/config';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
+  private readonly logger: Logger = new Logger(AuthController.name);
   constructor(
+    @Inject(ConfigService)
+    private readonly configService: ConfigService,
     @Inject(AuthService)
     private readonly authService: AuthService,
     @Inject(TokenService)
@@ -45,6 +55,8 @@ export class AuthController {
     private readonly verificationService: VerificationsService,
     @Inject(CookieService)
     private readonly cookieService: CookieService,
+    @Inject(MeetingParticipantsService)
+    private readonly meetingParticipantsService: MeetingParticipantsService,
   ) {}
 
   @UseInterceptors(SessionCookieInterceptor)
@@ -64,8 +76,8 @@ export class AuthController {
     });
   }
 
-  @UseGuards(LocalAuthGuard)
   @UseInterceptors(SessionCookieInterceptor)
+  @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(
     @Req() req: Request,
@@ -90,6 +102,10 @@ export class AuthController {
     });
   }
 
+  @UseGuards(OAuthRegisterInitiationGuard)
+  @Get('oauth/register/:provider')
+  getRegisterProvider() {}
+
   @UseGuards(OAuthInitiationGuard)
   @Get('oauth/:provider')
   getProvider() {}
@@ -108,7 +124,10 @@ export class AuthController {
       throw new UnauthorizedException();
     }
 
-    let redirect: string = SANITIZED_ROUTES.dashboard;
+    let redirect: string =
+      req.user.calendars && req.user.calendars.length > 0
+        ? SANITIZED_ROUTES.meeting_groups
+        : SANITIZED_ROUTES.onboarding;
 
     if (verification.value !== '') {
       const payload = this.tokenService.verify<VerificationValue>(
@@ -117,7 +136,16 @@ export class AuthController {
       const base = SANITIZED_ROUTES[payload.after];
       if (!base) throw new UnauthorizedException();
 
-      redirect = `${base}/${payload.id}`;
+      redirect = `${base}`;
+      // TODO:... abstract to invitation service for better handling?
+      if (base === SANITIZED_ROUTES.invite_complete) {
+        await this.meetingParticipantsService.update(payload.id, {
+          invitationState: ParticipantInvitationState.ACCEPTED,
+          authState: ParticipantAuthState.AUTHORIZED,
+          userId: req.user.userId,
+        });
+        redirect = SANITIZED_ROUTES.onboarding;
+      }
     }
 
     const session = await this.authService.login(req.user, {
@@ -126,6 +154,10 @@ export class AuthController {
     });
 
     this.cookieService.attachCookie(res, CookieKey.SESSION, session.token);
-    res.redirect(`http://localhost:3000${redirect}`);
+
+    const frontendUrl = this.configService.get<string>(
+      EnvironmentVariables.FRONTEND_URL,
+    )!;
+    res.redirect(`${frontendUrl}/${redirect}`);
   }
 }

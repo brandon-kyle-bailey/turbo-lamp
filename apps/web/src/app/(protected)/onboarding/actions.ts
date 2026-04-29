@@ -1,48 +1,66 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { availabilitiesApi } from "@/lib/api/availabilities";
 import { availabilityOverridesApi } from "@/lib/api/availability-overrides";
 import { calendarsApi } from "@/lib/api/calendars";
+import {
+  calendarSchema,
+  createAvailabilityOverrideSchema,
+  createAvailabilitySchema,
+} from "@/lib/schemas";
 import type { Availability, AvailabilityOverride, Calendar } from "@/lib/types";
 
 export async function saveCalendars(data: Calendar[]) {
-  const payload: Calendar[] = data.map(
-    (cal) =>
-      ({
-        providerId: cal.providerId,
-        externalId: cal.externalId,
-        name: cal.name ?? "Calendar",
-        timezone: cal.timezone ?? "America/Halifax",
+  const payload = data.map((calendar) =>
+    calendarSchema
+      .pick({
+        providerId: true,
+        externalId: true,
+        name: true,
+        timezone: true,
         enabled: true,
-      }) as Calendar,
+      })
+      .parse({
+        providerId: calendar.providerId,
+        externalId: calendar.externalId,
+        name: calendar.name ?? "Calendar",
+        timezone: calendar.timezone ?? "America/Halifax",
+        enabled: true,
+      }),
   );
 
-  return await calendarsApi.batchUpsert(payload);
+  const result = await calendarsApi.batchUpsert(payload);
+  revalidatePath("/onboarding");
+  return result;
 }
 
 export async function saveAvailabilities(data: Availability[]) {
-  return await Promise.all(
-    data.map((a) =>
-      availabilitiesApi.upsert({
-        dayOfWeek: a.dayOfWeek,
-        startTime: a.startTime,
-        endTime: a.endTime,
-        isEnabled: a.isEnabled,
-      }),
-    ),
-  );
-}
-export async function saveAvailabilityOverrides(data: AvailabilityOverride[]) {
-  return await Promise.all(
-    data.map((o) => {
-      const result = availabilityOverridesApi.upsert({
-        date: o.date,
-        startTime: o.startTime,
-        endTime: o.endTime,
-        isAvailable: o.isAvailable,
-      });
-      return result;
+  const payload = data.map((d) =>
+    createAvailabilitySchema.parse({
+      dayOfWeek: d.dayOfWeek,
+      startTime: d.startTime,
+      endTime: d.endTime,
+      isAvailable: d.isAvailable,
     }),
   );
+  const result = await availabilitiesApi.batchUpsert(payload);
+  revalidatePath("/onboarding");
+  return result;
+}
+export async function saveAvailabilityOverrides(data: AvailabilityOverride[]) {
+  const payload = data.map((override) =>
+    createAvailabilityOverrideSchema.parse({
+      date: override.date,
+      startTime: override.startTime,
+      endTime: override.endTime,
+      isAvailable: override.isAvailable,
+    }),
+  );
+
+  const result = await Promise.all(
+    payload.map((override) => availabilityOverridesApi.upsert(override)),
+  );
+  revalidatePath("/onboarding");
+  return result;
 }

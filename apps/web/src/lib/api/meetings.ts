@@ -1,15 +1,26 @@
-import { api } from "./client";
 import type { Meeting } from "@/lib/types";
+import { serverRequest } from "./client";
+import { createMeetingSchema, updateMeetingSchema } from "../schemas";
 
 export const meetingsApi = {
-  list: () => api.get<Meeting[]>("/meetings"),
+  list: async () => {
+    return await serverRequest<Meeting[]>(`/meetings`, "GET");
+  },
 
-  get: (id: string) => api.get<Meeting>(`/meetings/${id}`),
+  get: async (id: string) =>
+    await serverRequest<Meeting>(`/meetings/${id}`, "GET"),
 
-  create: (data: Partial<Meeting>) => api.post<Meeting>("/meetings", data),
+  create: async (data: Partial<Meeting>) => {
+    const payload = createMeetingSchema.parse(data);
+    return await serverRequest<Meeting>("/meetings", "POST", payload);
+  },
 
-  update: (id: string, data: Partial<Meeting>) =>
-    api.put<Meeting>(`/meetings/${id}`, data),
+  update: async (id: string, data: Partial<Meeting>) => {
+    const payload = updateMeetingSchema.parse(data);
+    return await serverRequest<Meeting>(`/meetings/${id}`, "PATCH", payload);
+  },
 
-  delete: (id: string) => api.del<void>(`/meetings/${id}`),
+  delete: async (id: string) =>
+    await serverRequest<void>(`/meetings/${id}`, "DELETE"),
 };
+

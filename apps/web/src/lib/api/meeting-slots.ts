@@ -1,14 +1,19 @@
-import { api } from "./client";
 import type { MeetingSlot } from "@/lib/types";
+import { serverRequest } from "./client";
 
 export const meetingSlotsApi = {
-  list: () => api.get<MeetingSlot[]>("/meeting-slots"),
+  list: async (id: string) =>
+    await serverRequest<MeetingSlot[]>(`/meeting-slots/${id}`, "GET"),
 
-  get: (id: string) => api.get<MeetingSlot>(`/meeting-slots/${id}`),
+  calculate: async (meetingGroupId: string) =>
+    await serverRequest<MeetingSlot[]>(
+      `/meeting-slots/${meetingGroupId}/calculate`,
+      "GET",
+    ),
 
-  calculate: (meetingGroupId: string) =>
-    api.get<MeetingSlot[]>(`/meeting-slots/${meetingGroupId}/calculate`),
-
-  getByGroup: (meetingGroupId: string) =>
-    api.get<MeetingSlot[]>(`/meeting-slots?meetingGroupId=${meetingGroupId}`),
+  getByGroup: async (meetingGroupId: string) =>
+    await serverRequest<MeetingSlot[]>(
+      `/meeting-slots?meetingGroupId=${meetingGroupId}`,
+      "GET",
+    ),
 };

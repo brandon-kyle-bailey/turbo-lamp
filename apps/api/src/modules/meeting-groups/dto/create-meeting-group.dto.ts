@@ -13,9 +13,9 @@ import { MeetingGroupStatus } from '../../../lib/constants';
 export class CreateMeetingGroupDto {
   @IsOptional()
   @IsUUID()
-  creatorId?: string;
+  authorId?: string;
 
-  @ApiProperty({ description: 'The ID of the creators calendar.' })
+  @ApiProperty({ description: 'The ID of the authors calendar.' })
   @IsUUID()
   calendarId: string;
 
@@ -27,6 +27,11 @@ export class CreateMeetingGroupDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({ description: 'The location of the meeting group.' })
+  @IsOptional()
+  @IsString()
+  location?: string;
 
   @ApiProperty({
     description: 'The duration (in minutes) of the meeting group.',
@@ -52,8 +57,9 @@ export class CreateMeetingGroupDto {
     description: 'The timezone of the meeting group.',
     default: 'America/Halifax',
   })
+  @IsOptional()
   @IsTimeZone()
-  timezone: string;
+  timezone?: string;
 
   @ApiProperty({
     description: 'The status of the meeting group.',
