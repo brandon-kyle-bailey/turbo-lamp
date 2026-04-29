@@ -8,7 +8,7 @@ import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { MeetingGroup } from './entities/meeting-group.entity';
-import { MeetingGroupStatus } from '../../lib/constants';
+import { MeetingGroupStatus } from '../../libs/constants';
 
 const ALLOWED_STATUS_TRANSITIONS: Record<
   MeetingGroupStatus,

@@ -7,7 +7,7 @@ import {
   TOKEN_ALGORITHM,
   TOKEN_AUDIENCE,
   TOKEN_ISSUER,
-} from '../../lib/constants';
+} from '../../libs/constants';
 import { randomBytes } from 'crypto';
 
 export interface TokenSchema {

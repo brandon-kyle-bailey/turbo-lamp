@@ -11,7 +11,7 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { CalendarProvider } from '../../../lib/constants';
+import { CalendarProvider } from '../../../libs/constants';
 import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity';
 import { User } from '../../users/entities/user.entity';
 import { Account } from '../../accounts/entities/account.entity';

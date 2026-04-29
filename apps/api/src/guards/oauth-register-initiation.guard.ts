@@ -9,10 +9,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import {
   PROVIDERS,
+  SanitizedRoutes,
   STRATEGIES,
   VerificationType,
   VerificationValue,
-} from '../lib/constants';
+} from '../libs/constants';
 import { TokenService } from '../modules/auth/token.service';
 import { VerificationsService } from '../modules/verifications/verifications.service';
 
@@ -46,7 +47,7 @@ export class OAuthRegisterInitiationGuard implements CanActivate {
       type: VerificationType.OAUTH_STATE,
       id: '',
       to: '',
-      after: 'onboarding',
+      after: SanitizedRoutes.ONBOARDING,
     };
 
     if (req.query?.token) {

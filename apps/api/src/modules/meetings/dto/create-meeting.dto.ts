@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MeetingStatus } from '../../../lib/constants';
+import { MeetingStatus } from '../../../libs/constants';
 import { IsDateString, IsEnum, IsUUID } from 'class-validator';
 
 export class CreateMeetingDto {

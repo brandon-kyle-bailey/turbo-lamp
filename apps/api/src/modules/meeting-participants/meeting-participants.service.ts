@@ -12,9 +12,10 @@ import {
   EnvironmentVariables,
   ParticipantAuthState,
   ParticipantInvitationState,
+  SanitizedRoutes,
   VerificationType,
   VerificationValue,
-} from '../../lib/constants';
+} from '../../libs/constants';
 import { TokenService } from '../auth/token.service';
 import { VerificationsService } from '../verifications/verifications.service';
 import { MeetingParticipantAuthorizedEvent } from './events/meeting-participant-authorized.event';
@@ -130,10 +131,10 @@ export class MeetingParticipantsService {
       identifier: this.tokenService.randomHash(),
       value: this.tokenService.sign(
         {
-          type: VerificationType.INVITE,
+          type: VerificationType.MEETING_INVITATION,
           id: result.id,
           to: result.email,
-          after: 'invite_complete',
+          after: SanitizedRoutes.MEETING_INVIATION_ACCEPTED,
         } as VerificationValue,
         { expiresIn },
       ),

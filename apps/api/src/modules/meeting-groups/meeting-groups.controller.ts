@@ -17,14 +17,14 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import {
   ParticipantAuthState,
   ParticipantInvitationState,
-} from '../../lib/constants';
+} from '../../libs/constants';
 import { Account } from '../accounts/entities/account.entity';
 import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
 import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { MeetingGroupsService } from './meeting-groups.service';
 import { Logger } from '@nestjs/common';
-import { convertDateToTimezone } from '../../util/helpers/datetimes';
+import { convertDateToTimezone } from '../../utils/helpers/datetimes';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

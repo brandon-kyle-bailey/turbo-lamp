@@ -22,7 +22,7 @@ import {
   TOKEN_ALGORITHM,
   TOKEN_AUDIENCE,
   TOKEN_ISSUER,
-} from './lib/constants';
+} from './libs/constants';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AvailabilitiesModule } from './modules/availabilities/availabilities.module';

@@ -7,7 +7,7 @@ import {
   IsTimeZone,
   IsUUID,
 } from 'class-validator';
-import { CalendarProvider } from '../../../lib/constants';
+import { CalendarProvider } from '../../../libs/constants';
 
 export class CreateCalendarDto {
   @ApiProperty({

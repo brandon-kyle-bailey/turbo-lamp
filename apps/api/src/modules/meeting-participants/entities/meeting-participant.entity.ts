@@ -15,7 +15,7 @@ import { MeetingGroup } from '../../meeting-groups/entities/meeting-group.entity
 import {
   ParticipantAuthState,
   ParticipantInvitationState,
-} from '../../../lib/constants';
+} from '../../../libs/constants';
 
 @Entity('meeting_participants')
 @Unique(['meetingGroupId', 'email'])

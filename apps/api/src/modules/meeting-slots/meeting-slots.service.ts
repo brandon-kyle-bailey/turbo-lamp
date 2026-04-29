@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
-import { AccountProvider, ParticipantAuthState } from '../../lib/constants';
+import { AccountProvider, ParticipantAuthState } from '../../libs/constants';
 import {
   CalendarEvent,
   ExternalCalendarService,
@@ -12,7 +12,7 @@ import { MeetingGroupsService } from '../meeting-groups/meeting-groups.service';
 import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
 import { UpdateMeetingSlotDto } from './dto/update-meeting-slot.dto';
 import { MeetingSlot } from './entities/meeting-slot.entity';
-import { convertDateToTimezone } from '../../util/helpers/datetimes';
+import { convertDateToTimezone } from '../../utils/helpers/datetimes';
 
 @Injectable()
 export class MeetingSlotsService {

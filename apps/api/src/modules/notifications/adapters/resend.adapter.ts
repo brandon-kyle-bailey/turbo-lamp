@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateEmailOptions, Resend } from 'resend';
-import { EnvironmentVariables } from '../../../lib/constants';
+import { EnvironmentVariables } from '../../../libs/constants';
 import { Mailer, SendEmailParams } from '../mailer.interface';
 
 @Injectable()

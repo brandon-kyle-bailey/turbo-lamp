@@ -51,25 +51,29 @@ export enum MeetingStatus {
 
 export enum FrontendRoutes {
   ONBOARDING_AUTH = '/onboarding/auth',
+  DASHBOARD = '/dashboard',
+  ONBOARDING = '/onboarding',
+  MEETING_PARTICIPANTS = '/meeting-participants',
+  MEETING_GROUPS = '/dashboard/meeting-groups',
 }
 
-export const SANITIZED_ROUTES = {
-  dashboard: '/dashboard',
-  onboarding: '/onboarding',
-  invite_complete: '/meeting-participants',
-  meeting_groups: '/dashboard/meeting-groups',
-} as const;
+export enum SanitizedRoutes {
+  DASHBOARD = FrontendRoutes.DASHBOARD,
+  ONBOARDING = FrontendRoutes.ONBOARDING,
+  MEETING_INVIATION_ACCEPTED = FrontendRoutes.MEETING_PARTICIPANTS,
+  MEETING_GROUPS = FrontendRoutes.MEETING_GROUPS,
+}
 
 export enum VerificationType {
   OAUTH_STATE = 'oauthState',
-  INVITE = 'invite',
+  MEETING_INVITATION = 'meetingInvitation',
 }
 
 export interface VerificationValue {
   type: VerificationType;
   id: string;
   to: string;
-  after: keyof typeof SANITIZED_ROUTES;
+  after: SanitizedRoutes;
 }
 
 export enum ParticipantAuthState {

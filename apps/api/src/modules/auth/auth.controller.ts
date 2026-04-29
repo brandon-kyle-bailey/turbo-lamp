@@ -26,9 +26,9 @@ import {
   EnvironmentVariables,
   ParticipantAuthState,
   ParticipantInvitationState,
-  SANITIZED_ROUTES,
+  SanitizedRoutes,
   VerificationValue,
-} from '../../lib/constants';
+} from '../../libs/constants';
 import { Account } from '../accounts/entities/account.entity';
 import { MeetingParticipantsService } from '../meeting-participants/meeting-participants.service';
 import { VerificationsService } from '../verifications/verifications.service';
@@ -126,25 +126,25 @@ export class AuthController {
 
     let redirect: string =
       req.user.calendars && req.user.calendars.length > 0
-        ? SANITIZED_ROUTES.meeting_groups
-        : SANITIZED_ROUTES.onboarding;
+        ? SanitizedRoutes.MEETING_GROUPS
+        : SanitizedRoutes.ONBOARDING;
 
     if (verification.value !== '') {
       const payload = this.tokenService.verify<VerificationValue>(
         verification.value,
       );
-      const base = SANITIZED_ROUTES[payload.after];
+      const base = payload.after;
       if (!base) throw new UnauthorizedException();
 
       redirect = `${base}`;
       // TODO:... abstract to invitation service for better handling?
-      if (base === SANITIZED_ROUTES.invite_complete) {
+      if (base === SanitizedRoutes.MEETING_INVIATION_ACCEPTED) {
         await this.meetingParticipantsService.update(payload.id, {
           invitationState: ParticipantInvitationState.ACCEPTED,
           authState: ParticipantAuthState.AUTHORIZED,
           userId: req.user.userId,
         });
-        redirect = SANITIZED_ROUTES.onboarding;
+        redirect = SanitizedRoutes.ONBOARDING;
       }
     }
 

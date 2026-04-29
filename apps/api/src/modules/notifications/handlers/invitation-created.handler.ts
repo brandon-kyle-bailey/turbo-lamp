@@ -4,7 +4,7 @@ import {
   EnvironmentVariables,
   VerificationValue,
   FrontendRoutes,
-} from '../../../lib/constants';
+} from '../../../libs/constants';
 import { TokenService } from '../../auth/token.service';
 import { InvitationCreatedEvent } from '../../verifications/events/invitation-created.event';
 import { NotificationsService } from '../notifications.service';
