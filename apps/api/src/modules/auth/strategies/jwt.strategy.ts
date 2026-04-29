@@ -49,6 +49,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
       {
         user: { calendars: true },
+        calendars: true,
       },
     );
 

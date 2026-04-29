@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { GoogleAuthManager } from '../../auth/managers/google-auth.manager';
 import {
@@ -40,6 +40,7 @@ type GoogleCalendarListResponse = {
 
 @Injectable()
 export class GoogleCalendarProvider implements CalendarProvider {
+  private readonly logger: Logger = new Logger(GoogleCalendarProvider.name);
   private readonly baseUrl = 'https://www.googleapis.com/calendar/v3';
 
   constructor(

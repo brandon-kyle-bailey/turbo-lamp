@@ -28,6 +28,11 @@ export class CreateMeetingGroupDto {
   @IsString()
   description?: string;
 
+  @ApiProperty({ description: 'The location of the meeting group.' })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
   @ApiProperty({
     description: 'The duration (in minutes) of the meeting group.',
   })
@@ -52,8 +57,9 @@ export class CreateMeetingGroupDto {
     description: 'The timezone of the meeting group.',
     default: 'America/Halifax',
   })
+  @IsOptional()
   @IsTimeZone()
-  timezone: string;
+  timezone?: string;
 
   @ApiProperty({
     description: 'The status of the meeting group.',

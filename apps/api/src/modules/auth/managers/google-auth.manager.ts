@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from '../../../lib/constants';
 import { AccountsService } from '../../accounts/accounts.service';
@@ -7,6 +7,7 @@ import { GoogleTokenService } from '../google-token.service';
 
 @Injectable()
 export class GoogleAuthManager {
+  private readonly logger: Logger = new Logger(GoogleAuthManager.name);
   constructor(
     private readonly config: ConfigService,
     private readonly accountService: AccountsService,
@@ -27,12 +28,14 @@ export class GoogleAuthManager {
       refreshToken: account.refreshToken!,
     });
 
+    const newExpires = new Date(Date.now() + refreshed.expiresIn * 1000);
     account.accessToken = refreshed.accessToken;
-    account.accessTokenExpiresAt = new Date(
-      Date.now() + refreshed.expiresIn * 1000,
-    );
+    account.accessTokenExpiresAt = newExpires;
 
-    await this.accountService.update(account.id, account);
+    await this.accountService.update(account.id, {
+      accessToken: refreshed.accessToken,
+      accessTokenExpiresAt: newExpires,
+    });
 
     return account.accessToken;
   }

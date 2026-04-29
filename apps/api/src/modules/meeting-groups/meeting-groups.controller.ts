@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,6 +24,7 @@ import { CreateMeetingGroupDto } from './dto/create-meeting-group.dto';
 import { UpdateMeetingGroupDto } from './dto/update-meeting-group.dto';
 import { MeetingGroupsService } from './meeting-groups.service';
 import { Logger } from '@nestjs/common';
+import { convertDateToTimezone } from '../../util/helpers/datetimes';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -41,11 +43,38 @@ export class MeetingGroupsController {
     @Req() req: Request & { user: Account },
     @Body() createMeetingGroupDto: CreateMeetingGroupDto,
   ) {
+    const calendar = req.user.calendars.find(
+      (c) => c.id === createMeetingGroupDto.calendarId,
+    );
+    if (!calendar) {
+      throw new BadRequestException();
+    }
+    const sanitizedAfter = new Date(createMeetingGroupDto.after);
+    const sanitizedBefore = new Date(createMeetingGroupDto.before);
+    const timezonedAfter = convertDateToTimezone(
+      sanitizedAfter,
+      calendar.timezone,
+    );
+    const timezonedBefore = convertDateToTimezone(
+      sanitizedBefore,
+      calendar.timezone,
+    );
+    this.logger.debug('creating meeting group', {
+      ...createMeetingGroupDto,
+      sanitizedAfter,
+      sanitizedBefore,
+      timezonedAfter,
+      timezonedBefore,
+    });
     const result = await this.meetingGroupsService.create({
       ...createMeetingGroupDto,
+      after: timezonedAfter,
+      before: timezonedBefore,
+      timezone: calendar.timezone,
       authorId: req.user.userId,
       createdBy: req.user.userId,
     });
+    this.logger.debug('result', result);
 
     await this.meetingParticipantService.create({
       createdBy: req.user.userId,

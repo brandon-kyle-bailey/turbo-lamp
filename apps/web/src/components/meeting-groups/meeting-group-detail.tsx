@@ -240,11 +240,9 @@ export function MeetingGroupDetail({
               <div className="flex items-start gap-2 text-muted-foreground">
                 <CalendarDays className="h-4 w-4 mt-0.5" />
                 <div>
-                  <div>
-                    {format(parseISO(group.after), "MMM d, yyyy h:mm a")}
-                  </div>
+                  <div>{format(group.after, "MMM d, yyyy h:mm a")}</div>
                   <div className="text-xs">
-                    to {format(parseISO(group.before), "MMM d, yyyy h:mm a")}
+                    to {format(group.before, "MMM d, yyyy h:mm a")}
                   </div>
                 </div>
               </div>

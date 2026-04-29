@@ -40,8 +40,9 @@ export function CalendarEntry({
   const [checked, setChecked] = useState<boolean>(calendar.enabled);
 
   const handleOnCheckedChange = async (id: string) => {
-    setChecked(!checked);
-    return await toggleCalendarEnabledAction(id, { enabled: checked });
+    const newChecked = !checked;
+    setChecked(newChecked);
+    return await toggleCalendarEnabledAction(id, { enabled: newChecked });
   };
   return (
     <div className="flex items-center justify-between rounded-lg border p-3">
@@ -95,7 +96,7 @@ export function AddCalendarDialog({
         </DialogHeader>
 
         <Card>
-          <CardContent>
+          <CardContent className="flex flex-col gap-2">
             {externalCalendars.map((c) => {
               const checked = calendars.some(
                 (cal) => c.calendarId === cal.externalId,
@@ -105,7 +106,7 @@ export function AddCalendarDialog({
                   key={c.calendarId}
                   htmlFor={`cal-${c.calendarId}`}
                   className={cn(
-                    "flex cursor-pointer items-center justify-between rounded-lg border p-3.5 transition-colors duration-150",
+                    "flex cursor-pointer items-center justify-between rounded-lg border p-2 transition-colors duration-150",
                     checked
                       ? "border-primary/40 bg-primary/5"
                       : "border-border hover:border-muted-foreground/40 hover:bg-muted/30",

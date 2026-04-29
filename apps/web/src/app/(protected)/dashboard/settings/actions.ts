@@ -13,5 +13,6 @@ export async function toggleCalendarAction(
   id: string,
   data: Partial<Calendar>,
 ) {
+  console.log(id, data);
   return await calendarsApi.update(id, data);
 }

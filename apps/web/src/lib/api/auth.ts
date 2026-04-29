@@ -1,8 +1,14 @@
 import { Login, Profile, Register } from "@/lib/types";
 import { serverRequest } from "@/lib/api/client";
 import { loginSchema, registerSchema } from "@/lib/schemas";
+import { cookies } from "next/headers";
 
 export const authApi = {
+  logout: async () => {
+    const cookieStore = await cookies();
+    if (cookieStore.has("session")) cookieStore.delete("session");
+    return;
+  },
   login: async (data: Login) => {
     const payload = loginSchema.parse(data);
     return await serverRequest<Profile>("/auth/login", "POST", payload);

@@ -12,6 +12,7 @@ import { MeetingGroupsService } from '../meeting-groups/meeting-groups.service';
 import { CreateMeetingSlotDto } from './dto/create-meeting-slot.dto';
 import { UpdateMeetingSlotDto } from './dto/update-meeting-slot.dto';
 import { MeetingSlot } from './entities/meeting-slot.entity';
+import { convertDateToTimezone } from '../../util/helpers/datetimes';
 
 @Injectable()
 export class MeetingSlotsService {
@@ -61,7 +62,7 @@ export class MeetingSlotsService {
       (participant) => ({
         availabilities: participant.user.availabilities,
         overrides: participant.user.availabilityOverrides,
-        timezone: participant.user.calendars[0].timezone || 'UTC',
+        timezone: participant.user.calendars[0]?.timezone || 'UTC',
       }),
     );
 
@@ -394,14 +395,16 @@ export class MeetingSlotsService {
     this.logger.debug('override found', override);
 
     if (override) {
-      const [startH, startM] = override.startTime.split(':').map(Number);
-      const availabilityStart = new Date(
-        new Date(dayStart).setHours(startH, startM),
-      ).getTime();
-      const [endH, endM] = override.endTime.split(':').map(Number);
-      const availabilityEnd = new Date(
-        new Date(dayStart).setHours(endH, endM),
-      ).getTime();
+      const availabilityStart = this.convertLocalTimeToUtc(
+        dayStart,
+        override.startTime,
+        timezone,
+      );
+      const availabilityEnd = this.convertLocalTimeToUtc(
+        dayStart,
+        override.endTime,
+        timezone,
+      );
 
       if (override.isAvailable) {
         return [{ start: availabilityStart, end: availabilityEnd }];
@@ -421,14 +424,16 @@ export class MeetingSlotsService {
     const blocked: { start: number; end: number }[] = [];
 
     for (const avail of dayAvailabilities) {
-      const [startH, startM] = avail.startTime.split(':').map(Number);
-      const availabilityStart = new Date(
-        new Date(dayStart).setHours(startH, startM),
-      ).getTime();
-      const [endH, endM] = avail.endTime.split(':').map(Number);
-      const availabilityEnd = new Date(
-        new Date(dayStart).setHours(endH, endM),
-      ).getTime();
+      const availabilityStart = this.convertLocalTimeToUtc(
+        dayStart,
+        avail.startTime,
+        timezone,
+      );
+      const availabilityEnd = this.convertLocalTimeToUtc(
+        dayStart,
+        avail.endTime,
+        timezone,
+      );
 
       if (avail.isAvailable) {
         available.push({ start: availabilityStart, end: availabilityEnd });
@@ -527,5 +532,23 @@ export class MeetingSlotsService {
     }
 
     return result;
+  }
+
+  private convertLocalTimeToUtc(
+    dayStart: number,
+    time: string,
+    timezone: string,
+  ): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    const testDate = new Date(dayStart);
+    testDate.setUTCHours(hours, minutes, 0, 0);
+
+    const dateInZone = convertDateToTimezone(testDate, timezone);
+    const zoneOffsetMinutes =
+      dateInZone.getHours() * 60 +
+      dateInZone.getMinutes() -
+      (hours * 60 + minutes);
+
+    return testDate.getTime() - zoneOffsetMinutes * 60000;
   }
 }

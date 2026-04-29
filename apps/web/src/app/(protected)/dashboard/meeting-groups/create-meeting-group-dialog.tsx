@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { z } from "zod";
-import { Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "next/navigation";
+import { Switch } from "@/components/ui/switch";
 import { Calendar, MeetingGroup, MeetingParticipant } from "@/lib/types";
+import { Plus, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
+import { meetingGroupSchema } from "../../../../lib/schemas";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -39,41 +40,26 @@ const DURATIONS = [
   { value: "120", label: "2 hours" },
 ];
 
-const TIMEZONES = [
-  { value: "America/Halifax", label: "Atlantic Time (Halifax)" },
-  { value: "America/New_York", label: "Eastern Time (New York)" },
-  { value: "America/Chicago", label: "Central Time (Chicago)" },
-  { value: "America/Denver", label: "Mountain Time (Denver)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (LA)" },
-  { value: "UTC", label: "UTC" },
-  { value: "Europe/London", label: "London" },
-  { value: "Europe/Paris", label: "Paris" },
-  { value: "Asia/Tokyo", label: "Tokyo" },
-];
-
 const today = new Date().toISOString().split("T")[0];
-const oneWeek = new Date(Date.now() + 7 * 86_400_000)
-  .toISOString()
-  .split("T")[0];
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
-const meetingGroupSchema = z
-  .object({
-    summary: z.string().min(1, "Summary is required"),
-    description: z.string().min(1, "Description is required"),
-    duration: z.number().min(15, "Minimum duration is 15 minutes"),
-    after: z.string().min(1, "Start date is required"),
-    before: z.string().min(1, "End date is required"),
-    timezone: z.string().min(1, "Timezone is required"),
-    calendarId: z.string().min(1, "Please select a calendar"),
-  })
-  .refine((d) => new Date(d.before) >= new Date(d.after), {
-    message: '"To" date must be on or after the "From" date',
-    path: ["before"],
-  });
+// const meetingGroupSchema = z
+//   .object({
+//     summary: z.string().min(1, "Summary is required"),
+//     description: z.string().min(1, "Description is required"),
+//     duration: z.number().min(15, "Minimum duration is 15 minutes"),
+//     location: z.string().nullable(),
+//     after: z.string().min(1, "Start date is required"),
+//     before: z.string().min(1, "End date is required"),
+//     calendarId: z.string().min(1, "Please select a calendar"),
+//   })
+//   .refine((d) => new Date(d.before) > new Date(d.after), {
+//     message: '"To" date must be on or after the "From" date',
+//     path: ["before"],
+//   });
 
-const emailSchema = z.string().email("Invalid email address");
+const emailSchema = z.email("Invalid email address");
 
 type FormData = z.input<typeof meetingGroupSchema>;
 type FormErrors = Partial<Record<keyof FormData | "root", string>>;
@@ -90,10 +76,9 @@ function defaultForm(calendars: Calendar[]): FormData {
     summary: "",
     description: "",
     duration: 60,
+    location: "",
     after: today,
-    before: oneWeek,
-    timezone:
-      Intl.DateTimeFormat().resolvedOptions().timeZone ?? "America/Halifax",
+    before: today,
     calendarId: calendars[0]?.id ?? "",
   };
 }
@@ -106,7 +91,7 @@ export function CreateGroupDialog({
   setIsDialogOpenAction,
   handleSubmitAction,
   createMeetingGroupParticipantAction,
-  onSuccess,
+  onSuccessAction: onSuccess,
 }: {
   calendars: Calendar[];
   isDialogOpen: boolean;
@@ -115,7 +100,7 @@ export function CreateGroupDialog({
   createMeetingGroupParticipantAction: (
     data: Partial<MeetingParticipant>,
   ) => Promise<MeetingParticipant>;
-  onSuccess?: () => void;
+  onSuccessAction?: () => void;
 }) {
   const router = useRouter();
   const [form, setForm] = useState<FormData>(() => defaultForm(calendars));
@@ -184,6 +169,8 @@ export function CreateGroupDialog({
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
+    form.after = new Date(form.after).toISOString();
+    form.before = new Date(form.before).toISOString();
     const result = meetingGroupSchema.safeParse(form);
 
     if (!result.success) {
@@ -206,10 +193,10 @@ export function CreateGroupDialog({
         summary: result.data.summary,
         description: result.data.description,
         duration: result.data.duration,
+        location: result.data.location,
         after: new Date(result.data.after).toISOString(),
         before: new Date(result.data.before).toISOString(),
         calendarId: result.data.calendarId,
-        timezone: result.data.timezone,
         status: "open",
         participants: [],
         createdAt: now,
@@ -251,7 +238,7 @@ export function CreateGroupDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-full flex flex-col">
         <DialogHeader>
           <DialogTitle>Create Meeting Group</DialogTitle>
           <DialogDescription>
@@ -262,7 +249,7 @@ export function CreateGroupDialog({
         <div className="space-y-4 py-4">
           {/* Summary */}
           <div className="space-y-2">
-            <Label htmlFor="summary">Summary</Label>
+            <Label htmlFor="summary">Title</Label>
             <Input
               id="summary"
               placeholder="e.g. Team sync, 1-on-1 with manager"
@@ -275,10 +262,10 @@ export function CreateGroupDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="summary">Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
               id="description"
-              placeholder="e.g. Team sync, 1-on-1 with manager"
+              placeholder="e.g. Meeting to chat about personal progress within the team."
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
             />
@@ -287,37 +274,83 @@ export function CreateGroupDialog({
             )}
           </div>
 
-          {/* Duration */}
           <div className="space-y-2">
-            <Label>Duration</Label>
-            <Select
-              value={String(form.duration)}
-              onValueChange={(v) => handleChange("duration", Number(v))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select duration" />
-              </SelectTrigger>
-              <SelectContent>
-                {DURATIONS.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.duration && (
-              <p className="text-xs text-destructive">{errors.duration}</p>
+            <Label htmlFor="location">
+              Location <Badge variant={"outline"}>Not Required</Badge>
+            </Label>
+            <Input
+              id="location"
+              type="text"
+              placeholder="e.g. 55 San Andreas Ave."
+              value={form.location}
+              onChange={(e) => handleChange("location", e.target.value)}
+            />
+            {errors.description && (
+              <p className="text-xs text-destructive">{errors.description}</p>
             )}
           </div>
 
+          <div className="flex justify-between">
+            {/* Calendar */}
+            <div className="space-y-2">
+              <Label>Calendar</Label>
+              <Select
+                value={form.calendarId}
+                onValueChange={(v) => handleChange("calendarId", v)}
+                disabled={calendars.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a calendar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {calendars.map((cal) => (
+                    <SelectItem key={cal.id} value={cal.id}>
+                      {cal.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {calendars.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No calendars available.
+                </p>
+              )}
+              {errors.calendarId && (
+                <p className="text-xs text-destructive">{errors.calendarId}</p>
+              )}
+            </div>
+
+            {/* Duration */}
+            <div className="space-y-2">
+              <Label>Duration</Label>
+              <Select
+                value={String(form.duration)}
+                onValueChange={(v) => handleChange("duration", Number(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATIONS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.duration && (
+                <p className="text-xs text-destructive">{errors.duration}</p>
+              )}
+            </div>
+          </div>
+
           {/* Date range */}
-          <div className="flex items-start gap-3">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="after">From</Label>
+          <div className="flex flex-col md:flex-row items-start gap-3 w-full">
+            <div className="flex-1 space-y-2 w-1/2">
+              <Label htmlFor="after">After</Label>
               <Input
                 id="after"
-                type="date"
-                value={form.after}
+                type="datetime-local"
                 min={today}
                 onChange={(e) => handleChange("after", e.target.value)}
               />
@@ -325,12 +358,11 @@ export function CreateGroupDialog({
                 <p className="text-xs text-destructive">{errors.after}</p>
               )}
             </div>
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="before">To</Label>
+            <div className="flex-1 space-y-2 w-1/2">
+              <Label htmlFor="before">Before</Label>
               <Input
                 id="before"
-                type="date"
-                value={form.before}
+                type="datetime-local"
                 min={form.after}
                 onChange={(e) => handleChange("before", e.target.value)}
               />
@@ -338,58 +370,6 @@ export function CreateGroupDialog({
                 <p className="text-xs text-destructive">{errors.before}</p>
               )}
             </div>
-          </div>
-
-          {/* Timezone */}
-          <div className="space-y-2">
-            <Label>Timezone</Label>
-            <Select
-              value={form.timezone}
-              onValueChange={(v) => handleChange("timezone", v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                {TIMEZONES.map((tz) => (
-                  <SelectItem key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.timezone && (
-              <p className="text-xs text-destructive">{errors.timezone}</p>
-            )}
-          </div>
-
-          {/* Calendar */}
-          <div className="space-y-2">
-            <Label>Calendar</Label>
-            <Select
-              value={form.calendarId}
-              onValueChange={(v) => handleChange("calendarId", v)}
-              disabled={calendars.length === 0}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a calendar" />
-              </SelectTrigger>
-              <SelectContent>
-                {calendars.map((cal) => (
-                  <SelectItem key={cal.id} value={cal.id}>
-                    {cal.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {calendars.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                No calendars available.
-              </p>
-            )}
-            {errors.calendarId && (
-              <p className="text-xs text-destructive">{errors.calendarId}</p>
-            )}
           </div>
 
           <Separator />

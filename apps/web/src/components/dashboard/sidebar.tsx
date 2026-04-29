@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import {
-  Calendar,
   CalendarClock,
   ChevronUp,
   Clock,
@@ -14,6 +12,7 @@ import {
   User2,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -40,8 +39,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useProfile } from "@/lib/providers/profile-provider";
-import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { usePathname, useRouter } from "next/navigation";
 
 type NavItem = {
   title: string;
@@ -51,7 +50,11 @@ type NavItem = {
   badge?: number;
 };
 
-export function AppSidebar() {
+type Actions = {
+  logoutAction: () => Promise<void>;
+};
+
+export function AppSidebar({ actions }: { actions: Actions }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useProfile();
@@ -109,7 +112,7 @@ export function AppSidebar() {
 
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await actions.logoutAction();
     } catch {}
     router.push("/login");
   }

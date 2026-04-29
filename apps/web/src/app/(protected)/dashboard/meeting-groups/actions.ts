@@ -10,6 +10,7 @@ import { MeetingGroup, MeetingParticipant } from "@/lib/types";
 import { meetingParticipantsApi } from "../../../../lib/api/meeting-participants";
 
 export async function createMeetingGroupAction(data: Partial<MeetingGroup>) {
+  console.log(data);
   const payload = createMeetingGroupSchema.parse(data);
   const result = await meetingGroupsApi.create(payload);
   revalidatePath("/dashboard/meeting-groups");

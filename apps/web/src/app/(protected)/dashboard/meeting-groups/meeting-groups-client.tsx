@@ -30,6 +30,20 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CreateGroupDialog } from "./create-meeting-group-dialog";
 
+type Actions = {
+  createMeetingGroupAction: (
+    data: Partial<MeetingGroup>,
+  ) => Promise<MeetingGroup>;
+  updateMeetingGroupAction: (
+    id: string,
+    data: Partial<MeetingGroup>,
+  ) => Promise<MeetingGroup>;
+  deleteMeetingGroupAction: (id: string) => Promise<void>;
+  createMeetingGroupParticipantAction: (
+    data: Partial<MeetingParticipant>,
+  ) => Promise<MeetingParticipant>;
+};
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
     month: "short",
@@ -55,7 +69,10 @@ export default function MeetingGroupsClient({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    setMeetingGroups(initialData);
+    async function process() {
+      setMeetingGroups(initialData);
+    }
+    process();
   }, [initialData, refreshKey]);
 
   const filteredGroups = searchQuery
@@ -86,7 +103,7 @@ export default function MeetingGroupsClient({
           createMeetingGroupParticipantAction={
             actions.createMeetingGroupParticipantAction
           }
-          onSuccess={() => {
+          onSuccessAction={() => {
             setRefreshKey((k) => k + 1);
             router.refresh();
           }}
@@ -109,7 +126,7 @@ export default function MeetingGroupsClient({
               createMeetingGroupParticipantAction={
                 actions.createMeetingGroupParticipantAction
               }
-              onSuccess={() => {
+              onSuccessAction={() => {
                 setRefreshKey((k) => k + 1);
                 router.refresh();
               }}
@@ -202,6 +219,7 @@ export default function MeetingGroupsClient({
                     )}
                   </div>
                   <Badge
+                    className="p-2 rounded-md"
                     variant={
                       group.status === "finalized"
                         ? "secondary"

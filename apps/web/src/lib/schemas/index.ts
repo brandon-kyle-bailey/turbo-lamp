@@ -100,7 +100,7 @@ export const meetingGroupSchema = z
     before: isoDateTimeSchema,
     calendarId: z.uuid(),
     status: meetingGroupStatusSchema.optional(),
-    timezone: z.string().min(1),
+    timezone: z.string().optional(),
     createdAt: isoDateTimeSchema.optional(),
     updatedAt: isoDateTimeSchema.optional(),
   })
@@ -180,6 +180,7 @@ export const createMeetingGroupSchema = z
   .object(meetingGroupSchema.shape)
   .omit({
     id: true,
+    timezone: true,
     creatorId: true,
     createdAt: true,
     updatedAt: true,

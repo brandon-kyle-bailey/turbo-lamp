@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -26,6 +27,7 @@ import { ExternalCalendarService } from './external-calendar.service';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'calendars', version: '1' })
 export class CalendarsController {
+  private readonly logger: Logger = new Logger(CalendarsController.name);
   constructor(
     private readonly calendarService: CalendarsService,
     private readonly externalCalendarService: ExternalCalendarService,

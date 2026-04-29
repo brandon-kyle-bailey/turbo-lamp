@@ -14,6 +14,7 @@ export const meetingGroupsApi = {
     await serverRequest<MeetingGroup>(`/meeting-groups/${id}`, "GET"),
 
   create: async (data: Partial<MeetingGroup>) => {
+    console.log(data);
     const payload = createMeetingGroupSchema.parse(data);
     return await serverRequest<MeetingGroup>(
       "/meeting-groups",
@@ -34,4 +35,3 @@ export const meetingGroupsApi = {
   delete: async (id: string) =>
     await serverRequest<void>(`/meeting-groups/${id}`, "DELETE"),
 };
-

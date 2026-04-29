@@ -10,6 +10,7 @@ import { Header } from "@/components/dashboard/header";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
+import { logoutAction } from "./actions";
 
 interface ProtectedLayoutProps {
   children: ReactNode;
@@ -41,7 +42,7 @@ export default async function ProtectedLayout({
   return (
     <ProfileProvider profile={profile}>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar actions={{ logoutAction: logoutAction }} />
         <SidebarTrigger />
         <SidebarInset className="p-6 space-y-6">
           <Header />
